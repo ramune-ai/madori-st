@@ -1,24 +1,897 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>間取り放題 パズル版</title>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_35.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>間取りすと</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./puzzle_files/css2" rel="stylesheet">
+<script src="./puzzle_files/phaser.min.js.ダウンロード"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:#f0ece6;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Meiryo',sans-serif;}
-h1{font-size:22px;letter-spacing:.15em;margin-bottom:10px;font-weight:400;color:#5a4e42;}
-#hint{font-size:11px;color:#9a8878;margin-top:8px;text-align:center;line-height:1.8;}
+
+:root{
+  --cream:#f5f0e8;
+  --warm:#e8ddd0;
+  --brown:#5a4a3a;
+  --brown-light:#8a7060;
+  --brown-dark:#3a2a1a;
+  --accent:#c8a060;
+  --accent-light:#e8c880;
+  --green:#6a8a50;
+  --blue:#5080a8;
+}
+
+body{
+  background:var(--cream);
+  font-family:'Noto Sans JP',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── 共通画面フレーム ─── */
+.screen{
+  display:none;
+  min-height:100vh;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+.screen.active{display:flex;}
+
+/* ─── ① スタート画面 ─── */
+#screen-start{
+  background:var(--cream);
+  position:relative;
+  overflow:hidden;
+}
+#screen-start::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(200,160,96,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 20%, rgba(106,138,80,0.08) 0%, transparent 60%);
+  pointer-events:none;
+}
+
+.logo-wrap{
+  text-align:center;
+  margin-bottom:48px;
+  animation: fadeDown 0.8s ease both;
+}
+.logo-icon{
+  font-size:56px;
+  display:block;
+  margin-bottom:8px;
+  filter:drop-shadow(0 4px 12px rgba(90,74,58,0.15));
+}
+.logo-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:38px;
+  font-weight:700;
+  color:var(--brown-dark);
+  letter-spacing:0.15em;
+  line-height:1;
+}
+.logo-sub{
+  font-size:12px;
+  color:var(--brown-light);
+  letter-spacing:0.3em;
+  margin-top:8px;
+}
+
+.btn-start{
+  display:block;
+  background:var(--brown-dark);
+  color:#f5f0e8;
+  font-family:'Noto Serif JP',serif;
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:0.2em;
+  padding:22px 80px;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  transition:all 0.2s;
+  box-shadow:0 6px 24px rgba(58,42,26,0.25);
+  animation: fadeUp 0.8s 0.2s ease both;
+  position:relative;
+  overflow:hidden;
+}
+.btn-start::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,0);
+  transition:background 0.2s;
+}
+.btn-start:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 32px rgba(58,42,26,0.32);
+}
+.btn-start:hover::after{background:rgba(255,255,255,0.06);}
+.btn-start:active{transform:translateY(0);}
+
+.start-sub-btns{
+  display:flex;
+  gap:24px;
+  margin-top:36px;
+  animation: fadeUp 0.8s 0.4s ease both;
+}
+.btn-sub{
+  background:none;
+  border:1px solid rgba(90,74,58,0.3);
+  color:var(--brown-light);
+  font-size:12px;
+  letter-spacing:0.15em;
+  padding:10px 24px;
+  border-radius:3px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-sub:hover{
+  border-color:var(--brown-light);
+  color:var(--brown);
+  background:rgba(90,74,58,0.05);
+}
+
+/* ─── ゲーム画面 ─── */
+#screen-game{
+  justify-content:center;
+  align-items:center;
+  padding:16px 0;
+}
+#game-container{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+}
+#game-container canvas{
+  display:block;
+  margin:0 auto;
+}
+#hint{font-size:11px;color:#9a8878;margin:8px 0 4px;text-align:center;line-height:1.8;}
+
+/* 右下ボタン */
+#game-sub-btns{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  z-index:50;
+}
+#game-sub-btns.active{display:flex;}
+.btn-game-sub{
+  background:none;
+  border:1px solid rgba(90,74,58,0.3);
+  color:var(--brown-light);
+  font-size:11px;
+  letter-spacing:0.12em;
+  padding:8px 16px;
+  border-radius:3px;
+  cursor:pointer;
+  transition:all 0.2s;
+  backdrop-filter:blur(4px);
+  background:rgba(245,240,232,0.85);
+}
+.btn-game-sub:hover{
+  border-color:var(--brown-light);
+  color:var(--brown);
+  background:rgba(245,240,232,0.98);
+}
+
+/* ─── ③ ルーレット画面 ─── */
+#screen-roulette{
+  background:var(--cream);
+}
+.roulette-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:20px;
+  color:var(--brown-dark);
+  letter-spacing:0.15em;
+  margin-bottom:32px;
+  text-align:center;
+}
+.roulette-item{
+  width:340px;
+  background:#fff;
+  border:1px solid rgba(90,74,58,0.15);
+  border-radius:8px;
+  padding:20px 28px;
+  margin-bottom:16px;
+  cursor:pointer;
+  transition:all 0.25s;
+  position:relative;
+  overflow:hidden;
+}
+.roulette-item.locked{
+  cursor:default;
+  border-color:var(--accent);
+  background:linear-gradient(135deg,#fffbf5,#fff8ec);
+}
+.roulette-item-label{
+  font-size:11px;
+  letter-spacing:0.2em;
+  color:var(--brown-light);
+  margin-bottom:6px;
+}
+.roulette-item-value{
+  font-family:'Noto Serif JP',serif;
+  font-size:28px;
+  font-weight:700;
+  color:var(--brown-dark);
+  transition:all 0.1s;
+}
+.roulette-item-value.spinning{
+  animation:spin 0.08s linear infinite;
+  color:var(--brown-light);
+}
+.roulette-item .tap-hint{
+  position:absolute;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:11px;
+  color:var(--brown-light);
+  opacity:0.6;
+}
+.roulette-item.locked .tap-hint{display:none;}
+.roulette-item.locked::after{
+  content:'✓ 確定';
+  position:absolute;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:0.1em;
+}
+.roulette-item:not(.locked):hover{
+  border-color:var(--brown-light);
+  transform:translateX(4px);
+}
+.btn-roulette-next{
+  margin-top:24px;
+  background:var(--brown-dark);
+  color:#f5f0e8;
+  font-size:15px;
+  letter-spacing:0.2em;
+  padding:16px 56px;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  transition:all 0.2s;
+  opacity:0;
+  pointer-events:none;
+}
+.btn-roulette-next.visible{
+  opacity:1;
+  pointer-events:auto;
+}
+.btn-roulette-next:hover{transform:translateY(-2px);}
+
+/* ─── ④ 称号・結果画面 ─── */
+#screen-result{
+  background:var(--cream);
+}
+.result-wrap{
+  text-align:center;
+  max-width:400px;
+  width:100%;
+}
+.result-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:14px;
+  letter-spacing:0.3em;
+  color:var(--brown-light);
+  margin-bottom:24px;
+}
+.result-property-card{
+  background:#fff;
+  border:1px solid rgba(90,74,58,0.12);
+  border-radius:12px;
+  padding:28px 32px;
+  margin-bottom:28px;
+  box-shadow:0 4px 20px rgba(90,74,58,0.08);
+}
+.result-property-name{
+  font-family:'Noto Serif JP',serif;
+  font-size:13px;
+  color:var(--brown-light);
+  letter-spacing:0.2em;
+  margin-bottom:4px;
+}
+.result-stats{
+  display:flex;
+  justify-content:center;
+  gap:24px;
+  margin-top:16px;
+}
+.result-stat{
+  text-align:center;
+}
+.result-stat-label{
+  font-size:10px;
+  color:var(--brown-light);
+  letter-spacing:0.15em;
+  margin-bottom:4px;
+}
+.result-stat-value{
+  font-family:'Noto Serif JP',serif;
+  font-size:22px;
+  font-weight:700;
+  color:var(--brown-dark);
+}
+.result-stat-unit{
+  font-size:11px;
+  color:var(--brown-light);
+  margin-left:2px;
+}
+
+.result-divider{
+  border:none;
+  border-top:1px solid rgba(90,74,58,0.1);
+  margin:24px 0;
+}
+
+.result-title-section{
+  margin-bottom:28px;
+}
+.result-title-label{
+  font-size:11px;
+  letter-spacing:0.25em;
+  color:var(--brown-light);
+  margin-bottom:12px;
+}
+.result-title-badge{
+  display:inline-block;
+  background:var(--brown-dark);
+  color:#f5f0e8;
+  font-family:'Noto Serif JP',serif;
+  font-size:18px;
+  letter-spacing:0.15em;
+  padding:10px 32px;
+  border-radius:4px;
+}
+.result-title-badge.new::before{
+  content:'NEW！ ';
+  font-size:11px;
+  color:var(--accent-light);
+  vertical-align:middle;
+}
+
+.result-comment{
+  font-size:13px;
+  color:var(--brown);
+  line-height:1.8;
+  margin-bottom:24px;
+  min-height:44px;
+}
+
+.result-btns{
+  display:flex;
+  gap:16px;
+  justify-content:center;
+  margin-top:8px;
+}
+.btn-result{
+  flex:1;
+  max-width:160px;
+  padding:14px 0;
+  border-radius:4px;
+  font-size:14px;
+  letter-spacing:0.15em;
+  cursor:pointer;
+  transition:all 0.2s;
+  border:none;
+}
+.btn-result.primary{
+  background:var(--brown-dark);
+  color:#f5f0e8;
+}
+.btn-result.secondary{
+  background:none;
+  border:1px solid rgba(90,74,58,0.3);
+  color:var(--brown-light);
+}
+.btn-result:hover{transform:translateY(-2px);}
+
+/* ─── モーダル（保存一覧・称号一覧） ─── */
+.modal-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(58,42,26,0.6);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+}
+.modal-overlay.active{display:flex;}
+.modal-box{
+  background:var(--cream);
+  border-radius:12px;
+  padding:32px;
+  width:90%;
+  max-width:400px;
+  max-height:70vh;
+  overflow-y:auto;
+}
+.modal-title{
+  font-family:'Noto Serif JP',serif;
+  font-size:18px;
+  color:var(--brown-dark);
+  margin-bottom:20px;
+  letter-spacing:0.1em;
+}
+.modal-close{
+  float:right;
+  background:none;
+  border:none;
+  font-size:20px;
+  color:var(--brown-light);
+  cursor:pointer;
+  margin-top:-4px;
+}
+.modal-empty{
+  font-size:13px;
+  color:var(--brown-light);
+  text-align:center;
+  padding:24px 0;
+  line-height:2;
+}
+
+/* ─── ゲーム完成点滅ボタン ─── */
+#btn-complete-overlay{
+  display:none;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:20;
+  pointer-events:auto;
+}
+#btn-complete-overlay.visible{display:block;}
+#btn-complete-overlay button{
+  background:rgba(58,42,26,0.88);
+  color:#f5f0e8;
+  font-family:'Noto Serif JP',serif;
+  font-size:20px;
+  letter-spacing:0.2em;
+  padding:20px 56px;
+  border:2px solid rgba(200,160,96,0.6);
+  border-radius:6px;
+  cursor:pointer;
+  animation:gentlePulse 2s ease-in-out infinite;
+  backdrop-filter:blur(2px);
+}
+#btn-complete-overlay button:hover{
+  background:rgba(58,42,26,1);
+  animation:none;
+  transform:scale(1.04);
+  transition:transform 0.15s;
+}
+#screen-game{position:relative;}
+
+/* ─── 間取り背景（③④用） ─── */
+.madori-bg{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transition:opacity 0.6s ease;
+}
+.madori-bg.visible{opacity:1;}
+.madori-bg canvas{
+  max-width:80vw;
+  max-height:80vh;
+  opacity:0.10;
+  filter:blur(1px) sepia(0.3);
+  border-radius:8px;
+}
+#screen-roulette, #screen-result{
+  position:relative;
+  z-index:1;
+}
+
+/* ─── アニメーション ─── */
+@keyframes fadeDown{
+  from{opacity:0;transform:translateY(-20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes spin{
+  0%{opacity:1;}50%{opacity:0.4;}100%{opacity:1;}
+}
+@keyframes popIn{
+  0%{transform:scale(0.8);opacity:0;}
+  70%{transform:scale(1.05);}
+  100%{transform:scale(1);opacity:1;}
+}
+@keyframes gentlePulse{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,160,96,0);}
+  50%{opacity:0.75;box-shadow:0 0 20px 6px rgba(200,160,96,0.25);}
+}
+.pop-in{animation:popIn 0.4s ease both;}
 </style>
 </head>
 <body>
-<h1>間取り放題 <span style="font-size:14px;color:#9a8878;">パズル版</span></h1>
-<div id="game-container"></div>
-<div id="hint">クリックで配置 ｜ ↑/Z 回転 ｜ H ホールド ｜ U アンドゥ ｜ 完成ボタンで評価</div>
+
+<!-- ① スタート画面 -->
+<div id="screen-start" class="screen active">
+  <div class="logo-wrap">
+    <span class="logo-icon">🏠</span>
+    <div class="logo-title">間取りすと</div>
+    <div class="logo-sub">MADORI-ST</div>
+  </div>
+  <button class="btn-start" onclick="gotoGame()">は じ め る</button>
+  <div class="start-sub-btns">
+    <button class="btn-sub" onclick="openModal(&#39;saves&#39;)">間取り保存一覧</button>
+    <button class="btn-sub" onclick="openModal(&#39;titles&#39;)">称号一覧</button>
+  </div>
+</div>
+
+<!-- ② ゲーム画面 -->
+<div id="screen-game" class="screen">
+  <div id="game-container"></div>
+  <div id="btn-complete-overlay">
+    <button onclick="onCompleteBtn()">完　成</button>
+  </div>
+  <div id="hint">矢印キー 移動（長押し加速）　／　Space・Enter 配置　／　X 回転右　／　Z 回転左　／　Ctrl+Z 戻す　／　C・Shift ホールド</div>
+</div>
+
+<!-- ゲーム中右下ボタン -->
+<div id="game-sub-btns" style="display:none;position:fixed;bottom:20px;right:20px;flex-direction:column;gap:8px;z-index:9999;">
+  <button class="btn-game-sub" onclick="gotoGame()">リトライ</button>
+  <button class="btn-game-sub" onclick="gotoStart()">スタートへ戻る</button>
+</div>
+
+<!-- 間取り背景（③④で使いまわす） -->
+<div class="madori-bg" id="madori-bg"></div>
+
+<!-- ③ ルーレット画面 -->
+<div id="screen-roulette" class="screen">
+  <div class="roulette-title">物件情報を引いてみよう</div>
+
+  <!-- 築年数 -->
+  <div class="roulette-item" id="rou-0" onclick="lockRoulette(0)">
+    <div class="roulette-item-label">築 年 数</div>
+    <div class="roulette-item-value" id="rou-val-0">---</div>
+    <span class="tap-hint">タップで確定</span>
+  </div>
+
+  <!-- 駅徒歩 -->
+  <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
+    <div class="roulette-item-label">駅 徒 歩</div>
+    <div class="roulette-item-value" id="rou-val-1">---</div>
+    <span class="tap-hint">タップで確定</span>
+  </div>
+
+  <!-- 家賃 -->
+  <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
+    <div class="roulette-item-label">家 賃</div>
+    <div class="roulette-item-value" id="rou-val-2">---</div>
+    <span class="tap-hint">タップで確定</span>
+  </div>
+
+  <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoResult()">称号を見る →</button>
+</div>
+
+<!-- ④ 結果・称号画面 -->
+<div id="screen-result" class="screen">
+  <div class="result-wrap">
+    <div class="result-title">間 取 り 結 果</div>
+
+    <!-- 物件カード -->
+    <div class="result-property-card pop-in">
+      <div class="result-property-name" id="res-room-label">3LDK</div>
+      <div class="result-stats">
+        <div class="result-stat">
+          <div class="result-stat-label">築年数</div>
+          <div class="result-stat-value" id="res-age">--<span class="result-stat-unit">年</span></div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-label">駅徒歩</div>
+          <div class="result-stat-value" id="res-walk">--<span class="result-stat-unit">分</span></div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat-label">家賃</div>
+          <div class="result-stat-value" id="res-rent">--<span class="result-stat-unit">万円</span></div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="result-divider">
+
+    <!-- 称号 -->
+    <div class="result-title-section">
+      <div class="result-title-label">獲 得 称 号</div>
+      <div class="result-title-badge new pop-in" id="res-title-badge">---</div>
+    </div>
+
+    <!-- コメント -->
+    <div class="result-comment" id="res-comment"></div>
+
+    <!-- ボタン -->
+    <div class="result-btns">
+      <button class="btn-result primary" onclick="gotoGame()">もう一度</button>
+      <button class="btn-result secondary" onclick="gotoStart()">戻 る</button>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+
 <script>
-// ─────────────────────────────────────
-// SVGテクスチャ（落ち物版と同じbase64）
-// ─────────────────────────────────────
+// ────────────────────────────────────────
+// 画面管理
+// ────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const subBtns=document.getElementById('game-sub-btns');
+  if(subBtns) subBtns.style.display=(id==='screen-game')?'flex':'none';
+}
+
+// 間取り背景スナップショット保存
+let madoriSnapshot=null;
+
+function captureMadoriSnapshot(){
+  const canvas=document.querySelector('#game-container canvas');
+  if(!canvas)return;
+  // Phaserのcanvasをそのままクローンして背景用に保存
+  const clone=document.createElement('canvas');
+  clone.width=canvas.width;
+  clone.height=canvas.height;
+  clone.getContext('2d').drawImage(canvas,0,0);
+  madoriSnapshot=clone;
+}
+
+function showMadoriBg(visible){
+  const bg=document.getElementById('madori-bg');
+  if(visible&&madoriSnapshot){
+    bg.innerHTML='';
+    bg.appendChild(madoriSnapshot.cloneNode());
+    // cloneNodeはcanvasの描画内容を引き継がないので再描画
+    const c=bg.querySelector('canvas');
+    c.width=madoriSnapshot.width;
+    c.height=madoriSnapshot.height;
+    c.getContext('2d').drawImage(madoriSnapshot,0,0);
+    requestAnimationFrame(()=>bg.classList.add('visible'));
+  }else{
+    bg.classList.remove('visible');
+    setTimeout(()=>{bg.innerHTML='';},600);
+  }
+}
+
+let gameStarted=false;
+let gameScene=null;
+
+function gotoStart(){
+  showMadoriBg(false);
+  showScreen('screen-start');
+}
+
+function gotoGame(){
+  showMadoriBg(false);
+  showScreen('screen-game');
+  document.getElementById('btn-complete-overlay').classList.remove('visible');
+  // 右下ボタンを確実に表示
+  const subBtns=document.getElementById('game-sub-btns');
+  if(subBtns) subBtns.style.display='flex';
+  if(!gameStarted){
+    gameStarted=true;
+    startPhaserGame();
+  }else if(gameScene){
+    gameScene.scene.restart();
+  }
+}
+
+function onCompleteBtn(){
+  if(!gameScene)return;
+  captureMadoriSnapshot();
+  gameScene.fillEmptyAsStorage();
+  // スナップショットは収納描画後に再取得
+  setTimeout(()=>{
+    captureMadoriSnapshot();
+    gotoRoulette(gameScene);
+  },100);
+}
+
+function gotoRoulette(sceneRef){
+  gameScene=sceneRef;
+  showMadoriBg(true);
+  showScreen('screen-roulette');
+  startRoulette();
+}
+
+function gotoResult(){
+  showMadoriBg(true);
+  showScreen('screen-result');
+  showResult();
+}
+
+// ────────────────────────────────────────
+// モーダル
+// ────────────────────────────────────────
+function openModal(type){
+  const overlay=document.getElementById('modal-overlay');
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  if(type==='saves'){
+    title.textContent='間取り保存一覧';
+    body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に保存できます。</div>';
+  }else{
+    const titles=JSON.parse(localStorage.getItem('madori-titles')||'[]');
+    title.textContent='称号一覧';
+    if(titles.length===0){
+      body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
+    }else{
+      body.innerHTML=titles.map(t=>`<div style="padding:10px 0;border-bottom:1px solid rgba(90,74,58,0.1);font-family:'Noto Serif JP',serif;color:var(--brown-dark)">${t}</div>`).join('');
+    }
+  }
+  overlay.classList.add('active');
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('modal-overlay')){
+    document.getElementById('modal-overlay').classList.remove('active');
+  }
+}
+
+// ────────────────────────────────────────
+// ルーレット
+// ────────────────────────────────────────
+const ROULETTE_POOLS={
+  age: [0,1,2,3,4,5,10,15,20,25,30,35,40,45,50],
+  walk:[1,2,3,4,5,7,10,12,15,20,30,40,50],
+  rent:[4,5,6,7,8,9,10,12,15,18,20,25,30,35,40,50,75,100]
+};
+const rouletteKeys=['age','walk','rent'];
+const rouletteLocked=[false,false,false];
+const rouletteValues=[null,null,null];
+const rouletteUnits=['年','分','万円'];
+let rouletteIntervals=[null,null,null];
+let lockedCount=0;
+
+function startRoulette(){
+  lockedCount=0;
+  for(let i=0;i<3;i++){
+    rouletteLocked[i]=false;
+    rouletteValues[i]=null;
+    document.getElementById('rou-'+i).classList.remove('locked');
+    document.getElementById('rou-val-'+i).classList.add('spinning');
+  }
+  document.getElementById('btn-rou-next').classList.remove('visible');
+  spinAll();
+}
+
+function spinAll(){
+  for(let i=0;i<3;i++){
+    if(rouletteLocked[i])continue;
+    if(rouletteIntervals[i])clearInterval(rouletteIntervals[i]);
+    rouletteIntervals[i]=setInterval(()=>{
+      const pool=ROULETTE_POOLS[rouletteKeys[i]];
+      const v=pool[Math.floor(Math.random()*pool.length)];
+      document.getElementById('rou-val-'+i).textContent=v+rouletteUnits[i];
+    },80);
+  }
+}
+
+function lockRoulette(idx){
+  if(rouletteLocked[idx])return;
+  // 前のが未確定なら先に確定させる
+  for(let i=0;i<idx;i++){
+    if(!rouletteLocked[i])return;
+  }
+  clearInterval(rouletteIntervals[idx]);
+  const pool=ROULETTE_POOLS[rouletteKeys[idx]];
+  const val=pool[Math.floor(Math.random()*pool.length)];
+  rouletteValues[idx]=val;
+  rouletteLocked[idx]=true;
+  document.getElementById('rou-val-'+idx).textContent=val+rouletteUnits[idx];
+  document.getElementById('rou-val-'+idx).classList.remove('spinning');
+  document.getElementById('rou-'+idx).classList.add('locked');
+  lockedCount++;
+  if(lockedCount===3){
+    document.getElementById('btn-rou-next').classList.add('visible');
+  }
+}
+
+// ────────────────────────────────────────
+// 称号・結果生成
+// ────────────────────────────────────────
+function generateTitle(age,walk,rent,roomTypes){
+  const has=t=>roomTypes.has(t);
+  // 物件条件系
+  if(age<=5&&walk<=5&&rent<=8) return{title:'掘り出し物件の達人',comment:'新しくて駅近で安い！そんな夢の物件を作り上げました。',isNew:true};
+  if(age>=40) return{title:'レトロ愛好家',comment:'年季の入った物件に味わいを感じる。そんな間取りすとです。',isNew:true};
+  if(walk<=3) return{title:'駅前派',comment:'徒歩3分以内！毎日の通勤が楽になりそうです。',isNew:true};
+  if(walk>=30) return{title:'静寂の探求者',comment:'駅から離れた場所でこそ感じられる、静かな暮らしがあります。',isNew:true};
+  if(rent>=50) return{title:'高級志向',comment:'良いものには相応の対価を。上質な暮らしを追求した間取りです。',isNew:true};
+  if(rent<=6&&walk<=10) return{title:'コスパ王',comment:'リーズナブルな家賃で駅近を確保。生活力の高い間取りすとです。',isNew:true};
+  // 間取り内容系
+  if(has('washitsu')&&has('youshitsu')) return{title:'和洋折衷の使い手',comment:'和室と洋室を組み合わせた、センス溢れる間取りです。',isNew:true};
+  if(has('wic')) return{title:'収納マニア',comment:'WICを完備！整理整頓が行き届いた暮らしが目に浮かびます。',isNew:true};
+  if(has('balcony')) return{title:'採光重視派',comment:'バルコニーで光と風を取り込む。気持ちの良い間取りです。',isNew:true};
+  if(!has('bath')&&!has('toilet')) return{title:'謎の間取りすと',comment:'お風呂もトイレもない…？独自の美学を持つ間取りすとです。',isNew:true};
+  // デフォルト
+  return{title:'間取りすと見習い',comment:'はじめての一歩！経験を積んで素敵な間取りを目指そう。',isNew:false};
+}
+
+function countRoomLabel(roomTypes,counts){
+  const r=(counts['youshitsu']||0)+(counts['washitsu']||0);
+  const k=(counts['kitchen']||0);
+  const ldk=k>0?'LDK':'K';
+  if(r===0)return ldk;
+  if(r===1)return `1${ldk}`;
+  if(r===2)return `2${ldk}`;
+  return `${r}${ldk}`;
+}
+
+function showResult(){
+  const age=rouletteValues[0]??'--';
+  const walk=rouletteValues[1]??'--';
+  const rent=rouletteValues[2]??'--';
+
+  document.getElementById('res-age').innerHTML=age+'<span class="result-stat-unit">年</span>';
+  document.getElementById('res-walk').innerHTML=walk+'<span class="result-stat-unit">分</span>';
+  document.getElementById('res-rent').innerHTML=rent+'<span class="result-stat-unit">万円</span>';
+
+  // 間取り集計（gameSceneから）
+  const roomTypes=new Set();
+  const counts={};
+  if(gameScene&&gameScene.grid){
+    for(let r=0;r<gameScene.grid.length;r++){
+      for(let c=0;c<gameScene.grid[r].length;c++){
+        const cell=gameScene.grid[r][c];
+        if(cell&&!cell.fixed){
+          roomTypes.add(cell.type);
+          counts[cell.type]=(counts[cell.type]||0)+1;
+        }
+      }
+    }
+  }
+
+  const label=countRoomLabel(roomTypes,counts);
+  document.getElementById('res-room-label').textContent=label;
+
+  const {title,comment,isNew}=generateTitle(age,walk,rent,roomTypes);
+  const badge=document.getElementById('res-title-badge');
+  badge.textContent=title;
+  badge.className='result-title-badge pop-in'+(isNew?' new':'');
+  document.getElementById('res-comment').textContent=comment;
+
+  // 称号保存
+  const saved=JSON.parse(localStorage.getItem('madori-titles')||'[]');
+  if(!saved.includes(title)){
+    saved.unshift(title);
+    localStorage.setItem('madori-titles',JSON.stringify(saved));
+  }
+}
+
+
+// ────────────────────────────────────────
+// SVGテクスチャ
+// ────────────────────────────────────────
 const SVG_TEX = {
   youshitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjY2ZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIwIiAgd2lkdGg9IjQ2IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NmUiLz4KPHJlY3QgeD0iNDYiIHk9IjAiICB3aWR0aD0iMzgiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2MiIvPgo8cmVjdCB4PSI4NCIgeT0iMCIgIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2VhNDcwIi8+CjxyZWN0IHg9IjAiICB5PSI4IiAgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGEwNmEiLz4KPHJlY3QgeD0iMzAiIHk9IjgiICB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2M0OWE2MCIvPgo8cmVjdCB4PSI4MCIgeT0iOCIgIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNDZjIi8+CjxyZWN0IHg9IjAiICB5PSIxNiIgd2lkdGg9IjM4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjODllNjQiLz4KPHJlY3QgeD0iMzgiIHk9IjE2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI4MiIgeT0iMTYiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzI5ODYwIi8+CjxyZWN0IHg9IjAiICB5PSIyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NiIvPgo8cmVjdCB4PSI2OCIgeT0iMjQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIzMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjIiLz4KPHJlY3QgeD0iMzYiIHk9IjMyIiB3aWR0aD0iNDYiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI4MiIgeT0iMzIiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMDZhIi8+CjxyZWN0IHg9IjAiICB5PSI0MCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMmE2NmUiLz4KPHJlY3QgeD0iNTIiIHk9IjQwIiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M2OWM2NiIvPgo8cmVjdCB4PSI4MiIgeT0iNDAiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhYTcyIi8+CjxyZWN0IHg9IjAiICB5PSI0OCIgd2lkdGg9IjI2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjAiLz4KPHJlY3QgeD0iMjYiIHk9IjQ4IiB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI2NiIgeT0iNDgiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSI1NiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NzAiLz4KPHJlY3QgeD0iNDQiIHk9IjU2IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI4MCIgeT0iNTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcyIi8+CjxyZWN0IHg9IjAiICB5PSI2NCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMzAiIHk9IjY0IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTY2ZSIvPgo8cmVjdCB4PSI2NiIgeT0iNjQiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY0Ii8+CjxyZWN0IHg9IjAiICB5PSI3MiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iNDgiIHk9IjcyIiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2MyOTg2MCIvPgo8cmVjdCB4PSI4NCIgeT0iNzIiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI4MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EwNmEiLz4KPHJlY3QgeD0iMjIiIHk9IjgwIiB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI3MiIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxyZWN0IHg9IjAiICB5PSI4OCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGE0NmMiLz4KPHJlY3QgeD0iNDAiIHk9Ijg4IiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI3MCIgeT0iODgiIHdpZHRoPSI1MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI5NiIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iMzAiIHk9Ijk2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2Q0YTg3MCIvPgo8cmVjdCB4PSI3NCIgeT0iOTYiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSIxMDQiIHdpZHRoPSI0NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY2Ii8+CjxyZWN0IHg9IjQ0IiB5PSIxMDQiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjgwIiB5PSIxMDQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzg5ZTY0Ii8+CjxyZWN0IHg9IjAiICB5PSIxMTIiIHdpZHRoPSIzMiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjMyIiB5PSIxMTIiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNjZlIi8+CjxyZWN0IHg9Ijc4IiB5PSIxMTIiIHdpZHRoPSI0MiIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxsaW5lIHgxPSIwIiB5MT0iOCIgICB4Mj0iMTIwIiB5Mj0iOCIgICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxNiIgIHgyPSIxMjAiIHkyPSIxNiIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjI0IiAgeDI9IjEyMCIgeTI9IjI0IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMzIiICB4Mj0iMTIwIiB5Mj0iMzIiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgIHgyPSIxMjAiIHkyPSI0MCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjQ4IiAgeDI9IjEyMCIgeTI9IjQ4IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iNTYiICB4Mj0iMTIwIiB5Mj0iNTYiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI2NCIgIHgyPSIxMjAiIHkyPSI2NCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjcyIiAgeDI9IjEyMCIgeTI9IjcyIiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iODAiICB4Mj0iMTIwIiB5Mj0iODAiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI4OCIgIHgyPSIxMjAiIHkyPSI4OCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9Ijk2IiAgeDI9IjEyMCIgeTI9Ijk2IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMTA0IiB4Mj0iMTIwIiB5Mj0iMTA0IiBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxMTIiIHgyPSIxMjAiIHkyPSIxMTIiIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2E1MDIwIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
   roka:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZThlMGQ0Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA5MDcwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+",
@@ -31,9 +904,6 @@ const SVG_TEX = {
   genkan:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRDRBODcwIi8+CjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSI3NCIgaGVpZ2h0PSI3NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTg2ODMwIiBzdHJva2Utd2lkdGg9IjMiLz4KPGxpbmUgeDE9IjMiIHkxPSI0MCIgeDI9Ijc3IiB5Mj0iNDAiIHN0cm9rZT0iIzk4NjgzMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHRleHQgeD0iNDAiIHk9IjI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEzIiBmaWxsPSIjNjA0MDEwIiBmb250LWZhbWlseT0iTWVpcnlvLHNhbnMtc2VyaWYiPuebruWuqTwvdGV4dD4KPC9zdmc+"
 };
 
-// ─────────────────────────────────────
-// パーツ定義
-// ─────────────────────────────────────
 const PARTS_DEF=[
   {name:'洋室8畳', w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳', type:'youshitsu'},
   {name:'和室8畳', w:3,h:3,color:0xC8D8A0,label:'和室\n8畳', type:'washitsu'},
@@ -42,8 +912,7 @@ const PARTS_DEF=[
   {name:'キッチン', w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen'},
   {name:'トイレ',   w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳', type:'toilet'},
   {name:'お風呂',   w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳', type:'bath'},
-  {name:'収納(CL)', w:1,h:2,color:0xD4B896,label:'収納\n2畳', type:'storage'},
-  {name:'収納(WIC)',w:2,h:2,color:0xD4B896,label:'WIC\n4畳', type:'wic'},
+
   {name:'バルコニー',w:4,h:1,color:0xFFE566,label:'バルコニー',type:'balcony'},
 ];
 
@@ -67,52 +936,38 @@ function svgToCanvas(dataUrl){
   });
 }
 
-// ─────────────────────────────────────
-// 定数
-// ─────────────────────────────────────
 const CS=40, COLS=9, ROWS=10;
-const UI_L=160, UI_R=160; // 左右UIパネル幅
+const UI_L=0, UI_R=180;
 const GX=UI_L, GY=0;
-const CANVAS_W=UI_L+COLS*CS+UI_R, CANVAS_H=ROWS*CS+50;
+const CANVAS_W=COLS*CS+UI_R, CANVAS_H=ROWS*CS;
 const GENKAN_COLOR=0xD4A870;
 
-// ─────────────────────────────────────
-// Phaser シーン
-// ─────────────────────────────────────
 class PuzzleGame extends Phaser.Scene{
   constructor(){super('PuzzleGame');}
-
   sx(c){return GX+c*CS;}
   sy(r){return GY+r*CS;}
 
   create(){
+    this._storageGfx=null;
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
     this.boardImgs={};
     this.boardLabels=[];
     this.partCount=0;
-    this.undoStack=[];   // アンドゥ用スタック
-
-    // 現在手パーツ
+    this.undoStack=[];
     this.currentDef=null;
     this.rotation=0;
-    this.hoverC=-1;this.hoverR=-1;
-
-    // ホールド
+    this.curC=Math.floor(COLS/2);
+    this.curR=0;
     this.holdDef=null;
     this.holdUsed=false;
-
-    // 次のパーツキュー（3個先まで表示）
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
-
     this.bgGfx=this.add.graphics().setDepth(0);
     this.gridGfx=this.add.graphics().setDepth(1);
     this.previewGfx=this.add.graphics().setDepth(4);
     this.previewImg=null;
-
     this.drawBg();
     this.placeGenkan();
-
     const entries=Object.entries(SVG_TEX);
     Promise.all(entries.map(([k,v])=>svgToCanvas(v).then(cv=>{
       if(cv&&!this.textures.exists(k))this.textures.addCanvas(k,cv);
@@ -121,34 +976,59 @@ class PuzzleGame extends Phaser.Scene{
       this.nextPiece();
       this.drawUI();
     });
+    const K=Phaser.Input.Keyboard.KeyCodes;
+    this.xKey    =this.input.keyboard.addKey(K.X);
+    this.zKey    =this.input.keyboard.addKey(K.Z);
+    this.ctrlKey =this.input.keyboard.addKey(K.CTRL);
+    this.cKey    =this.input.keyboard.addKey(K.C);
+    this.shiftKey=this.input.keyboard.addKey(K.SHIFT);
+    this.leftKey =this.input.keyboard.addKey(K.LEFT);
+    this.rightKey=this.input.keyboard.addKey(K.RIGHT);
+    this.downKey =this.input.keyboard.addKey(K.DOWN);
+    this.upKey   =this.input.keyboard.addKey(K.UP);
+    this.spaceKey=this.input.keyboard.addKey(K.SPACE);
+    this.enterKey=this.input.keyboard.addKey(K.ENTER);
 
-    // キー入力
-    this.upKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-    this.zKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-    this.hKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
-    this.uKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
-    this.upKey.on('down',()=>this.rotatePiece());
-    this.zKey.on('down',()=>this.rotatePiece());
-    this.hKey.on('down',()=>this.doHold());
-    this.uKey.on('down',()=>this.doUndo());
+    // X：右回転、Z単体：左回転、Ctrl+Z：戻す
+    this.xKey.on('down',()=>this.rotatePiece(1));
+    this.zKey.on('down',()=>{
+      if(this.ctrlKey.isDown) this.doUndo();
+      else this.rotatePiece(-1);
+    });
+    // C / Shift：ホールド（制限なし）
+    this.cKey.on('down',()=>this.doHold());
+    this.shiftKey.on('down',()=>this.doHold());
+    // Space / Enter：配置
+    this.spaceKey.on('down',()=>this.placeAtCursor());
+    this.enterKey.on('down',()=>this.placeAtCursor());
 
-    // マウス操作
-    this.input.on('pointermove',p=>this.onPointerMove(p));
-    this.input.on('pointerdown',p=>this.onPointerDown(p));
-
-    // 完成ボタン
-    this.finishBtn=this.add.text(
-      UI_L+COLS*CS+UI_R/2, CANVAS_H-30,
-      '完 成',
-      {fontSize:'14px',fill:'#fff',backgroundColor:'#8a6840',padding:{x:14,y:6},fontFamily:'Meiryo'}
-    ).setOrigin(0.5,0.5).setDepth(10).setInteractive({useHandCursor:true});
-    this.finishBtn.on('pointerdown',()=>this.showResult());
+    // 矢印長押し加速：最初200ms後に開始、その後80msごとに繰り返す
+    this._moveRepeat={timer:null,delay:200,interval:80};
+    const startRepeat=(dc,dr)=>{
+      this.moveCursor(dc,dr);
+      const rep=this._moveRepeat;
+      clearTimeout(rep.timer);
+      rep.timer=setTimeout(()=>{
+        rep.timer=setInterval(()=>this.moveCursor(dc,dr),rep.interval);
+      },rep.delay);
+    };
+    const stopRepeat=()=>{
+      const rep=this._moveRepeat;
+      clearTimeout(rep.timer);
+      clearInterval(rep.timer);
+      rep.timer=null;
+    };
+    this.leftKey.on('down', ()=>startRepeat(-1,0));
+    this.rightKey.on('down',()=>startRepeat(1,0));
+    this.downKey.on('down', ()=>startRepeat(0,1));
+    this.upKey.on('down',   ()=>startRepeat(0,-1));
+    this.leftKey.on('up',  stopRepeat);
+    this.rightKey.on('up', stopRepeat);
+    this.downKey.on('up',  stopRepeat);
+    this.upKey.on('up',    stopRepeat);
   }
 
-  pickRandom(){
-    return PARTS_DEF[Math.floor(Math.random()*PARTS_DEF.length)];
-  }
-
+  pickRandom(){return PARTS_DEF[Math.floor(Math.random()*PARTS_DEF.length)];}
   getShape(def,rot){
     let s=[];
     for(let r=0;r<def.h;r++){s.push([]);for(let c=0;c<def.w;c++)s[r].push(1);}
@@ -159,24 +1039,28 @@ class PuzzleGame extends Phaser.Scene{
     }
     return s;
   }
-
   nextPiece(){
     this.currentDef=this.queue.shift();
     this.queue.push(this.pickRandom());
     this.rotation=0;
     this.holdUsed=false;
+    const shape=this.getShape(this.currentDef,0);
+    const pw=shape[0].length;
+    // 常に中央上から開始（干渉していても位置は動かさない）
+    this.curC=Math.floor((COLS-pw)/2);
+    this.curR=0;
     this.drawUI();
+    this.updatePreview(this.curC,this.curR);
+    this.checkNoPlace();
   }
-
-  rotatePiece(){
+  rotatePiece(dir=1){
     if(!this.currentDef)return;
-    this.rotation=(this.rotation+1)%4;
-    this.updatePreview(this.hoverC,this.hoverR);
+    this.rotation=(this.rotation+dir+4)%4;
+    this.updatePreview(this.curC,this.curR);
     this.drawUI();
   }
-
   doHold(){
-    if(!this.currentDef||this.holdUsed)return;
+    if(!this.currentDef)return;
     if(this.holdDef){
       const tmp=this.holdDef;
       this.holdDef=this.currentDef;
@@ -187,15 +1071,14 @@ class PuzzleGame extends Phaser.Scene{
       this.queue.push(this.pickRandom());
     }
     this.rotation=0;
-    this.holdUsed=true;
-    this.updatePreview(this.hoverC,this.hoverR);
+    this.holdUsed=false;
+    this.updatePreview(this.curC,this.curR);
     this.drawUI();
+    this.checkNoPlace();
   }
-
   doUndo(){
     if(this.undoStack.length===0)return;
     const state=this.undoStack.pop();
-    // グリッドを復元
     this.grid=state.grid;
     this.currentDef=state.currentDef;
     this.rotation=state.rotation;
@@ -203,15 +1086,38 @@ class PuzzleGame extends Phaser.Scene{
     this.holdDef=state.holdDef;
     this.holdUsed=state.holdUsed;
     this.partCount=state.partCount;
-    // 画像・ラベルを全破棄してリドロー
     Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
     this.boardImgs={};
     this.boardLabels.forEach(o=>{if(o&&o.destroy)o.destroy();});
     this.boardLabels=[];
+    this.stopPreviewTween();
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
     this.drawBoard();
     this.drawUI();
+    this.updatePreview(this.curC,this.curR);
   }
-
+  // 現在パーツとホールドの両方が全ての向きでどこにも置けなければ完成ボタンを表示
+  checkNoPlace(){
+    const candidates=[];
+    if(this.currentDef) candidates.push(this.currentDef);
+    if(this.holdDef)    candidates.push(this.holdDef);
+    if(candidates.length===0) return;
+    const allBlocked=candidates.every(def=>{
+      for(let rot=0;rot<4;rot++){
+        const shape=this.getShape(def,rot);
+        for(let r=0;r<ROWS;r++){
+          for(let c=0;c<COLS;c++){
+            if(this.canPlace(shape,c,r))return false;
+          }
+        }
+      }
+      return true;
+    });
+    if(allBlocked){
+      document.getElementById('btn-complete-overlay').classList.add('visible');
+    }
+  }
   canPlace(shape,c,r){
     for(let dr=0;dr<shape.length;dr++){
       for(let dc=0;dc<shape[0].length;dc++){
@@ -223,9 +1129,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     return true;
   }
-
   placePiece(def,shape,c,r){
-    // アンドゥ用にスナップショット保存
     this.undoStack.push({
       grid:this.grid.map(row=>row.map(cell=>cell?{...cell}:null)),
       currentDef:def,rotation:this.rotation,
@@ -233,17 +1137,13 @@ class PuzzleGame extends Phaser.Scene{
       holdUsed:this.holdUsed,partCount:this.partCount
     });
     if(this.undoStack.length>30)this.undoStack.shift();
-
     const pid='p'+(++this.partCount);
     const color=def.color;
-    // グリッドに書き込み
     for(let dr=0;dr<shape.length;dr++)
       for(let dc=0;dc<shape[0].length;dc++)
         if(shape[dr][dc])
           this.grid[r+dr][c+dc]={color,pid,type:def.type,rotation:this.rotation,
             mnR:r,mxR:r+shape.length-1,mnC:c,mxC:c+shape[0].length-1,label:def.label};
-
-    // 画像配置
     const px=this.sx(c),py=this.sy(r);
     const pw=shape[0].length*CS,ph=shape.length*CS;
     if(def.type==='washitsu'){
@@ -261,37 +1161,27 @@ class PuzzleGame extends Phaser.Scene{
       g.fillStyle(color,1);g.fillRect(px+1,py+1,pw-2,ph-2);
       this.boardImgs[pid]=g;
     }
-    // ラベル
     const lbl=this.add.text(px+pw/2,py+ph/2,def.label,
       {fontSize:'11px',fill:'#3a3028',align:'center',fontFamily:'Meiryo',
        stroke:'#ffffffaa',strokeThickness:2})
       .setOrigin(0.5,0.5).setDepth(5);
     this.boardLabels.push(lbl);
-
     this.drawBoard();
     this.nextPiece();
   }
-
-  // ─── 描画 ───────────────────────────
-
   drawBg(){
     const g=this.bgGfx;g.clear();
-    // グリッド背景
     g.fillStyle(0xf8f4ee,1);
     g.fillRect(this.sx(0),this.sy(0),COLS*CS,ROWS*CS);
-    // グリッド線
     g.lineStyle(1,0xd8cfc4,1);
     for(let r=0;r<=ROWS;r++)g.lineBetween(this.sx(0),this.sy(r),this.sx(COLS),this.sy(r));
     for(let c=0;c<=COLS;c++)g.lineBetween(this.sx(c),this.sy(0),this.sx(c),this.sy(ROWS));
-    // 外枠
     g.lineStyle(3,0x8a7060,1);
     g.strokeRect(this.sx(0),this.sy(0),COLS*CS,ROWS*CS);
-    // 左右UIパネル背景
+    // 右UIパネル
     g.fillStyle(0xeae4dc,1);
-    g.fillRect(0,0,UI_L,CANVAS_H);
-    g.fillRect(UI_L+COLS*CS,0,UI_R,CANVAS_H);
+    g.fillRect(COLS*CS,0,UI_R,CANVAS_H);
   }
-
   drawBoard(){
     const g=this.gridGfx;g.clear();
     const drawn=new Set();
@@ -310,7 +1200,6 @@ class PuzzleGame extends Phaser.Scene{
       }
     }
   }
-
   placeGenkan(){
     const gx=Phaser.Math.Between(1,COLS-3);
     const pid='genkan';
@@ -327,187 +1216,237 @@ class PuzzleGame extends Phaser.Scene{
       .setOrigin(0.5,0.5).setDepth(5);
     this.boardLabels.push(lbl);
   }
-
   drawUI(){
-    // 既存UIオブジェクト削除
     if(this._uiObjs){this._uiObjs.forEach(o=>o&&o.destroy());}
     this._uiObjs=[];
     const add=(o)=>{this._uiObjs.push(o);return o;};
-    const LCX=UI_L/2;
+    const RX=COLS*CS, RCX=RX+UI_R/2;
+    let y=14;
 
-    // ─── 左パネル ───────────────────────
-    // 現在パーツ
-    add(this.add.text(LCX,10,'現在のパーツ',
-      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-
-    if(this.currentDef){
-      const shape=this.getShape(this.currentDef,this.rotation);
-      const sh=shape.length,sw=shape[0].length;
-      const cellSz=Math.min(Math.floor((UI_L-20)/sw),Math.floor(60/sh));
-      const ox=LCX-(sw*cellSz/2), oy=28;
-      const g=this.add.graphics().setDepth(10);
-      add(g);
-      if(this.currentDef.type==='washitsu'){
-        this.drawWashitsuOnGraphics(g,ox,oy,sw*cellSz,sh*cellSz);
-      }else if(this.textures.exists(this.currentDef.type)){
-        const rot=this.rotation%4;
-        const dw=rot%2===0?sw*cellSz:sh*cellSz;
-        const dh=rot%2===0?sh*cellSz:sw*cellSz;
-        const img=this.add.image(ox+sw*cellSz/2,oy+sh*cellSz/2,this.currentDef.type)
-          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setDepth(10);
-        add(img);
-      }else{
-        g.fillStyle(this.currentDef.color,1);
-        g.fillRect(ox,oy,sw*cellSz,sh*cellSz);
-      }
-      g.lineStyle(2,0x706050,1);g.strokeRect(ox,oy,sw*cellSz,sh*cellSz);
-      add(this.add.text(LCX,oy+sh*cellSz+4,this.currentDef.name,
-        {fontSize:'10px',fill:'#5a4e42',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-    }
-
-    // ホールド
-    const holdY=120;
-    add(this.add.text(LCX,holdY,'ホールド [H]',
-      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-    if(this.holdDef){
-      const shape=this.getShape(this.holdDef,0);
-      const sh=shape.length,sw=shape[0].length;
-      const cellSz=Math.min(Math.floor((UI_L-20)/sw),Math.floor(50/sh));
-      const ox=LCX-(sw*cellSz/2), oy=holdY+16;
-      const g=this.add.graphics().setDepth(10);
-      add(g);
-      if(this.holdDef.type==='washitsu'){
-        this.drawWashitsuOnGraphics(g,ox,oy,sw*cellSz,sh*cellSz);
-      }else if(this.textures.exists(this.holdDef.type)){
-        const img=this.add.image(ox+sw*cellSz/2,oy+sh*cellSz/2,this.holdDef.type)
-          .setDisplaySize(sw*cellSz-2,sh*cellSz-2).setDepth(10);
-        add(img);
-        if(this.holdUsed)img.setAlpha(0.4);
-      }else{
-        g.fillStyle(this.holdDef.color,this.holdUsed?0.4:1);
-        g.fillRect(ox,oy,sw*cellSz,sh*cellSz);
-      }
-      g.lineStyle(2,this.holdUsed?0xb0a090:0x706050,this.holdUsed?0.5:1);
-      g.strokeRect(ox,oy,sw*cellSz,sh*cellSz);
-    }else{
-      const g=this.add.graphics().setDepth(10);add(g);
-      g.lineStyle(1,0xb0a090,0.5);
-      g.strokeRect(LCX-30,holdY+16,60,50);
-      add(this.add.text(LCX,holdY+42,'なし',
-        {fontSize:'10px',fill:'#b0a090',fontFamily:'Meiryo'}).setOrigin(0.5,0.5).setDepth(10));
-    }
-
-    // パーツ数
-    add(this.add.text(LCX,220,'パーツ数',
-      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-    add(this.add.text(LCX,236,String(this.partCount),
-      {fontSize:'22px',fill:'#5a4e42',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-
-    // アンドゥ表示
-    add(this.add.text(LCX,275,'アンドゥ [U]',
-      {fontSize:'10px',fill:this.undoStack.length>0?'#8a6840':'#b0a090',fontFamily:'Meiryo'})
+    // ── NEXT ──
+    add(this.add.text(RCX,y,'NEXT',
+      {fontSize:'10px',fill:'#9a8878',letterSpacing:4,fontFamily:'Meiryo'})
       .setOrigin(0.5,0).setDepth(10));
-
-    // ─── 右パネル（次のパーツキュー）───
-    const RX=UI_L+COLS*CS, RCX=RX+UI_R/2;
-    add(this.add.text(RCX,10,'次のパーツ',
-      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-
-    let qy=28;
-    for(let i=0;i<Math.min(3,this.queue.length);i++){
+    y+=18;
+    for(let i=0;i<Math.min(2,this.queue.length);i++){
       const def=this.queue[i];
       const shape=this.getShape(def,0);
       const sh=shape.length,sw=shape[0].length;
-      const cellSz=Math.min(Math.floor((UI_R-20)/sw),Math.floor(60/sh));
-      const ox=RCX-(sw*cellSz/2), oy=qy;
+      const cellSz=Math.min(Math.floor((UI_R-24)/sw),Math.floor(64/sh));
+      const pw=sw*cellSz,ph=sh*cellSz;
+      const ox=RCX-pw/2, oy=y;
+      const alpha=i===0?1:0.45;
       const g=this.add.graphics().setDepth(10);add(g);
-      const alpha=1-i*0.15;
       if(def.type==='washitsu'){
-        this.drawWashitsuOnGraphics(g,ox,oy,sw*cellSz,sh*cellSz);
+        this.drawWashitsuOnGraphics(g,ox,oy,pw,ph);
         g.setAlpha(alpha);
       }else if(this.textures.exists(def.type)){
-        const img=this.add.image(ox+sw*cellSz/2,oy+sh*cellSz/2,def.type)
-          .setDisplaySize(sw*cellSz-2,sh*cellSz-2).setAlpha(alpha).setDepth(10);
+        const img=this.add.image(ox+pw/2,oy+ph/2,def.type)
+          .setDisplaySize(pw-2,ph-2).setAlpha(alpha).setDepth(10);
         add(img);
       }else{
-        g.fillStyle(def.color,alpha);g.fillRect(ox,oy,sw*cellSz,sh*cellSz);
+        g.fillStyle(def.color,alpha);g.fillRect(ox,oy,pw,ph);
       }
-      g.lineStyle(1,0x908070,alpha);g.strokeRect(ox,oy,sw*cellSz,sh*cellSz);
-      add(this.add.text(RCX,oy+sh*cellSz+2,def.name,
-        {fontSize:'9px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-      qy+=sh*cellSz+18;
+      g.lineStyle(1,0x908070,alpha);g.strokeRect(ox,oy,pw,ph);
+      add(this.add.text(RCX,oy+ph+3,def.name,
+        {fontSize:'9px',fill:i===0?'#6a5a4a':'#a09080',fontFamily:'Meiryo'})
+        .setOrigin(0.5,0).setDepth(10));
+      y+=ph+16;
+    }
+
+    // 区切り線
+    y+=4;
+    const gd=this.add.graphics().setDepth(10);add(gd);
+    gd.lineStyle(1,0xb8a898,0.5);
+    gd.lineBetween(RX+12,y,RX+UI_R-12,y);
+    y+=10;
+
+    // ── HOLD ──
+    add(this.add.text(RCX,y,'HOLD',
+      {fontSize:'10px',fill:'#9a8878',letterSpacing:4,fontFamily:'Meiryo'})
+      .setOrigin(0.5,0).setDepth(10));
+    y+=18;
+    if(this.holdDef){
+      const shape=this.getShape(this.holdDef,0);
+      const sh=shape.length,sw=shape[0].length;
+      const cellSz=Math.min(Math.floor((UI_R-24)/sw),Math.floor(60/sh));
+      const pw=sw*cellSz,ph=sh*cellSz;
+      const ox=RCX-pw/2, oy=y;
+      const g=this.add.graphics().setDepth(10);add(g);
+      if(this.holdDef.type==='washitsu'){
+        this.drawWashitsuOnGraphics(g,ox,oy,pw,ph);
+      }else if(this.textures.exists(this.holdDef.type)){
+        const img=this.add.image(ox+pw/2,oy+ph/2,this.holdDef.type)
+          .setDisplaySize(pw-2,ph-2).setDepth(10);
+        add(img);
+      }else{
+        g.fillStyle(this.holdDef.color,1);g.fillRect(ox,oy,pw,ph);
+      }
+      g.lineStyle(2,0x706050,1);
+      g.strokeRect(ox,oy,pw,ph);
+      y+=ph+4;
+    }else{
+      const g=this.add.graphics().setDepth(10);add(g);
+      g.lineStyle(1,0xb8a898,0.5);
+      g.strokeRect(RCX-34,y,68,52);
+      add(this.add.text(RCX,y+26,'なし',
+        {fontSize:'10px',fill:'#c0b0a0',fontFamily:'Meiryo'})
+        .setOrigin(0.5,0.5).setDepth(10));
+      y+=52+4;
+    }
+
+    // 区切り線
+    y+=8;
+    const gd2=this.add.graphics().setDepth(10);add(gd2);
+    gd2.lineStyle(1,0xb8a898,0.5);
+    gd2.lineBetween(RX+12,y,RX+UI_R-12,y);
+    y+=12;
+
+    // ── パーツ数 ──
+    add(this.add.text(RCX,y,'配置数',
+      {fontSize:'10px',fill:'#9a8878',fontFamily:'Meiryo'})
+      .setOrigin(0.5,0).setDepth(10));
+    y+=16;
+    add(this.add.text(RCX,y,String(this.partCount),
+      {fontSize:'26px',fill:'#5a4e42',fontFamily:'Meiryo'})
+      .setOrigin(0.5,0).setDepth(10));
+    y+=36;
+
+    // アンドゥ状態
+    if(this.undoStack.length>0){
+      add(this.add.text(RCX,y,'U / 戻す',
+        {fontSize:'9px',fill:'#8a6840',fontFamily:'Meiryo'})
+        .setOrigin(0.5,0).setDepth(10));
     }
   }
-
-  onPointerMove(p){
+  moveCursor(dc,dr){
     if(!this.currentDef)return;
-    const c=Math.floor((p.x-this.sx(0))/CS);
-    const r=Math.floor((p.y-this.sy(0))/CS);
-    if(c===this.hoverC&&r===this.hoverR)return;
-    this.hoverC=c;this.hoverR=r;
-    this.updatePreview(c,r);
+    const shape=this.getShape(this.currentDef,this.rotation);
+    const pw=shape[0].length, ph=shape.length;
+    // グリッド端でクランプするだけ（干渉でも移動はさせる）
+    this.curC=Phaser.Math.Clamp(this.curC+dc, 0, COLS-pw);
+    this.curR=Phaser.Math.Clamp(this.curR+dr, 0, ROWS-ph);
+    this.updatePreview(this.curC,this.curR);
   }
-
+  placeAtCursor(){
+    if(!this.currentDef)return;
+    const shape=this.getShape(this.currentDef,this.rotation);
+    if(!this.canPlace(shape,this.curC,this.curR))return;
+    this.stopPreviewTween();
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
+    this.placePiece(this.currentDef,shape,this.curC,this.curR);
+  }
+  stopPreviewTween(){
+    if(this._previewTween){
+      this._previewTween.stop();
+      this._previewTween=null;
+    }
+  }
   updatePreview(c,r){
-    // 古いpreviewImg破棄
+    this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
     this.previewGfx.clear();
     if(!this.currentDef)return;
     const shape=this.getShape(this.currentDef,this.rotation);
     const ok=this.canPlace(shape,c,r);
     const g=this.previewGfx;
+    // マス塗り
     for(let dr=0;dr<shape.length;dr++){
       for(let dc=0;dc<shape[0].length;dc++){
         if(!shape[dr][dc])continue;
         const nr=r+dr,nc=c+dc;
         if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
         const px=this.sx(nc),py=this.sy(nr);
-        g.fillStyle(ok?0x88cc88:0xcc4444,0.35);
+        g.fillStyle(ok?0x88cc88:0xcc4444,0.3);
         g.fillRect(px+1,py+1,CS-2,CS-2);
       }
     }
+    // カーソル枠は描画しない
     if(ok){
-      const pw=shape[0].length*CS,ph=shape.length*CS;
-      const px=this.sx(c),py=this.sy(r);
+      const pw=shape[0].length*CS, ph=shape.length*CS;
+      const px=this.sx(c), py=this.sy(r);
+      let target=null;
       if(this.currentDef.type==='washitsu'){
-        const g2=this.add.graphics().setDepth(4).setAlpha(0.7);
+        const g2=this.add.graphics().setDepth(4);
         this.drawWashitsuOnGraphics(g2,px,py,pw,ph);
-        this.previewImg=g2;
+        g2.setAlpha(0.75);
+        target=g2;
       }else if(this.textures.exists(this.currentDef.type)){
         const rot=this.rotation%4;
-        const dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
-        this.previewImg=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
-          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setAlpha(0.6).setDepth(4);
+        const dw=rot%2===0?pw:ph, dh=rot%2===0?ph:pw;
+        target=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
+          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setAlpha(0.75).setDepth(4);
+      }
+      if(target){
+        this.previewImg=target;
+        // 優しい点滅tween
+        this._previewTween=this.tweens.add({
+          targets:target,
+          alpha:{from:0.75,to:0.35},
+          duration:600,
+          yoyo:true,
+          repeat:-1,
+          ease:'Sine.easeInOut'
+        });
       }
     }
   }
-
-  onPointerDown(p){
-    if(!this.currentDef)return;
-    const c=Math.floor((p.x-this.sx(0))/CS);
-    const r=Math.floor((p.y-this.sy(0))/CS);
-    const shape=this.getShape(this.currentDef,this.rotation);
-    if(!this.canPlace(shape,c,r))return;
-    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-    this.previewGfx.clear();
-    this.placePiece(this.currentDef,shape,c,r);
+  fillEmptyAsStorage(){
+    // 空きマスを収納として塗る（グリッドには登録しない・見た目だけ）
+    if(this._storageGfx){this._storageGfx.destroy();}
+    const g=this.add.graphics().setDepth(2);
+    this._storageGfx=g;
+    const storageColor=0xEEDCC8;
+    const storageStroke=0xA07848;
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        if(this.grid[r][c])continue;
+        const px=this.sx(c), py=this.sy(r);
+        // 薄いベージュ塗り
+        g.fillStyle(storageColor,0.85);
+        g.fillRect(px+1,py+1,CS-2,CS-2);
+        // ハッチング（斜線で収納っぽく）
+        g.lineStyle(0.7,storageStroke,0.35);
+        for(let d=4;d<CS*2;d+=8){
+          const x1=px+1+Math.max(0,d-CS+2);
+          const y1=py+1+Math.max(0,CS-2-d);
+          const x2=px+1+Math.min(CS-2,d);
+          const y2=py+1+Math.min(CS-2,d);
+          if(x1<px+CS-1&&y1<py+CS-1)g.lineBetween(x1,y1,x2,y2);
+        }
+      }
+    }
+    // 「収納」ラベルを一箇所だけ表示（中央付近の空きマスに）
+    let labelPlaced=false;
+    for(let r=0;r<ROWS&&!labelPlaced;r++){
+      for(let c=0;c<COLS&&!labelPlaced;c++){
+        if(!this.grid[r][c]){
+          const lbl=this.add.text(
+            this.sx(c)+CS/2, this.sy(r)+CS/2,
+            '収納',
+            {fontSize:'9px',fill:'#8a6840',fontFamily:'Meiryo',
+             stroke:'#ffffffaa',strokeThickness:1.5}
+          ).setOrigin(0.5,0.5).setDepth(6).setAlpha(0.7);
+          this.boardLabels.push(lbl);
+          labelPlaced=true;
+        }
+      }
+    }
   }
-
-  // ─── 和室Graphics描画 ────────────────
   drawWashitsuOnGraphics(g,px,py,pw,ph){
     g.fillStyle(0xeaf2da,1);g.fillRect(px,py,pw,ph);
     const cw2=pw/2,cw3=pw/3,ch=ph/4;
-    this.drawTatami(g,px,      py,       cw2,  ch,   true);
-    this.drawTatami(g,px+cw2,  py,       cw2,  ch,   true);
-    this.drawTatami(g,px,      py+ch,    cw3,  ch*2, false);
-    this.drawTatami(g,px+cw3,  py+ch,    cw3,  ch,   true);
-    this.drawTatami(g,px+cw3,  py+ch*2,  cw3,  ch,   true);
-    this.drawTatami(g,px+cw3*2,py+ch,    cw3,  ch*2, false);
-    this.drawTatami(g,px,      py+ch*3,  cw2,  ch,   true);
-    this.drawTatami(g,px+cw2,  py+ch*3,  cw2,  ch,   true);
+    this.drawTatami(g,px,py,cw2,ch,true);
+    this.drawTatami(g,px+cw2,py,cw2,ch,true);
+    this.drawTatami(g,px,py+ch,cw3,ch*2,false);
+    this.drawTatami(g,px+cw3,py+ch,cw3,ch,true);
+    this.drawTatami(g,px+cw3,py+ch*2,cw3,ch,true);
+    this.drawTatami(g,px+cw3*2,py+ch,cw3,ch*2,false);
+    this.drawTatami(g,px,py+ch*3,cw2,ch,true);
+    this.drawTatami(g,px+cw2,py+ch*3,cw2,ch,true);
     g.lineStyle(3,0x5a8040,1);g.strokeRect(px+1,py+1,pw-2,ph-2);
   }
-
   drawTatami(g,x,y,w,h,horizontal){
     if(w<=2||h<=2)return;
     const p=2;
@@ -517,105 +1456,19 @@ class PuzzleGame extends Phaser.Scene{
     if(horizontal){for(let ly=y+p+4;ly<y+h-p;ly+=4)g.lineBetween(x+p+2,ly,x+w-p-2,ly);}
     else{for(let lx=x+p+4;lx<x+w-p;lx+=4)g.lineBetween(lx,y+p+2,lx,y+h-p-2);}
   }
-
-  // ─── 完成時評価 ──────────────────────
-  showResult(){
-    // 配置されているパーツ種別を集計
-    const types=new Set();
-    const counts={};
-    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      const cell=this.grid[r][c];
-      if(cell&&!cell.fixed){types.add(cell.type);counts[cell.type]=(counts[cell.type]||0)+1;}
-    }
-    const filled=Object.values(counts).reduce((a,b)=>a+b,0);
-    const total=COLS*ROWS-4; // 玄関4マス分除く
-
-    // 評価ロジック
-    let score=0;
-    let comments=[];
-
-    const has=(t)=>types.has(t);
-    if(has('bath'))score+=15;
-    if(has('toilet'))score+=15;
-    if(has('kitchen'))score+=15;
-    if(has('youshitsu')||has('washitsu'))score+=10;
-    if(has('balcony'))score+=5;
-    if(has('storage')||has('wic'))score+=5;
-    if(has('roka'))score+=5;
-    const fillRate=filled/total;
-    score+=Math.round(fillRate*30);
-
-    // コメント生成
-    if(!has('bath')&&!has('toilet'))comments.push('⚠ お風呂とトイレがありません');
-    else if(!has('bath'))comments.push('⚠ お風呂がありません');
-    else if(!has('toilet'))comments.push('⚠ トイレがありません');
-    if(!has('kitchen'))comments.push('⚠ キッチンがありません');
-    if(has('youshitsu')&&has('washitsu'))comments.push('✓ 洋室と和室を両方配置！');
-    if(has('balcony'))comments.push('✓ バルコニーあり、採光◎');
-    if(has('wic'))comments.push('✓ WICで収納たっぷり');
-    if(fillRate>0.8)comments.push('✓ 土地をうまく活用できました！');
-    else if(fillRate<0.4)comments.push('△ まだまだスペースに余裕あり');
-
-    // スコアに応じた総評
-    let overall='';
-    if(score>=80)overall='🏠 完璧な間取り！住みやすさ満点です。';
-    else if(score>=60)overall='🏡 快適に暮らせそうな間取りです。';
-    else if(score>=40)overall='🏚 もう少し整えると暮らしやすくなりそう。';
-    else overall='🔨 まだ発展途上！部屋を増やしてみましょう。';
-
-    // オーバーレイ表示
-    const ox=UI_L,oy=ROWS*CS/2-120;
-    const bg=this.add.graphics().setDepth(20);
-    bg.fillStyle(0x2a2018,0.88);
-    bg.fillRoundedRect(ox+20,oy,COLS*CS-40,240,12);
-
-    const cx=ox+COLS*CS/2;
-    const texts=[];
-    texts.push(this.add.text(cx,oy+20,'── 間取り評価 ──',
-      {fontSize:'16px',fill:'#f0e0c0',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(21));
-    texts.push(this.add.text(cx,oy+48,`スコア: ${score} / 100`,
-      {fontSize:'22px',fill:'#ffe08a',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(21));
-    texts.push(this.add.text(cx,oy+80,overall,
-      {fontSize:'13px',fill:'#f0e0c0',fontFamily:'Meiryo',wordWrap:{width:COLS*CS-80}})
-      .setOrigin(0.5,0).setDepth(21));
-
-    let ty=oy+106;
-    for(const c of comments){
-      texts.push(this.add.text(cx,ty,c,
-        {fontSize:'11px',fill:'#d8c8a8',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(21));
-      ty+=18;
-    }
-
-    // もう一度・続けるボタン
-    const retryBtn=this.add.text(cx-50,oy+200,'もう一度',
-      {fontSize:'13px',fill:'#fff',backgroundColor:'#7a5030',
-       padding:{x:10,y:5},fontFamily:'Meiryo'})
-      .setOrigin(0.5,0.5).setDepth(21).setInteractive({useHandCursor:true});
-    const contBtn=this.add.text(cx+50,oy+200,'続ける',
-      {fontSize:'13px',fill:'#fff',backgroundColor:'#507a30',
-       padding:{x:10,y:5},fontFamily:'Meiryo'})
-      .setOrigin(0.5,0.5).setDepth(21).setInteractive({useHandCursor:true});
-
-    const closeAll=()=>{
-      bg.destroy();texts.forEach(t=>t.destroy());
-      retryBtn.destroy();contBtn.destroy();
-    };
-    retryBtn.on('pointerdown',()=>{closeAll();this.scene.restart();});
-    contBtn.on('pointerdown',()=>closeAll());
-  }
 }
 
-// ─────────────────────────────────────
-// Phaser起動
-// ─────────────────────────────────────
-new Phaser.Game({
-  type:Phaser.AUTO,
-  width:CANVAS_W,
-  height:CANVAS_H,
-  backgroundColor:'#f0ece6',
-  parent:'game-container',
-  scene:PuzzleGame,
-});
+function startPhaserGame(){
+  new Phaser.Game({
+    type:Phaser.AUTO,
+    width:CANVAS_W,
+    height:CANVAS_H,
+    backgroundColor:'#f0ece6',
+    parent:'game-container',
+    scene:PuzzleGame,
+  });
+}
 </script>
-</body>
-</html>
+
+
+</body></html>
