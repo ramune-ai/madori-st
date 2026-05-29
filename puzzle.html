@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>間取り放題 パズル版</title>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f0ece6;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Meiryo',sans-serif;}
+h1{font-size:22px;letter-spacing:.15em;margin-bottom:10px;font-weight:400;color:#5a4e42;}
+#hint{font-size:11px;color:#9a8878;margin-top:8px;text-align:center;line-height:1.8;}
+</style>
+</head>
+<body>
+<h1>間取り放題 <span style="font-size:14px;color:#9a8878;">パズル版</span></h1>
+<div id="game-container"></div>
+<div id="hint">クリックで配置 ｜ ↑/Z 回転 ｜ H ホールド ｜ U アンドゥ ｜ 完成ボタンで評価</div>
+<script>
+// ─────────────────────────────────────
+// SVGテクスチャ（落ち物版と同じbase64）
+// ─────────────────────────────────────
+const SVG_TEX = {
+  youshitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjY2ZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIwIiAgd2lkdGg9IjQ2IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NmUiLz4KPHJlY3QgeD0iNDYiIHk9IjAiICB3aWR0aD0iMzgiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2MiIvPgo8cmVjdCB4PSI4NCIgeT0iMCIgIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2VhNDcwIi8+CjxyZWN0IHg9IjAiICB5PSI4IiAgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGEwNmEiLz4KPHJlY3QgeD0iMzAiIHk9IjgiICB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2M0OWE2MCIvPgo8cmVjdCB4PSI4MCIgeT0iOCIgIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNDZjIi8+CjxyZWN0IHg9IjAiICB5PSIxNiIgd2lkdGg9IjM4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjODllNjQiLz4KPHJlY3QgeD0iMzgiIHk9IjE2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI4MiIgeT0iMTYiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzI5ODYwIi8+CjxyZWN0IHg9IjAiICB5PSIyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NiIvPgo8cmVjdCB4PSI2OCIgeT0iMjQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIzMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjIiLz4KPHJlY3QgeD0iMzYiIHk9IjMyIiB3aWR0aD0iNDYiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI4MiIgeT0iMzIiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMDZhIi8+CjxyZWN0IHg9IjAiICB5PSI0MCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMmE2NmUiLz4KPHJlY3QgeD0iNTIiIHk9IjQwIiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M2OWM2NiIvPgo8cmVjdCB4PSI4MiIgeT0iNDAiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhYTcyIi8+CjxyZWN0IHg9IjAiICB5PSI0OCIgd2lkdGg9IjI2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjAiLz4KPHJlY3QgeD0iMjYiIHk9IjQ4IiB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI2NiIgeT0iNDgiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSI1NiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NzAiLz4KPHJlY3QgeD0iNDQiIHk9IjU2IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI4MCIgeT0iNTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcyIi8+CjxyZWN0IHg9IjAiICB5PSI2NCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMzAiIHk9IjY0IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTY2ZSIvPgo8cmVjdCB4PSI2NiIgeT0iNjQiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY0Ii8+CjxyZWN0IHg9IjAiICB5PSI3MiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iNDgiIHk9IjcyIiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2MyOTg2MCIvPgo8cmVjdCB4PSI4NCIgeT0iNzIiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI4MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EwNmEiLz4KPHJlY3QgeD0iMjIiIHk9IjgwIiB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI3MiIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxyZWN0IHg9IjAiICB5PSI4OCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGE0NmMiLz4KPHJlY3QgeD0iNDAiIHk9Ijg4IiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI3MCIgeT0iODgiIHdpZHRoPSI1MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI5NiIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iMzAiIHk9Ijk2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2Q0YTg3MCIvPgo8cmVjdCB4PSI3NCIgeT0iOTYiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSIxMDQiIHdpZHRoPSI0NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY2Ii8+CjxyZWN0IHg9IjQ0IiB5PSIxMDQiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjgwIiB5PSIxMDQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzg5ZTY0Ii8+CjxyZWN0IHg9IjAiICB5PSIxMTIiIHdpZHRoPSIzMiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjMyIiB5PSIxMTIiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNjZlIi8+CjxyZWN0IHg9Ijc4IiB5PSIxMTIiIHdpZHRoPSI0MiIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxsaW5lIHgxPSIwIiB5MT0iOCIgICB4Mj0iMTIwIiB5Mj0iOCIgICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxNiIgIHgyPSIxMjAiIHkyPSIxNiIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjI0IiAgeDI9IjEyMCIgeTI9IjI0IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMzIiICB4Mj0iMTIwIiB5Mj0iMzIiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgIHgyPSIxMjAiIHkyPSI0MCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjQ4IiAgeDI9IjEyMCIgeTI9IjQ4IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iNTYiICB4Mj0iMTIwIiB5Mj0iNTYiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI2NCIgIHgyPSIxMjAiIHkyPSI2NCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjcyIiAgeDI9IjEyMCIgeTI9IjcyIiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iODAiICB4Mj0iMTIwIiB5Mj0iODAiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI4OCIgIHgyPSIxMjAiIHkyPSI4OCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9Ijk2IiAgeDI9IjEyMCIgeTI9Ijk2IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMTA0IiB4Mj0iMTIwIiB5Mj0iMTA0IiBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxMTIiIHgyPSIxMjAiIHkyPSIxMTIiIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2E1MDIwIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
+  roka:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZThlMGQ0Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA5MDcwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+",
+  toilet:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZThmNGY4Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGFiOGNjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iOCIgeT0iNSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjZmZmZmZmIiByeD0iMyIvPgo8cmVjdCB4PSI4IiB5PSI1IiB3aWR0aD0iMjQiIGhlaWdodD0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwZDhlNCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ4PSIzIi8+CjxyZWN0IHg9IjI2IiB5PSI4IiB3aWR0aD0iNCIgaGVpZ2h0PSIzIiBmaWxsPSIjYzhkZGU4IiByeD0iMSIvPgo8cmVjdCB4PSIxMCIgeT0iMTkiIHdpZHRoPSIyMCIgaGVpZ2h0PSI3IiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjEwIiB5PSIxOSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwZDhlNCIgc3Ryb2tlLXdpZHRoPSIxIi8+CjxwYXRoIGQ9Ik05LDI2IFEyLDM2IDMsNTIgUTQsNjIgMjAsNjQgUTM2LDYyIDM3LDUyIFEzOCwzNiAzMSwyNiBaIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNjMGQ4ZTQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxsaW5lIHgxPSIxMCIgeTE9IjI4IiB4Mj0iMzAiIHkyPSIyOCIgc3Ryb2tlPSIjYzBkOGU0IiBzdHJva2Utd2lkdGg9IjEuMiIvPgo8L3N2Zz4=",
+  bath:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjYzhlOGY0Ii8+CjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTg4OGE4IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNCIgeT0iNiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjY4IiBmaWxsPSIjZThmNmZmIiByeD0iOCIvPgo8cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iNDQiIGhlaWdodD0iNjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQ4NzhhMCIgc3Ryb2tlLXdpZHRoPSIyIiByeD0iOCIvPgo8Y2lyY2xlIGN4PSIyNiIgY3k9IjY3IiByPSIzLjUiIGZpbGw9IiM4YWI4ZDAiLz4KPGNpcmNsZSBjeD0iMjYiIGN5PSI2NyIgcj0iMiIgZmlsbD0iIzY4OThiMCIvPgo8bGluZSB4MT0iNjMiIHkxPSIxNCIgeDI9IjYzIiB5Mj0iMzAiIHN0cm9rZT0iIzQ4NzhhMCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8ZWxsaXBzZSBjeD0iNjMiIGN5PSIxMiIgcng9IjEwIiByeT0iNSIgZmlsbD0iIzY4OThiMCIvPgo8Y2lyY2xlIGN4PSI2MyIgY3k9IjYwIiByPSIxMCIgZmlsbD0iI2U4ZjRkOCIvPgo8Y2lyY2xlIGN4PSI2MyIgY3k9IjYwIiByPSIxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjODhhODY4IiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4=",
+  kitchen:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAxMjAgODAiPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZmMGUwIi8+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwODA0MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNkOGQ4ZDgiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgeDI9IjEyMCIgeTI9IjQwIiBzdHJva2U9IiM5MDkwOTAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2QwZDBkMCIgcng9IjIiLz4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxMSIgcj0iNy41IiBmaWxsPSIjYjhiMGEwIiBzdHJva2U9IiM3MDcwNzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTEiIHI9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzcwNzA3MCIgc3Ryb2tlLXdpZHRoPSIwLjkiLz4KPGNpcmNsZSBjeD0iNyIgY3k9IjMyIiByPSI3IiBmaWxsPSIjYjhiMGEwIiBzdHJva2U9IiM3MDcwNzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CjxjaXJjbGUgY3g9IjIzIiBjeT0iMzIiIHI9IjciIGZpbGw9IiNiOGIwYTAiIHN0cm9rZT0iIzcwNzA3MCIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KPHJlY3QgeD0iNjEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2M4YzhjOCIgcng9IjIiLz4KPHJlY3QgeD0iNjMiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2IwYjhiYyIgcng9IjQiLz4KPHJlY3QgeD0iOTEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2ZmZjBlMCIgcng9IjIiLz4KPHJlY3QgeD0iOTQiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIzMCIgZmlsbD0iI2ZmZmZmZiIgcng9IjIiLz4KPHJlY3QgeD0iMCIgeT0iNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYwZTAiLz4KPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjExOCIgaGVpZ2h0PSI3OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTg5NDNhIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
+  storage:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZWVkY2M4Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA3ODQ4IiBzdHJva2Utd2lkdGg9IjIiLz4KPGxpbmUgeDE9IjIwIiB5MT0iMCIgeDI9IjIwIiB5Mj0iODAiIHN0cm9rZT0iI2EwNzg0OCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSI0LDMiLz4KPHJlY3QgeD0iMyIgeT0iMjYiIHdpZHRoPSIzNCIgaGVpZ2h0PSI1IiBmaWxsPSIjYzBhMDgwIiByeD0iMiIvPgo8L3N2Zz4=",
+  wic:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZWVkY2M4Ii8+CjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA3ODQ4IiBzdHJva2Utd2lkdGg9IjIiLz4KPGxpbmUgeDE9IjQwIiB5MT0iMCIgeDI9IjQwIiB5Mj0iODAiIHN0cm9rZT0iI2EwNzg0OCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSI0LDMiLz4KPHJlY3QgeD0iNiIgeT0iMjYiIHdpZHRoPSI2OCIgaGVpZ2h0PSI1IiBmaWxsPSIjYzBhMDgwIiByeD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4MDYwNDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5XSUM8L3RleHQ+Cjwvc3ZnPg==",
+  balcony:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxNjAgNDAiPgo8cmVjdCB3aWR0aD0iMTYwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZThlOGU0Ii8+CjxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk4OTg5MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxsaW5lIHgxPSIwIiB5MT0iMjAiIHgyPSIxNjAiIHkyPSIyMCIgc3Ryb2tlPSIjYjBiMGE4IiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1kYXNoYXJyYXk9IjQsMiIvPgo8Y2lyY2xlIGN4PSI3MCIgY3k9IjIwIiByPSI2IiBmaWxsPSJub25lIiBzdHJva2U9IiM5ODk4OTAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxjaXJjbGUgY3g9IjkwIiBjeT0iMjAiIHI9IjYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk4OTg5MCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc+",
+  genkan:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRDRBODcwIi8+CjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSI3NCIgaGVpZ2h0PSI3NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTg2ODMwIiBzdHJva2Utd2lkdGg9IjMiLz4KPGxpbmUgeDE9IjMiIHkxPSI0MCIgeDI9Ijc3IiB5Mj0iNDAiIHN0cm9rZT0iIzk4NjgzMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHRleHQgeD0iNDAiIHk9IjI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEzIiBmaWxsPSIjNjA0MDEwIiBmb250LWZhbWlseT0iTWVpcnlvLHNhbnMtc2VyaWYiPuebruWuqTwvdGV4dD4KPC9zdmc+"
+};
+
+// ─────────────────────────────────────
+// パーツ定義
+// ─────────────────────────────────────
+const PARTS_DEF=[
+  {name:'洋室8畳', w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳', type:'youshitsu'},
+  {name:'和室8畳', w:3,h:3,color:0xC8D8A0,label:'和室\n8畳', type:'washitsu'},
+  {name:'廊下(短)', w:1,h:2,color:0xE8E0D4,label:'廊下\n(短)', type:'roka'},
+  {name:'廊下(長)', w:1,h:4,color:0xE8E0D4,label:'廊下\n(長)', type:'roka'},
+  {name:'キッチン', w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen'},
+  {name:'トイレ',   w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳', type:'toilet'},
+  {name:'お風呂',   w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳', type:'bath'},
+  {name:'収納(CL)', w:1,h:2,color:0xD4B896,label:'収納\n2畳', type:'storage'},
+  {name:'収納(WIC)',w:2,h:2,color:0xD4B896,label:'WIC\n4畳', type:'wic'},
+  {name:'バルコニー',w:4,h:1,color:0xFFE566,label:'バルコニー',type:'balcony'},
+];
+
+function svgToCanvas(dataUrl){
+  return new Promise(resolve=>{
+    const b64=dataUrl.split(',')[1];
+    const bin=atob(b64);
+    const bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+    const blob=new Blob([bytes],{type:'image/svg+xml'});
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{
+      const cv=document.createElement('canvas');
+      cv.width=img.naturalWidth||80;cv.height=img.naturalHeight||80;
+      cv.getContext('2d').drawImage(img,0,0);
+      URL.revokeObjectURL(url);resolve(cv);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);resolve(null);};
+    img.src=url;
+  });
+}
+
+// ─────────────────────────────────────
+// 定数
+// ─────────────────────────────────────
+const CS=40, COLS=9, ROWS=10;
+const UI_L=160, UI_R=160; // 左右UIパネル幅
+const GX=UI_L, GY=0;
+const CANVAS_W=UI_L+COLS*CS+UI_R, CANVAS_H=ROWS*CS+50;
+const GENKAN_COLOR=0xD4A870;
+
+// ─────────────────────────────────────
+// Phaser シーン
+// ─────────────────────────────────────
+class PuzzleGame extends Phaser.Scene{
+  constructor(){super('PuzzleGame');}
+
+  sx(c){return GX+c*CS;}
+  sy(r){return GY+r*CS;}
+
+  create(){
+    this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    this.boardImgs={};
+    this.boardLabels=[];
+    this.partCount=0;
+    this.undoStack=[];   // アンドゥ用スタック
+
+    // 現在手パーツ
+    this.currentDef=null;
+    this.rotation=0;
+    this.hoverC=-1;this.hoverR=-1;
+
+    // ホールド
+    this.holdDef=null;
+    this.holdUsed=false;
+
+    // 次のパーツキュー（3個先まで表示）
+    this.queue=[];
+    for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
+
+    this.bgGfx=this.add.graphics().setDepth(0);
+    this.gridGfx=this.add.graphics().setDepth(1);
+    this.previewGfx=this.add.graphics().setDepth(4);
+    this.previewImg=null;
+
+    this.drawBg();
+    this.placeGenkan();
+
+    const entries=Object.entries(SVG_TEX);
+    Promise.all(entries.map(([k,v])=>svgToCanvas(v).then(cv=>{
+      if(cv&&!this.textures.exists(k))this.textures.addCanvas(k,cv);
+    }))).then(()=>{
+      this.drawBoard();
+      this.nextPiece();
+      this.drawUI();
+    });
+
+    // キー入力
+    this.upKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+    this.zKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this.hKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
+    this.uKey=this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U);
+    this.upKey.on('down',()=>this.rotatePiece());
+    this.zKey.on('down',()=>this.rotatePiece());
+    this.hKey.on('down',()=>this.doHold());
+    this.uKey.on('down',()=>this.doUndo());
+
+    // マウス操作
+    this.input.on('pointermove',p=>this.onPointerMove(p));
+    this.input.on('pointerdown',p=>this.onPointerDown(p));
+
+    // 完成ボタン
+    this.finishBtn=this.add.text(
+      UI_L+COLS*CS+UI_R/2, CANVAS_H-30,
+      '完 成',
+      {fontSize:'14px',fill:'#fff',backgroundColor:'#8a6840',padding:{x:14,y:6},fontFamily:'Meiryo'}
+    ).setOrigin(0.5,0.5).setDepth(10).setInteractive({useHandCursor:true});
+    this.finishBtn.on('pointerdown',()=>this.showResult());
+  }
+
+  pickRandom(){
+    return PARTS_DEF[Math.floor(Math.random()*PARTS_DEF.length)];
+  }
+
+  getShape(def,rot){
+    let s=[];
+    for(let r=0;r<def.h;r++){s.push([]);for(let c=0;c<def.w;c++)s[r].push(1);}
+    for(let i=0;i<(rot%4);i++){
+      const nr=[],rows=s.length,cols=s[0].length;
+      for(let c=0;c<cols;c++){nr.push([]);for(let r=rows-1;r>=0;r--)nr[c].push(s[r][c]);}
+      s=nr;
+    }
+    return s;
+  }
+
+  nextPiece(){
+    this.currentDef=this.queue.shift();
+    this.queue.push(this.pickRandom());
+    this.rotation=0;
+    this.holdUsed=false;
+    this.drawUI();
+  }
+
+  rotatePiece(){
+    if(!this.currentDef)return;
+    this.rotation=(this.rotation+1)%4;
+    this.updatePreview(this.hoverC,this.hoverR);
+    this.drawUI();
+  }
+
+  doHold(){
+    if(!this.currentDef||this.holdUsed)return;
+    if(this.holdDef){
+      const tmp=this.holdDef;
+      this.holdDef=this.currentDef;
+      this.currentDef=tmp;
+    }else{
+      this.holdDef=this.currentDef;
+      this.currentDef=this.queue.shift();
+      this.queue.push(this.pickRandom());
+    }
+    this.rotation=0;
+    this.holdUsed=true;
+    this.updatePreview(this.hoverC,this.hoverR);
+    this.drawUI();
+  }
+
+  doUndo(){
+    if(this.undoStack.length===0)return;
+    const state=this.undoStack.pop();
+    // グリッドを復元
+    this.grid=state.grid;
+    this.currentDef=state.currentDef;
+    this.rotation=state.rotation;
+    this.queue=state.queue.slice();
+    this.holdDef=state.holdDef;
+    this.holdUsed=state.holdUsed;
+    this.partCount=state.partCount;
+    // 画像・ラベルを全破棄してリドロー
+    Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
+    this.boardImgs={};
+    this.boardLabels.forEach(o=>{if(o&&o.destroy)o.destroy();});
+    this.boardLabels=[];
+    this.drawBoard();
+    this.drawUI();
+  }
+
+  canPlace(shape,c,r){
+    for(let dr=0;dr<shape.length;dr++){
+      for(let dc=0;dc<shape[0].length;dc++){
+        if(!shape[dr][dc])continue;
+        const nr=r+dr,nc=c+dc;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS)return false;
+        if(this.grid[nr][nc])return false;
+      }
+    }
+    return true;
+  }
+
+  placePiece(def,shape,c,r){
+    // アンドゥ用にスナップショット保存
+    this.undoStack.push({
+      grid:this.grid.map(row=>row.map(cell=>cell?{...cell}:null)),
+      currentDef:def,rotation:this.rotation,
+      queue:this.queue.slice(),holdDef:this.holdDef,
+      holdUsed:this.holdUsed,partCount:this.partCount
+    });
+    if(this.undoStack.length>30)this.undoStack.shift();
+
+    const pid='p'+(++this.partCount);
+    const color=def.color;
+    // グリッドに書き込み
+    for(let dr=0;dr<shape.length;dr++)
+      for(let dc=0;dc<shape[0].length;dc++)
+        if(shape[dr][dc])
+          this.grid[r+dr][c+dc]={color,pid,type:def.type,rotation:this.rotation,
+            mnR:r,mxR:r+shape.length-1,mnC:c,mxC:c+shape[0].length-1,label:def.label};
+
+    // 画像配置
+    const px=this.sx(c),py=this.sy(r);
+    const pw=shape[0].length*CS,ph=shape.length*CS;
+    if(def.type==='washitsu'){
+      const g=this.add.graphics().setDepth(2);
+      this.drawWashitsuOnGraphics(g,px,py,pw,ph);
+      this.boardImgs[pid]=g;
+    }else if(this.textures.exists(def.type)){
+      const rot=this.rotation%4;
+      const dw=rot%2===0?pw:ph, dh=rot%2===0?ph:pw;
+      const img=this.add.image(px+pw/2,py+ph/2,def.type)
+        .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setDepth(2);
+      this.boardImgs[pid]=img;
+    }else{
+      const g=this.add.graphics().setDepth(2);
+      g.fillStyle(color,1);g.fillRect(px+1,py+1,pw-2,ph-2);
+      this.boardImgs[pid]=g;
+    }
+    // ラベル
+    const lbl=this.add.text(px+pw/2,py+ph/2,def.label,
+      {fontSize:'11px',fill:'#3a3028',align:'center',fontFamily:'Meiryo',
+       stroke:'#ffffffaa',strokeThickness:2})
+      .setOrigin(0.5,0.5).setDepth(5);
+    this.boardLabels.push(lbl);
+
+    this.drawBoard();
+    this.nextPiece();
+  }
+
+  // ─── 描画 ───────────────────────────
+
+  drawBg(){
+    const g=this.bgGfx;g.clear();
+    // グリッド背景
+    g.fillStyle(0xf8f4ee,1);
+    g.fillRect(this.sx(0),this.sy(0),COLS*CS,ROWS*CS);
+    // グリッド線
+    g.lineStyle(1,0xd8cfc4,1);
+    for(let r=0;r<=ROWS;r++)g.lineBetween(this.sx(0),this.sy(r),this.sx(COLS),this.sy(r));
+    for(let c=0;c<=COLS;c++)g.lineBetween(this.sx(c),this.sy(0),this.sx(c),this.sy(ROWS));
+    // 外枠
+    g.lineStyle(3,0x8a7060,1);
+    g.strokeRect(this.sx(0),this.sy(0),COLS*CS,ROWS*CS);
+    // 左右UIパネル背景
+    g.fillStyle(0xeae4dc,1);
+    g.fillRect(0,0,UI_L,CANVAS_H);
+    g.fillRect(UI_L+COLS*CS,0,UI_R,CANVAS_H);
+  }
+
+  drawBoard(){
+    const g=this.gridGfx;g.clear();
+    const drawn=new Set();
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const cell=this.grid[r][c];
+        if(!cell)continue;
+        if(drawn.has(cell.pid))continue;
+        drawn.add(cell.pid);
+        const px=this.sx(cell.mnC),py=this.sy(cell.mnR);
+        const pw=(cell.mxC-cell.mnC+1)*CS,ph=(cell.mxR-cell.mnR+1)*CS;
+        if(!this.boardImgs.hasOwnProperty(cell.pid)){
+          g.fillStyle(cell.color,1);g.fillRect(px+1,py+1,pw-2,ph-2);
+        }
+        g.lineStyle(2,0x705840,1);g.strokeRect(px+1,py+1,pw-2,ph-2);
+      }
+    }
+  }
+
+  placeGenkan(){
+    const gx=Phaser.Math.Between(1,COLS-3);
+    const pid='genkan';
+    for(let dr=0;dr<2;dr++)for(let dc=0;dc<2;dc++)
+      this.grid[ROWS-2+dr][gx+dc]={color:GENKAN_COLOR,fixed:true,pid,
+        mnR:ROWS-2,mxR:ROWS-1,mnC:gx,mxC:gx+1,label:'玄関',rotation:0};
+    if(this.textures.exists('genkan')){
+      const px=this.sx(gx),py=this.sy(ROWS-2);
+      this.boardImgs[pid]=this.add.image(px+CS,py+CS,'genkan')
+        .setDisplaySize(CS*2-2,CS*2-2).setDepth(2);
+    }
+    const lbl=this.add.text(this.sx(gx)+CS,this.sy(ROWS-2)+CS,'玄関',
+      {fontSize:'12px',fill:'#5a3010',fontFamily:'Meiryo',stroke:'#ffffffaa',strokeThickness:2})
+      .setOrigin(0.5,0.5).setDepth(5);
+    this.boardLabels.push(lbl);
+  }
+
+  drawUI(){
+    // 既存UIオブジェクト削除
+    if(this._uiObjs){this._uiObjs.forEach(o=>o&&o.destroy());}
+    this._uiObjs=[];
+    const add=(o)=>{this._uiObjs.push(o);return o;};
+    const LCX=UI_L/2;
+
+    // ─── 左パネル ───────────────────────
+    // 現在パーツ
+    add(this.add.text(LCX,10,'現在のパーツ',
+      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+
+    if(this.currentDef){
+      const shape=this.getShape(this.currentDef,this.rotation);
+      const sh=shape.length,sw=shape[0].length;
+      const cellSz=Math.min(Math.floor((UI_L-20)/sw),Math.floor(60/sh));
+      const ox=LCX-(sw*cellSz/2), oy=28;
+      const g=this.add.graphics().setDepth(10);
+      add(g);
+      if(this.currentDef.type==='washitsu'){
+        this.drawWashitsuOnGraphics(g,ox,oy,sw*cellSz,sh*cellSz);
+      }else if(this.textures.exists(this.currentDef.type)){
+        const rot=this.rotation%4;
+        const dw=rot%2===0?sw*cellSz:sh*cellSz;
+        const dh=rot%2===0?sh*cellSz:sw*cellSz;
+        const img=this.add.image(ox+sw*cellSz/2,oy+sh*cellSz/2,this.currentDef.type)
+          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setDepth(10);
+        add(img);
+      }else{
+        g.fillStyle(this.currentDef.color,1);
+        g.fillRect(ox,oy,sw*cellSz,sh*cellSz);
+      }
+      g.lineStyle(2,0x706050,1);g.strokeRect(ox,oy,sw*cellSz,sh*cellSz);
+      add(this.add.text(LCX,oy+sh*cellSz+4,this.currentDef.name,
+        {fontSize:'10px',fill:'#5a4e42',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+    }
+
+    // ホールド
+    const holdY=120;
+    add(this.add.text(LCX,holdY,'ホールド [H]',
+      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+    if(this.holdDef){
+      const shape=this.getShape(this.holdDef,0);
+      const sh=shape.length,sw=shape[0].length;
+      const cellSz=Math.min(Math.floor((UI_L-20)/sw),Math.floor(50/sh));
+      const ox=LCX-(sw*cellSz/2), oy=holdY+16;
+      const g=this.add.graphics().setDepth(10);
+      add(g);
+      if(this.holdDef.type==='washitsu'){
+        this.drawWashitsuOnGraphics(g,ox,oy,sw*cellSz,sh*cellSz);
+      }else if(this.textures.exists(this.holdDef.type)){
+        const img=this.add.image(ox+sw*cellSz/2,oy+sh*cellSz/2,this.holdDef.type)
+          .setDisplaySize(sw*cellSz-2,sh*cellSz-2).setDepth(10);
+        add(img);
+        if(this.holdUsed)img.setAlpha(0.4);
+      }else{
+        g.fillStyle(this.holdDef.color,this.holdUsed?0.4:1);
+        g.fillRect(ox,oy,sw*cellSz,sh*cellSz);
+      }
+      g.lineStyle(2,this.holdUsed?0xb0a090:0x706050,this.holdUsed?0.5:1);
+      g.strokeRect(ox,oy,sw*cellSz,sh*cellSz);
+    }else{
+      const g=this.add.graphics().setDepth(10);add(g);
+      g.lineStyle(1,0xb0a090,0.5);
+      g.strokeRect(LCX-30,holdY+16,60,50);
+      add(this.add.text(LCX,holdY+42,'なし',
+        {fontSize:'10px',fill:'#b0a090',fontFamily:'Meiryo'}).setOrigin(0.5,0.5).setDepth(10));
+    }
+
+    // パーツ数
+    add(this.add.text(LCX,220,'パーツ数',
+      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+    add(this.add.text(LCX,236,String(this.partCount),
+      {fontSize:'22px',fill:'#5a4e42',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+
+    // アンドゥ表示
+    add(this.add.text(LCX,275,'アンドゥ [U]',
+      {fontSize:'10px',fill:this.undoStack.length>0?'#8a6840':'#b0a090',fontFamily:'Meiryo'})
+      .setOrigin(0.5,0).setDepth(10));
+
+    // ─── 右パネル（次のパーツキュー）───
+    const RX=UI_L+COLS*CS, RCX=RX+UI_R/2;
+    add(this.add.text(RCX,10,'次のパーツ',
+      {fontSize:'11px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+
+    let qy=28;
+    for(let i=0;i<Math.min(3,this.queue.length);i++){
+      const def=this.queue[i];
+      const shape=this.getShape(def,0);
+      const sh=shape.length,sw=shape[0].length;
+      const cellSz=Math.min(Math.floor((UI_R-20)/sw),Math.floor(60/sh));
+      const ox=RCX-(sw*cellSz/2), oy=qy;
+      const g=this.add.graphics().setDepth(10);add(g);
+      const alpha=1-i*0.15;
+      if(def.type==='washitsu'){
+        this.drawWashitsuOnGraphics(g,ox,oy,sw*cellSz,sh*cellSz);
+        g.setAlpha(alpha);
+      }else if(this.textures.exists(def.type)){
+        const img=this.add.image(ox+sw*cellSz/2,oy+sh*cellSz/2,def.type)
+          .setDisplaySize(sw*cellSz-2,sh*cellSz-2).setAlpha(alpha).setDepth(10);
+        add(img);
+      }else{
+        g.fillStyle(def.color,alpha);g.fillRect(ox,oy,sw*cellSz,sh*cellSz);
+      }
+      g.lineStyle(1,0x908070,alpha);g.strokeRect(ox,oy,sw*cellSz,sh*cellSz);
+      add(this.add.text(RCX,oy+sh*cellSz+2,def.name,
+        {fontSize:'9px',fill:'#7a6858',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+      qy+=sh*cellSz+18;
+    }
+  }
+
+  onPointerMove(p){
+    if(!this.currentDef)return;
+    const c=Math.floor((p.x-this.sx(0))/CS);
+    const r=Math.floor((p.y-this.sy(0))/CS);
+    if(c===this.hoverC&&r===this.hoverR)return;
+    this.hoverC=c;this.hoverR=r;
+    this.updatePreview(c,r);
+  }
+
+  updatePreview(c,r){
+    // 古いpreviewImg破棄
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
+    if(!this.currentDef)return;
+    const shape=this.getShape(this.currentDef,this.rotation);
+    const ok=this.canPlace(shape,c,r);
+    const g=this.previewGfx;
+    for(let dr=0;dr<shape.length;dr++){
+      for(let dc=0;dc<shape[0].length;dc++){
+        if(!shape[dr][dc])continue;
+        const nr=r+dr,nc=c+dc;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
+        const px=this.sx(nc),py=this.sy(nr);
+        g.fillStyle(ok?0x88cc88:0xcc4444,0.35);
+        g.fillRect(px+1,py+1,CS-2,CS-2);
+      }
+    }
+    if(ok){
+      const pw=shape[0].length*CS,ph=shape.length*CS;
+      const px=this.sx(c),py=this.sy(r);
+      if(this.currentDef.type==='washitsu'){
+        const g2=this.add.graphics().setDepth(4).setAlpha(0.7);
+        this.drawWashitsuOnGraphics(g2,px,py,pw,ph);
+        this.previewImg=g2;
+      }else if(this.textures.exists(this.currentDef.type)){
+        const rot=this.rotation%4;
+        const dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
+        this.previewImg=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
+          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setAlpha(0.6).setDepth(4);
+      }
+    }
+  }
+
+  onPointerDown(p){
+    if(!this.currentDef)return;
+    const c=Math.floor((p.x-this.sx(0))/CS);
+    const r=Math.floor((p.y-this.sy(0))/CS);
+    const shape=this.getShape(this.currentDef,this.rotation);
+    if(!this.canPlace(shape,c,r))return;
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
+    this.placePiece(this.currentDef,shape,c,r);
+  }
+
+  // ─── 和室Graphics描画 ────────────────
+  drawWashitsuOnGraphics(g,px,py,pw,ph){
+    g.fillStyle(0xeaf2da,1);g.fillRect(px,py,pw,ph);
+    const cw2=pw/2,cw3=pw/3,ch=ph/4;
+    this.drawTatami(g,px,      py,       cw2,  ch,   true);
+    this.drawTatami(g,px+cw2,  py,       cw2,  ch,   true);
+    this.drawTatami(g,px,      py+ch,    cw3,  ch*2, false);
+    this.drawTatami(g,px+cw3,  py+ch,    cw3,  ch,   true);
+    this.drawTatami(g,px+cw3,  py+ch*2,  cw3,  ch,   true);
+    this.drawTatami(g,px+cw3*2,py+ch,    cw3,  ch*2, false);
+    this.drawTatami(g,px,      py+ch*3,  cw2,  ch,   true);
+    this.drawTatami(g,px+cw2,  py+ch*3,  cw2,  ch,   true);
+    g.lineStyle(3,0x5a8040,1);g.strokeRect(px+1,py+1,pw-2,ph-2);
+  }
+
+  drawTatami(g,x,y,w,h,horizontal){
+    if(w<=2||h<=2)return;
+    const p=2;
+    g.fillStyle(0xe0eeca,1);g.fillRect(x+p,y+p,w-p*2,h-p*2);
+    g.lineStyle(1,0x7a9a55,1);g.strokeRect(x+p,y+p,w-p*2,h-p*2);
+    g.lineStyle(0.5,0x8aab6a,0.55);
+    if(horizontal){for(let ly=y+p+4;ly<y+h-p;ly+=4)g.lineBetween(x+p+2,ly,x+w-p-2,ly);}
+    else{for(let lx=x+p+4;lx<x+w-p;lx+=4)g.lineBetween(lx,y+p+2,lx,y+h-p-2);}
+  }
+
+  // ─── 完成時評価 ──────────────────────
+  showResult(){
+    // 配置されているパーツ種別を集計
+    const types=new Set();
+    const counts={};
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=this.grid[r][c];
+      if(cell&&!cell.fixed){types.add(cell.type);counts[cell.type]=(counts[cell.type]||0)+1;}
+    }
+    const filled=Object.values(counts).reduce((a,b)=>a+b,0);
+    const total=COLS*ROWS-4; // 玄関4マス分除く
+
+    // 評価ロジック
+    let score=0;
+    let comments=[];
+
+    const has=(t)=>types.has(t);
+    if(has('bath'))score+=15;
+    if(has('toilet'))score+=15;
+    if(has('kitchen'))score+=15;
+    if(has('youshitsu')||has('washitsu'))score+=10;
+    if(has('balcony'))score+=5;
+    if(has('storage')||has('wic'))score+=5;
+    if(has('roka'))score+=5;
+    const fillRate=filled/total;
+    score+=Math.round(fillRate*30);
+
+    // コメント生成
+    if(!has('bath')&&!has('toilet'))comments.push('⚠ お風呂とトイレがありません');
+    else if(!has('bath'))comments.push('⚠ お風呂がありません');
+    else if(!has('toilet'))comments.push('⚠ トイレがありません');
+    if(!has('kitchen'))comments.push('⚠ キッチンがありません');
+    if(has('youshitsu')&&has('washitsu'))comments.push('✓ 洋室と和室を両方配置！');
+    if(has('balcony'))comments.push('✓ バルコニーあり、採光◎');
+    if(has('wic'))comments.push('✓ WICで収納たっぷり');
+    if(fillRate>0.8)comments.push('✓ 土地をうまく活用できました！');
+    else if(fillRate<0.4)comments.push('△ まだまだスペースに余裕あり');
+
+    // スコアに応じた総評
+    let overall='';
+    if(score>=80)overall='🏠 完璧な間取り！住みやすさ満点です。';
+    else if(score>=60)overall='🏡 快適に暮らせそうな間取りです。';
+    else if(score>=40)overall='🏚 もう少し整えると暮らしやすくなりそう。';
+    else overall='🔨 まだ発展途上！部屋を増やしてみましょう。';
+
+    // オーバーレイ表示
+    const ox=UI_L,oy=ROWS*CS/2-120;
+    const bg=this.add.graphics().setDepth(20);
+    bg.fillStyle(0x2a2018,0.88);
+    bg.fillRoundedRect(ox+20,oy,COLS*CS-40,240,12);
+
+    const cx=ox+COLS*CS/2;
+    const texts=[];
+    texts.push(this.add.text(cx,oy+20,'── 間取り評価 ──',
+      {fontSize:'16px',fill:'#f0e0c0',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(21));
+    texts.push(this.add.text(cx,oy+48,`スコア: ${score} / 100`,
+      {fontSize:'22px',fill:'#ffe08a',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(21));
+    texts.push(this.add.text(cx,oy+80,overall,
+      {fontSize:'13px',fill:'#f0e0c0',fontFamily:'Meiryo',wordWrap:{width:COLS*CS-80}})
+      .setOrigin(0.5,0).setDepth(21));
+
+    let ty=oy+106;
+    for(const c of comments){
+      texts.push(this.add.text(cx,ty,c,
+        {fontSize:'11px',fill:'#d8c8a8',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(21));
+      ty+=18;
+    }
+
+    // もう一度・続けるボタン
+    const retryBtn=this.add.text(cx-50,oy+200,'もう一度',
+      {fontSize:'13px',fill:'#fff',backgroundColor:'#7a5030',
+       padding:{x:10,y:5},fontFamily:'Meiryo'})
+      .setOrigin(0.5,0.5).setDepth(21).setInteractive({useHandCursor:true});
+    const contBtn=this.add.text(cx+50,oy+200,'続ける',
+      {fontSize:'13px',fill:'#fff',backgroundColor:'#507a30',
+       padding:{x:10,y:5},fontFamily:'Meiryo'})
+      .setOrigin(0.5,0.5).setDepth(21).setInteractive({useHandCursor:true});
+
+    const closeAll=()=>{
+      bg.destroy();texts.forEach(t=>t.destroy());
+      retryBtn.destroy();contBtn.destroy();
+    };
+    retryBtn.on('pointerdown',()=>{closeAll();this.scene.restart();});
+    contBtn.on('pointerdown',()=>closeAll());
+  }
+}
+
+// ─────────────────────────────────────
+// Phaser起動
+// ─────────────────────────────────────
+new Phaser.Game({
+  type:Phaser.AUTO,
+  width:CANVAS_W,
+  height:CANVAS_H,
+  backgroundColor:'#f0ece6',
+  parent:'game-container',
+  scene:PuzzleGame,
+});
+</script>
+</body>
+</html>
