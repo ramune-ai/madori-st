@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_47.html -->
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>間取りすと</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./puzzle_files/css2" rel="stylesheet">
-<script src="./puzzle_files/phaser.min.js.ダウンロード"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -162,8 +162,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   </div>
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <div class="start-sub-btns">
-    <button class="btn-sub" onclick="openModal(&#39;saves&#39;)">間取り保存一覧</button>
-    <button class="btn-sub" onclick="openModal(&#39;titles&#39;)">称号一覧</button>
+    <button class="btn-sub" onclick="openModal('saves')">間取り保存一覧</button>
+    <button class="btn-sub" onclick="openModal('titles')">称号一覧</button>
   </div>
 </div>
 
@@ -914,6 +914,5 @@ function startPhaserGame(){
   });
 }
 </script>
-
-
-</body></html>
+</body>
+</html>
