@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_36.html -->
+<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_37.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -699,8 +699,8 @@ function gotoGame(){
   if(subBtns) subBtns.style.display='flex';
   if(!gameStarted){
     gameStarted=true;
-    // screen-gameがdisplay:flexになった後にPhaserを起動
-    requestAnimationFrame(()=>requestAnimationFrame(()=>startPhaserGame()));
+    // display:flexがブラウザに反映されてからPhaserを起動
+    setTimeout(()=>startPhaserGame(), 50);
   }else if(gameScene){
     gameScene.scene.restart();
   }
@@ -1094,9 +1094,44 @@ class PuzzleGame extends Phaser.Scene{
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
     this.previewGfx.clear();
+    this.rebuildBoardImgs();
     this.drawBoard();
     this.drawUI();
     this.updatePreview(this.curC,this.curR);
+  }
+  // グリッドのパーツ画像をゼロから再構築（undo後などに使用）
+  rebuildBoardImgs(){
+    const drawn=new Set();
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const cell=this.grid[r][c];
+        if(!cell||cell.fixed||drawn.has(cell.pid))continue;
+        drawn.add(cell.pid);
+        const px=this.sx(cell.mnC), py=this.sy(cell.mnR);
+        const pw=(cell.mxC-cell.mnC+1)*CS, ph=(cell.mxR-cell.mnR+1)*CS;
+        if(cell.type==='washitsu'){
+          const g=this.add.graphics().setDepth(2);
+          this.drawWashitsuOnGraphics(g,px,py,pw,ph);
+          this.boardImgs[cell.pid]=g;
+        }else if(this.textures.exists(cell.type)){
+          const rot=(cell.rotation||0)%4;
+          const dw=rot%2===0?pw:ph, dh=rot%2===0?ph:pw;
+          const img=this.add.image(px+pw/2,py+ph/2,cell.type)
+            .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setDepth(2);
+          this.boardImgs[cell.pid]=img;
+        }else{
+          const g=this.add.graphics().setDepth(2);
+          g.fillStyle(cell.color,1);g.fillRect(px+1,py+1,pw-2,ph-2);
+          this.boardImgs[cell.pid]=g;
+        }
+        // ラベル再生成
+        const lbl=this.add.text(px+pw/2,py+ph/2,cell.label||'',
+          {fontSize:'11px',fill:'#3a3028',align:'center',fontFamily:'Meiryo',
+           stroke:'#ffffffaa',strokeThickness:2})
+          .setOrigin(0.5,0.5).setDepth(5);
+        this.boardLabels.push(lbl);
+      }
+    }
   }
   // 現在パーツとホールドの両方が全ての向きでどこにも置けなければ完成ボタンを表示
   checkNoPlace(){
