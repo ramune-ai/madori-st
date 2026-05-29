@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_46.html -->
+<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_47.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -154,7 +154,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <body>
 
 <!-- ① スタート -->
-<div id="screen-start" class="screen">
+<div id="screen-start" class="screen active">
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
@@ -168,15 +168,15 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 </div>
 
 <!-- ② ゲーム -->
-<div id="screen-game" class="screen active">
-  <div id="game-container"><canvas width="540" height="400"></canvas></div>
+<div id="screen-game" class="screen">
+  <div id="game-container"></div>
   <div id="btn-complete-overlay">
     <button onclick="onCompleteBtn()">完　成</button>
   </div>
 </div>
 
 <!-- ゲーム下部バー -->
-<div id="game-bottom-bar" style="display: flex;">
+<div id="game-bottom-bar" style="display:none;">
   <div class="hint-text">
     矢印キー 移動（長押し加速）　／　Space・Enter 配置　／　X 右回転　／　Z 左回転　／　Ctrl+Z 戻す　／　C・Shift ホールド
   </div>
