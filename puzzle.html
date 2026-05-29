@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_37.html -->
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>間取りすと</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./puzzle_files/css2" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -527,7 +527,7 @@ body{
 <body>
 
 <!-- ① スタート画面 -->
-<div id="screen-start" class="screen">
+<div id="screen-start" class="screen active">
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
@@ -535,14 +535,14 @@ body{
   </div>
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <div class="start-sub-btns">
-    <button class="btn-sub" onclick="openModal(&#39;saves&#39;)">間取り保存一覧</button>
-    <button class="btn-sub" onclick="openModal(&#39;titles&#39;)">称号一覧</button>
+    <button class="btn-sub" onclick="openModal('saves')">間取り保存一覧</button>
+    <button class="btn-sub" onclick="openModal('titles')">称号一覧</button>
   </div>
 </div>
 
 <!-- ② ゲーム画面 -->
-<div id="screen-game" class="screen active">
-  <div id="game-container"><canvas width="540" height="400"></canvas></div>
+<div id="screen-game" class="screen">
+  <div id="game-container"></div>
   <div id="btn-complete-overlay">
     <button onclick="onCompleteBtn()">完　成</button>
   </div>
@@ -550,7 +550,7 @@ body{
 </div>
 
 <!-- ゲーム中右下ボタン -->
-<div id="game-sub-btns" style="display: flex; position: fixed; bottom: 20px; right: 20px; flex-direction: column; gap: 8px; z-index: 9999;">
+<div id="game-sub-btns" style="display:none;position:fixed;bottom:20px;right:20px;flex-direction:column;gap:8px;z-index:9999;">
   <button class="btn-game-sub" onclick="gotoGame()">リトライ</button>
   <button class="btn-game-sub" onclick="gotoStart()">スタートへ戻る</button>
 </div>
@@ -639,7 +639,7 @@ body{
 </div>
 
 
-<script src="./puzzle_files/phaser.min.js.ダウンロード"></script>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script>
 // ────────────────────────────────────────
 // 画面管理
@@ -1087,13 +1087,16 @@ class PuzzleGame extends Phaser.Scene{
     this.holdDef=state.holdDef;
     this.holdUsed=state.holdUsed;
     this.partCount=state.partCount;
+    // 全画像オブジェクトを破棄
     Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
     this.boardImgs={};
+    // 全ラベルを破棄（玄関含む）
     this.boardLabels.forEach(o=>{if(o&&o.destroy)o.destroy();});
     this.boardLabels=[];
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
     this.previewGfx.clear();
+    // グリッド全体（玄関含む）を再描画
     this.rebuildBoardImgs();
     this.drawBoard();
     this.drawUI();
@@ -1105,10 +1108,29 @@ class PuzzleGame extends Phaser.Scene{
     for(let r=0;r<ROWS;r++){
       for(let c=0;c<COLS;c++){
         const cell=this.grid[r][c];
-        if(!cell||cell.fixed||drawn.has(cell.pid))continue;
+        if(!cell||drawn.has(cell.pid))continue;
         drawn.add(cell.pid);
         const px=this.sx(cell.mnC), py=this.sy(cell.mnR);
         const pw=(cell.mxC-cell.mnC+1)*CS, ph=(cell.mxR-cell.mnR+1)*CS;
+        // 玄関（fixed）の再生成
+        if(cell.fixed){
+          if(this.textures.exists('genkan')){
+            const img=this.add.image(px+pw/2,py+ph/2,'genkan')
+              .setDisplaySize(pw-2,ph-2).setDepth(2);
+            this.boardImgs[cell.pid]=img;
+          }else{
+            const g=this.add.graphics().setDepth(2);
+            g.fillStyle(cell.color,1);g.fillRect(px+1,py+1,pw-2,ph-2);
+            this.boardImgs[cell.pid]=g;
+          }
+          const lbl=this.add.text(px+pw/2,py+ph/2,'玄関',
+            {fontSize:'12px',fill:'#5a3010',fontFamily:'Meiryo',
+             stroke:'#ffffffaa',strokeThickness:2})
+            .setOrigin(0.5,0.5).setDepth(5);
+          this.boardLabels.push(lbl);
+          continue;
+        }
+        // 通常パーツの再生成
         if(cell.type==='washitsu'){
           const g=this.add.graphics().setDepth(2);
           this.drawWashitsuOnGraphics(g,px,py,pw,ph);
@@ -1124,7 +1146,6 @@ class PuzzleGame extends Phaser.Scene{
           g.fillStyle(cell.color,1);g.fillRect(px+1,py+1,pw-2,ph-2);
           this.boardImgs[cell.pid]=g;
         }
-        // ラベル再生成
         const lbl=this.add.text(px+pw/2,py+ph/2,cell.label||'',
           {fontSize:'11px',fill:'#3a3028',align:'center',fontFamily:'Meiryo',
            stroke:'#ffffffaa',strokeThickness:2})
@@ -1505,6 +1526,5 @@ function startPhaserGame(){
   });
 }
 </script>
-
-
-</body></html>
+</body>
+</html>
