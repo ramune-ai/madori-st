@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_35.html -->
+<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_36.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>間取りすと</title>
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link href="./puzzle_files/css2" rel="stylesheet">
-<script src="./puzzle_files/phaser.min.js.ダウンロード"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -528,7 +527,7 @@ body{
 <body>
 
 <!-- ① スタート画面 -->
-<div id="screen-start" class="screen active">
+<div id="screen-start" class="screen">
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
@@ -542,8 +541,8 @@ body{
 </div>
 
 <!-- ② ゲーム画面 -->
-<div id="screen-game" class="screen">
-  <div id="game-container"></div>
+<div id="screen-game" class="screen active">
+  <div id="game-container"><canvas width="540" height="400"></canvas></div>
   <div id="btn-complete-overlay">
     <button onclick="onCompleteBtn()">完　成</button>
   </div>
@@ -551,7 +550,7 @@ body{
 </div>
 
 <!-- ゲーム中右下ボタン -->
-<div id="game-sub-btns" style="display:none;position:fixed;bottom:20px;right:20px;flex-direction:column;gap:8px;z-index:9999;">
+<div id="game-sub-btns" style="display: flex; position: fixed; bottom: 20px; right: 20px; flex-direction: column; gap: 8px; z-index: 9999;">
   <button class="btn-game-sub" onclick="gotoGame()">リトライ</button>
   <button class="btn-game-sub" onclick="gotoStart()">スタートへ戻る</button>
 </div>
@@ -640,6 +639,7 @@ body{
 </div>
 
 
+<script src="./puzzle_files/phaser.min.js.ダウンロード"></script>
 <script>
 // ────────────────────────────────────────
 // 画面管理
@@ -699,7 +699,8 @@ function gotoGame(){
   if(subBtns) subBtns.style.display='flex';
   if(!gameStarted){
     gameStarted=true;
-    startPhaserGame();
+    // screen-gameがdisplay:flexになった後にPhaserを起動
+    requestAnimationFrame(()=>requestAnimationFrame(()=>startPhaserGame()));
   }else if(gameScene){
     gameScene.scene.restart();
   }
