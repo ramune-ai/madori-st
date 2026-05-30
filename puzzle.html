@@ -23,11 +23,11 @@
 body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;}
 
 /* ── 共通 ── */
-.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px 24px;}
 .screen.active{display:flex;}
 
 /* ── ① スタート ── */
-#screen-start{background:var(--cream);position:relative;overflow:hidden;}
+#screen-start{background:var(--cream);position:relative;overflow:hidden;justify-content:center;}
 #screen-start::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(200,160,96,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(106,138,80,.08) 0%,transparent 60%);pointer-events:none;}
 .logo-wrap{text-align:center;margin-bottom:48px;animation:fadeDown .8s ease both;}
 .logo-icon{font-size:56px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(90,74,58,.15));}
@@ -157,7 +157,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #btn-complete-overlay button:hover{background:#2a1a0a;animation:none;transform:scale(1.04);transition:transform .15s;}
 
 /* ── ③ ルーレット ── */
-#screen-roulette{background:rgba(245,240,232,0.82);min-height:100vh;}
+#screen-roulette{background:rgba(245,240,232,0.82);}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
 /* スロットのラッパー：高さを固定してブレを防ぐ */
 .roulette-item-wrap{width:340px;height:120px;margin-bottom:40px;position:relative;flex-shrink:0;}
@@ -220,12 +220,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 }
 .reroll-pop.visible{visibility:visible;opacity:1;}
 @keyframes slotPulse{0%,100%{outline-color:rgba(200,160,96,.25);}50%{outline-color:rgba(200,160,96,.5);}}
+@keyframes titleBtnPulse{0%,100%{box-shadow:0 0 0 0 rgba(58,42,26,0),0 4px 14px rgba(58,42,26,.22);}60%{box-shadow:0 0 0 6px rgba(58,42,26,.12),0 4px 14px rgba(58,42,26,.22);}}
 .btn-roulette-next{margin-top:32px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
 .btn-roulette-next.visible{opacity:1;pointer-events:auto;}
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
 /* ── ④ 結果 ── */
-#screen-result{background:rgba(245,240,232,0.82);}
+#screen-result{background:rgba(245,240,232,0.82);padding-top:20px;}
 .result-wrap{text-align:center;max-width:440px;width:100%;}
 .result-title-hero{font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:10px;animation:popIn .5s ease both;text-shadow:0 2px 20px rgba(200,160,96,.5);}
 .result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:52px;font-weight:700;color:var(--brown-dark);line-height:1;margin-bottom:20px;letter-spacing:.04em;}
@@ -275,12 +276,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   background:var(--brown-dark);color:#f5f0e8;
   font-family:'Noto Serif JP',serif;font-size:17px;letter-spacing:.12em;
   padding:14px 24px;border-radius:6px;width:100%;box-sizing:border-box;
+  will-change:opacity,transform;
 }
 .title-new-badge-inline{font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;letter-spacing:.08em;flex-shrink:0;}
 .titles-owned-section{margin-top:20px;width:100%;}
 .titles-owned-label-sm{font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;opacity:.7;}
 .titles-owned-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;opacity:.5;}
-.title-owned-chip{background:rgba(90,74,58,.08);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
+.title-owned-chip{background:rgba(90,74,58,.08);color:var(--brown-light);font-size:12px;letter-spacing:.08em;padding:6px 16px;border-radius:20px;border:1px solid rgba(90,74,58,.15);font-family:'Noto Serif JP',serif;will-change:opacity,transform;}
 </style>
 </head>
 <body>
@@ -411,7 +413,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- ④ 称号発表画面（物件完成の手前） -->
 <div id="screen-titles" class="screen">
-  <div style="text-align:center;max-width:420px;width:100%;padding:32px 20px;">
+  <div style="text-align:center;max-width:420px;width:100%;">
     <div class="titles-heading">獲 得 称 号</div>
     <div id="title-reveal-list" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;"></div>
     <div class="titles-owned-section" id="titles-owned-section" style="display:none;">
@@ -430,7 +432,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ⑤ 結果画面 -->
 <div id="screen-result" class="screen">
   <div class="result-wrap">
-    <div class="result-title-hero">物 件 完 成 ！</div>
+    <div class="result-title-hero">物件完成！</div>
     <div id="res-player-name" style="font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:10px;display:none;text-align:center;"></div>
     <div class="result-ldk-hero" id="res-room-label">---</div>
 
@@ -727,53 +729,107 @@ function showTitlesReveal(){
   btn.style.opacity='0'; btn.style.pointerEvents='none';
 
   // 全称号を順番に優しく出現（NEW → 既所持の順）
-  // NEW称号：目立つスタイルで1つずつ
-  newTitles.forEach((title,i)=>{
-    const el=document.createElement('div');
-    el.className='title-new-item';
-    el.style.cssText=`opacity:0;transform:translateY(16px);transition:opacity .5s cubic-bezier(.4,0,.2,1) ${i*0.55}s,transform .5s cubic-bezier(.4,0,.2,1) ${i*0.55}s;`;
-    el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${title}`;
-    listEl.appendChild(el);
-    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 60);
-  });
+  const allItems=[
+    ...newTitles.map(t=>({title:t,isNew:true})),
+    ...ownedTitles.map(t=>({title:t,isNew:false}))
+  ];
 
-  const newDelay=60+newTitles.length*550;
+  const INTERVAL=220; // 1件ごとの間隔ms
+  const DURATION=320; // フェード時間ms
 
-  // 既所持称号：NEWが終わった後、1つずつ控えめに出現
-  ownedTitles.forEach((title,i)=>{
+  allItems.forEach(({title,isNew},i)=>{
+    const delay=200+i*INTERVAL;
     setTimeout(()=>{
       const el=document.createElement('div');
-      el.className='title-owned-chip';
-      el.style.cssText='opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease;display:block;margin-bottom:8px;';
-      el.textContent=title;
+      if(isNew){
+        el.className='title-new-item';
+        el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${title}`;
+      } else {
+        el.className='title-owned-chip';
+        el.style.display='block';
+        el.style.marginBottom='8px';
+        el.textContent=title;
+      }
+      el.style.opacity='0';
+      el.style.transform='translateY(12px)';
+      el.style.transition=`opacity ${DURATION}ms ease, transform ${DURATION}ms ease`;
+      listEl.appendChild(el);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        el.style.opacity='1';
+        el.style.transform='translateY(0)';
+      }));
+    }, delay);
+  });
+
+  // 称号ゼロ
+  if(earned.length===0){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='title-new-item';
+      el.style.cssText='opacity:0;transform:translateY(12px);transition:opacity .38s ease,transform .38s ease;background:rgba(90,74,58,.1);color:var(--brown-light);';
+      el.textContent='な し';
       listEl.appendChild(el);
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         el.style.opacity='1'; el.style.transform='translateY(0)';
       }));
-    }, newDelay+i*300);
-  });
-
-  // 称号ゼロのケース
-  if(earned.length===0){
-    const el=document.createElement('div');
-    el.className='title-new-item';
-    el.style.cssText='opacity:0;transform:translateY(16px);transition:opacity .5s ease .05s,transform .5s ease .05s;background:rgba(90,74,58,.1);color:var(--brown-light);';
-    el.textContent='な し';
-    listEl.appendChild(el);
-    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 60);
-  } else if(newTitles.length===0){
-    // 既所持のみ＝新規なしメッセージ
-    const el=document.createElement('div');
-    el.style.cssText='opacity:0;transform:translateY(10px);transition:opacity .4s ease .05s,transform .4s ease .05s;font-size:12px;color:var(--brown-light);letter-spacing:.15em;margin-bottom:12px;';
-    el.textContent='新規獲得なし';
-    listEl.insertBefore(el,listEl.firstChild);
-    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 60);
+    }, 200);
   }
 
-  const totalDelay=newDelay+ownedTitles.length*300+400;
+  const totalDelay=200+Math.min(allItems.length,1)*INTERVAL+DURATION;
   setTimeout(()=>{
     btn.style.opacity='1'; btn.style.pointerEvents='auto';
+    btn.style.animation='titleBtnPulse 2s ease-in-out infinite';
   }, totalDelay);
+}
+
+function renderSavesList(){
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  title.textContent='間取り保存一覧';
+  const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+  if(list.length===0){
+    body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に「💾 保存」ボタンで保存できます。</div>';
+    return;
+  }
+  body.innerHTML='';
+  list.forEach((s)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(90,74,58,.1);';
+    const thumb=document.createElement(s.img?'img':'div');
+    thumb.style.cssText='width:80px;height:60px;object-fit:contain;border-radius:6px;border:1px solid rgba(90,74,58,.12);flex-shrink:0;background:#f5f0e8;';
+    if(s.img) thumb.src=s.img;
+    const info=document.createElement('div');
+    info.style.cssText='flex:1;min-width:0;';
+    info.innerHTML=`
+      <div style="font-family:'Noto Serif JP',serif;font-size:17px;color:var(--brown-dark);font-weight:700;margin-bottom:4px;">${s.labelRaw||s.label||'--'}</div>
+      <div style="font-size:11px;color:var(--brown-light);letter-spacing:.04em;">築${s.age??'--'}年　駅${s.walk??'--'}分　${s.rent??'--'}万円</div>
+      <div style="font-size:10px;color:var(--brown-light);margin-top:3px;opacity:.7;">${s.date||''}</div>
+      ${s.titles&&s.titles.length?`<div style="font-size:10px;color:var(--brown-light);margin-top:4px;opacity:.8;">${s.titles.join('・')}</div>`:''}
+    `;
+    const btn=document.createElement('button');
+    btn.textContent='✕';
+    btn.style.cssText='flex-shrink:0;background:none;border:none;color:rgba(90,74,58,.35);font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;transition:color .15s;';
+    btn.onmouseover=()=>btn.style.color='#c0392b';
+    btn.onmouseout=()=>btn.style.color='rgba(90,74,58,.35)';
+    btn.onclick=()=>{
+      // idで特定して削除（インデックスズレを防ぐ）
+      const cur=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+      const next=cur.filter(x=>x.id!==s.id);
+      localStorage.setItem('madori-saves',JSON.stringify(next));
+      renderSavesList();
+    };
+    row.appendChild(thumb);
+    row.appendChild(info);
+    row.appendChild(btn);
+    body.appendChild(row);
+  });
+}
+function deleteSave(index){
+  // 旧実装の互換のため残す（使われない）
+  const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+  list.splice(index,1);
+  localStorage.setItem('madori-saves',JSON.stringify(list));
+  renderSavesList();
 }
 
 // ────────────────────────────────────────
@@ -783,22 +839,7 @@ function openModal(type){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
   if(type==='saves'){
-    title.textContent='間取り保存一覧';
-    const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
-    if(list.length===0){
-      body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に「💾 保存」ボタンで保存できます。</div>';
-    }else{
-      body.innerHTML=list.map(s=>`
-        <div style="display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(90,74,58,.1);">
-          ${s.img?`<img src="${s.img}" style="width:80px;height:60px;object-fit:contain;border-radius:6px;border:1px solid rgba(90,74,58,.12);flex-shrink:0;background:#f5f0e8;" />`:'<div style="width:80px;height:60px;border-radius:6px;border:1px solid rgba(90,74,58,.12);background:#f0ece6;flex-shrink:0;"></div>'}
-          <div style="flex:1;min-width:0;">
-            <div style="font-family:\'Noto Serif JP\',serif;font-size:17px;color:var(--brown-dark);font-weight:700;margin-bottom:4px;">${s.labelRaw||s.label||'--'}</div>
-            <div style="font-size:11px;color:var(--brown-light);letter-spacing:.04em;">築${s.age??'--'}年　駅${s.walk??'--'}分　${s.rent??'--'}万円</div>
-            <div style="font-size:10px;color:var(--brown-light);margin-top:3px;opacity:.7;">${s.date||''}</div>
-            ${s.titles&&s.titles.length?`<div style="font-size:10px;color:var(--brown-light);margin-top:4px;opacity:.8;">${s.titles.join('・')}</div>`:''}
-          </div>
-        </div>`).join('');
-    }
+    renderSavesList();
   }else{
     const titles=JSON.parse(localStorage.getItem('madori-titles')||'[]');
     title.textContent='称号一覧';
@@ -914,23 +955,17 @@ function countRoomLabel(roomTypes,counts){
   const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
   const sup={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
   const k=counts['kitchen']||0;
-  // キッチン0個→R表記、1個→LDK、2個以上→LDK²など
+  const wc=counts['toilet']||0;
+  const bath=counts['bath']||0;
+  // WC・B は個数にかかわらず常に表示（0個でも表示）
+  const wcStr=`+${wc>1?wc:''}WC`;
+  const bStr=`+${bath>1?bath:''}B`;
+  const extra=wcStr+bStr;
   if(k===0){
-    // キッチンなし：部屋数R
-    const wc=counts['toilet']||0;
-    const bath=counts['bath']||0;
-    let extra='';
-    if(wc>0) extra+=`+${wc>1?wc:''}WC`;
-    if(bath>0) extra+=`+${bath>1?bath:''}B`;
     return (rooms>0?rooms:'')+'R'+extra;
   }
   const kLabel=`K${k>=2?(sup[k]||String(k)):''}`;
   const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel}`;
-  const wc=counts['toilet']||0;
-  const bath=counts['bath']||0;
-  let extra='';
-  if(wc>0) extra+=`+${wc>1?wc:''}WC`;
-  if(bath>0) extra+=`+${bath>1?bath:''}B`;
   return ldkLabel+extra;
 }
 function showResult(){
@@ -1170,11 +1205,14 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   nextPiece(){
+    // checkNoPlace用に「holdなし時にholdすると来るピース」= shift前のqueue[0]を保存
+    const queueNextBeforeShift=this.queue[0];
     this.currentDef=this.queue.shift(); this.queue.push(this.pickRandom());
     this.rotation=0; this.holdUsed=false;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
-    this.drawUI(); this.updatePreview(this.curC,this.curR); this.checkNoPlace();
+    this.drawUI(); this.updatePreview(this.curC,this.curR);
+    this.checkNoPlace(queueNextBeforeShift);
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
@@ -1189,7 +1227,6 @@ class PuzzleGame extends Phaser.Scene{
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     this.updatePreview(this.curC,this.curR); this.drawUI();
-    // checkNoPlace は nextPiece に一本化。doHold後はプレイヤーが操作できるので呼ばない
   }
   doUndo(){
     if(this.undoStack.length===0)return;
@@ -1207,7 +1244,8 @@ class PuzzleGame extends Phaser.Scene{
     this.previewGfx.clear();
     this.updatePreview(this.curC,this.curR);
     document.getElementById('btn-complete-overlay').classList.remove('visible');
-    this.checkNoPlace();
+    // doUndo後はholdなし時にholdすると来るピース=queue[0]を渡す
+    this.checkNoPlace(this.queue[0]);
   }
 
   // ★ ビジュアル全破棄（boardImgs + boardLabels を Map として管理）
@@ -1283,7 +1321,7 @@ class PuzzleGame extends Phaser.Scene{
     this._createCellVisual(this.grid[ROWS-2][gx]);
   }
 
-  checkNoPlace(){
+  checkNoPlace(queueNextForHold=null){
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
 
     const canPlaceAnywhere=(def)=>{
@@ -1295,14 +1333,17 @@ class PuzzleGame extends Phaser.Scene{
       return false;
     };
 
-    // current が置ける→続行
+    // current が置ける → 続行
     if(canPlaceAnywhere(this.currentDef))return;
-    // hold が置ける→ホールドすれば続行
+    // holdDef が置ける → holdすれば続行
     if(canPlaceAnywhere(this.holdDef))return;
-    // queue 内のいずれかが置ける→ホールドを繰り返せば引き出せる
+    // holdなし時にholdを押すと来るピース（nextPieceからはshift前のqueue[0]、
+    // doUndoからはqueue[0]）が置ける → hold操作で引き出せる → 続行
+    if(canPlaceAnywhere(queueNextForHold))return;
+    // queue内のいずれかが置ける → holdを繰り返せばいつか引き出せる → 続行
     if(this.queue.some(d=>canPlaceAnywhere(d)))return;
 
-    // 全部ダメ→終了
+    // 全て置けない → 終了
     this.fillEmptyAsStorage();
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this.stopPreviewTween();
@@ -1568,7 +1609,7 @@ class PuzzleGame extends Phaser.Scene{
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
         fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2,
         wordWrap:{width:CS*Math.min(cells.length,3)-4}
-      }).setOrigin(0.5,0.5).setDepth(5);
+      }).setOrigin(0.5,0.5).setDepth(3);
       this._storageTexts.push(t);
     }
   }
