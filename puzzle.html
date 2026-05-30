@@ -202,11 +202,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
 /* 再抽選POP */
 .reroll-pop{
-  position:absolute;left:12px;bottom:-22px;
+  position:absolute;left:10px;top:10px;
   font-size:10px;font-weight:700;letter-spacing:.06em;
-  color:#fff;background:#2a9d8f;padding:2px 10px;border-radius:20px;
+  color:#fff;background:#2a9d8f;padding:3px 10px;border-radius:20px;
   border:none;white-space:nowrap;pointer-events:none;
-  display:none;box-shadow:0 2px 6px rgba(42,157,143,.35);
+  display:none;box-shadow:0 2px 6px rgba(42,157,143,.35);z-index:5;
 }
 .reroll-pop.visible{display:block;}
 @keyframes slotPulse{0%,100%{box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);}50%{box-shadow:0 0 0 5px rgba(200,160,96,.4),0 8px 28px rgba(90,74,58,.18);}}
@@ -256,7 +256,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 @keyframes spin{0%{opacity:1;}50%{opacity:.4;}100%{opacity:1;}}
 @keyframes popIn{0%{transform:scale(.8);opacity:0;}70%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
-@keyframes gentlePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,160,96,0);}50%{opacity:.75;box-shadow:0 0 20px 6px rgba(200,160,96,.25);}}
+@keyframes gentlePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,160,96,0);}50%{opacity:1;box-shadow:0 0 20px 6px rgba(200,160,96,.35);}}
 .pop-in{animation:popIn .4s ease both;}
 .res-titles-new{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px;}
 .res-title-new-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.12em;padding:10px 20px;border-radius:4px;animation:popIn .4s ease both;}
@@ -575,12 +575,39 @@ function doRerollSlot(idx){
   rouletteIntervals[idx]=setInterval(()=>{
     valEl.textContent=pool[Math.floor(Math.random()*pool.length)]+rouletteUnits[idx];
   },80);
-  item.onclick=()=>lockRoulette(idx);
+  item.onclick=()=>lockRerollSlot(idx);
   updateRerollBtnSlot(idx);
 }
 
-// 旧doReroll（互換用・呼ばれないが念のため）
-function doReroll(){}
+// 再抽選後の確定用（専用プールから値を取る）
+function lockRerollSlot(idx){
+  if(rouletteLocked[idx])return;
+  clearInterval(rouletteIntervals[idx]);
+  const pool=REROLL_POOLS[idx]||ROULETTE_POOLS[rouletteKeys[idx]];
+  const val=pool[Math.floor(Math.random()*pool.length)];
+  rouletteValues[idx]=val;
+  rouletteLocked[idx]=true;
+  document.getElementById('rou-val-'+idx).textContent=val+rouletteUnits[idx];
+  document.getElementById('rou-val-'+idx).classList.remove('spinning');
+  document.getElementById('rou-'+idx).classList.remove('active-slot');
+  document.getElementById('rou-'+idx).classList.add('locked');
+  if(isRare(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  // 再抽選後は自スロットのPOPを消す
+  const pop2=document.querySelector('#rou-'+idx+' .reroll-pop');
+  if(pop2) pop2.classList.remove('visible');
+  // 次のスロットをアクティブに（まだ確定していないスロットがある場合）
+  if(idx+1<3 && !rouletteLocked[idx+1]) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
+  lockedCount=[0,1,2].filter(i=>rouletteLocked[i]).length;
+  if(lockedCount===3){
+    document.getElementById('btn-rou-next').classList.add('visible');
+    for(let i=0;i<3;i++){
+      const rb=document.getElementById('reroll-btn-'+i);
+      if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
+      const pop=document.querySelector('#rou-'+i+' .reroll-pop');
+      if(pop && !isRerollUsed(i)) pop.classList.add('visible');
+    }
+  }
+}
 
 // ────────────────────────────────────────
 // 間取り保存（最大10件）
@@ -1457,22 +1484,23 @@ class PuzzleGame extends Phaser.Scene{
         g.fillStyle(storageColor,0.9);
         g.fillRect(px,py,CS,CS);  // 隙間なし
       }
-      // 塊の外接矩形中心に「収納」を1つだけ表示（塊幅内に収まるよう）
+      // 塊の重心（塊に含まれる全マスの平均位置）に「収納」を表示
       const minR=Math.min(...cells.map(([r])=>r));
       const maxR=Math.max(...cells.map(([r])=>r));
       const minC=Math.min(...cells.map(([,c])=>c));
       const maxC=Math.max(...cells.map(([,c])=>c));
-      const cx=this.sx(minC)+(maxC-minC+1)*CS/2;
-      const cy=this.sy(minR)+(maxR-minR+1)*CS/2;
+      // 重心計算
+      const cx=cells.reduce((s,[,c])=>s+this.sx(c)+CS/2,0)/cells.length;
+      const cy=cells.reduce((s,[r])=>s+this.sy(r)+CS/2,0)/cells.length;
       const blockW=(maxC-minC+1)*CS;
       const blockH=(maxR-minR+1)*CS;
-      const fs=Math.min(11, Math.floor(blockW*0.32), Math.floor(blockH*0.55));
-      if(fs>=7){
-        this.add.text(cx, cy, '収納', {
-          fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-          fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2
-        }).setOrigin(0.5,0.5).setDepth(5);
-      }
+      // 1マスのとき小さく、複数マスのとき少し大きく
+      const fs=cells.length===1?8:Math.min(11, Math.floor(Math.sqrt(cells.length)*5));
+      this.add.text(cx, cy, '収納', {
+        fontSize:fs+'px',fill:'#6a4e2e',align:'center',
+        fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2,
+        wordWrap:{width:CS*Math.min(cells.length,3)-4}
+      }).setOrigin(0.5,0.5).setDepth(5);
     }
   }
 
