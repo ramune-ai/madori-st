@@ -91,17 +91,49 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
-.roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:32px;text-align:center;}
-.roulette-item{width:340px;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:20px 28px;margin-bottom:16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
-.roulette-item.locked{cursor:default;border-color:var(--accent);background:linear-gradient(135deg,#fffbf5,#fff8ec);}
-.roulette-item-label{font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:6px;}
-.roulette-item-value{font-family:'Noto Serif JP',serif;font-size:28px;font-weight:700;color:var(--brown-dark);transition:all .1s;}
+.roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
+.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px 20px 24px;margin-bottom:18px;cursor:pointer;transition:all .25s;position:relative;overflow:visible;opacity:.45;pointer-events:none;}
+.roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);animation:slotPulse 1.4s ease-in-out infinite;}
+.roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);box-shadow:none;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
+/* locked でも再抽選ボタンだけは押せるようにする */
+.roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
+.roulette-item-label{font-size:14px;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:6px;font-weight:700;text-align:center;}
+.roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:all .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
-.roulette-item .tap-hint{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--brown-light);opacity:.6;}
+/* レア値：金色グロー */
+.roulette-item.rare .roulette-item-value{
+  background:linear-gradient(135deg,#c8860a,#f5c842,#e8a020,#f5c842);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:goldShine 2s linear infinite;
+  filter:drop-shadow(0 0 6px rgba(200,160,10,.5));
+  font-size:44px;
+}
+@keyframes goldShine{0%{background-position:0% center}100%{background-position:200% center}}
+.roulette-item.rare{border-color:#c8a020;background:linear-gradient(135deg,#fffbec,#fff8d6);}
+.roulette-item.rare::before{content:'✦ PREMIUM';position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.2em;color:#c8860a;background:#fff8d6;padding:2px 10px;border-radius:20px;border:1px solid #e8c040;white-space:nowrap;}
+/* tap-hint */
+.roulette-item .tap-hint{display:block;font-size:11px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:500;letter-spacing:.05em;text-align:center;margin-top:4px;}
+.roulette-item.active-slot .tap-hint{opacity:1;}
 .roulette-item.locked .tap-hint{display:none;}
-.roulette-item.locked::after{content:'✓ 確定';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--accent);letter-spacing:.1em;}
-.roulette-item:not(.locked):hover{border-color:var(--brown-light);transform:translateX(4px);}
-.btn-roulette-next{margin-top:24px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
+.roulette-item.locked::after{content:'✓ 確定';position:absolute;top:12px;right:14px;font-size:11px;color:var(--brown-light);letter-spacing:.1em;}
+.roulette-item.rare.locked::after{color:#c8860a;}
+.roulette-item.active-slot:hover{transform:translateX(4px);}
+/* 各スロット個別の再抽選ボタン */
+.reroll-slot-btn{
+  position:absolute;right:-16px;bottom:-16px;
+  background:var(--brown-dark);color:#f5f0e8;
+  font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.08em;
+  padding:10px 20px;border-radius:24px;border:none;cursor:pointer;
+  white-space:nowrap;box-shadow:0 3px 10px rgba(58,42,26,.35);
+  transition:all .2s;display:none;z-index:20;pointer-events:auto;
+}
+.reroll-slot-btn.visible{display:block;}
+.reroll-slot-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(58,42,26,.45);}
+.reroll-slot-btn.used{background:rgba(90,74,58,.25);color:var(--brown-light);cursor:not-allowed;box-shadow:none;}
+.reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
+@keyframes slotPulse{0%,100%{box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);}50%{box-shadow:0 0 0 5px rgba(200,160,96,.4),0 8px 28px rgba(90,74,58,.18);}}
+.btn-roulette-next{margin-top:32px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
 .btn-roulette-next.visible{opacity:1;pointer-events:auto;}
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
@@ -165,6 +197,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <div class="logo-title">間取りすと</div>
     <div class="logo-sub">MADORI-ST</div>
   </div>
+  <div id="name-input-wrap" style="margin-bottom:28px;text-align:center;animation:fadeUp .8s .15s ease both;">
+    <div style="font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;">マドリスト名</div>
+    <input id="player-name-input" type="text" maxlength="12" placeholder="名前を入力（任意）"
+      style="background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 18px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;width:240px;text-align:center;"
+      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
+  </div>
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <div class="start-sub-btns">
     <button class="btn-sub" onclick="openModal('saves')">間取り保存一覧</button>
@@ -201,16 +239,19 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <div class="roulette-item-label">築 年 数</div>
     <div class="roulette-item-value" id="rou-val-0">---</div>
     <span class="tap-hint">タップで確定</span>
+    <button class="reroll-slot-btn" id="reroll-btn-0" onclick="event.stopPropagation();doRerollSlot(0)">🎲 再抽選</button>
   </div>
   <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
     <div class="roulette-item-label">駅 徒 歩</div>
     <div class="roulette-item-value" id="rou-val-1">---</div>
     <span class="tap-hint">タップで確定</span>
+    <button class="reroll-slot-btn" id="reroll-btn-1" onclick="event.stopPropagation();doRerollSlot(1)">🎲 再抽選</button>
   </div>
   <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
     <div class="roulette-item-label">家 賃</div>
     <div class="roulette-item-value" id="rou-val-2">---</div>
     <span class="tap-hint">タップで確定</span>
+    <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
   </div>
   <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoResult()">物 件 完 成 →</button>
 </div>
@@ -219,7 +260,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <div id="screen-result" class="screen">
   <div class="result-wrap">
     <div class="result-title">間 取 り 結 果</div>
-    <div id="res-madori-preview" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
+    <div id="res-player-name" style="font-size:12px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:12px;margin-top:-16px;display:none;text-align:center;"></div>
+
+    <!-- ① 物件詳細カード -->
     <div class="result-property-card pop-in">
       <div class="result-property-name" id="res-room-label">---</div>
       <div class="result-stats">
@@ -237,7 +280,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
         </div>
       </div>
     </div>
-    <hr class="result-divider">
+
+    <!-- ② 間取り図プレビュー -->
+    <div id="res-madori-preview" style="display:flex;justify-content:center;margin-bottom:24px;"></div>
+
+    <hr class="result-divider" style="margin-top:0;">
+
+    <!-- ③ 称号 -->
     <div class="result-title-section">
       <div class="result-title-label">獲 得 称 号</div>
       <div id="res-titles-new" class="res-titles-new"></div>
@@ -247,8 +296,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     </div>
     <div class="result-btns">
       <button class="btn-result primary" onclick="gotoGame()">も う 一 度</button>
+      <button class="btn-result secondary" onclick="saveMadori()">💾 保 存</button>
       <button class="btn-result secondary" onclick="gotoStart()">戻 る</button>
     </div>
+    <div id="save-toast" style="display:none;margin-top:12px;font-size:12px;color:var(--green);letter-spacing:.1em;text-align:center;">✓ 保存しました</div>
   </div>
 </div>
 
@@ -309,7 +360,71 @@ function gotoStart(){
   showMadoriBg(false);
   showScreen('screen-start');
 }
+
+// ────────────────────────────────────────
+// 再抽選（各スロット1日1回）
+// ────────────────────────────────────────
+// レア判定
+const RARE_COND=[
+  v=>v<=5,    // 築年数5以下
+  v=>v<=5,    // 駅徒歩5以下
+  v=>v<=9,    // 家賃1桁（9以下）
+];
+function isRare(idx,val){return RARE_COND[idx](val);}
+
+function getRerollKey(idx){return 'madori-reroll-'+idx+'-date';}
+function isRerollUsed(idx){return localStorage.getItem(getRerollKey(idx))===new Date().toDateString();}
+function markRerollUsed(idx){localStorage.setItem(getRerollKey(idx),new Date().toDateString());}
+
+function updateRerollBtnSlot(idx){
+  const btn=document.getElementById('reroll-btn-'+idx);
+  if(!btn)return;
+  if(isRerollUsed(idx)){
+    btn.classList.add('used');
+    btn.textContent='使用済み';
+  }else{
+    btn.classList.remove('used');
+    btn.textContent='🎲 再抽選';
+  }
+}
+
+function doRerollSlot(idx){
+  if(isRerollUsed(idx))return;
+  markRerollUsed(idx);
+  // そのスロットだけリスピン→即確定
+  clearInterval(rouletteIntervals[idx]);
+  const pool=ROULETTE_POOLS[rouletteKeys[idx]];
+  const val=pool[Math.floor(Math.random()*pool.length)];
+  rouletteValues[idx]=val;
+  const valEl=document.getElementById('rou-val-'+idx);
+  valEl.textContent=val+rouletteUnits[idx];
+  // レア演出
+  const item=document.getElementById('rou-'+idx);
+  if(isRare(idx,val)){item.classList.add('rare');}
+  else{item.classList.remove('rare');}
+  updateRerollBtnSlot(idx);
+}
+
+// 旧doReroll（互換用・呼ばれないが念のため）
+function doReroll(){}
+
+// ────────────────────────────────────────
+// 間取り保存（最大10件）
+// ────────────────────────────────────────
+function saveMadori(){
+  const data=window._lastResult;
+  if(!data){alert('まだ結果がありません');return;}
+  const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+  list.unshift({...data,id:Date.now()});
+  if(list.length>10)list.splice(10);
+  localStorage.setItem('madori-saves',JSON.stringify(list));
+  const toast=document.getElementById('save-toast');
+  if(toast){toast.style.display='block';setTimeout(()=>{toast.style.display='none';},2000);}
+}
 function gotoGame(){
+  // マドリスト名を保存
+  const inp=document.getElementById('player-name-input');
+  if(inp) window._playerName=inp.value.trim()||'';
   showMadoriBg(false);
   showScreen('screen-game');
   document.getElementById('btn-complete-overlay').classList.remove('visible');
@@ -351,7 +466,17 @@ function openModal(type){
   const body=document.getElementById('modal-body');
   if(type==='saves'){
     title.textContent='間取り保存一覧';
-    body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に保存できます。</div>';
+    const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+    if(list.length===0){
+      body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に「💾 保存」ボタンで保存できます。</div>';
+    }else{
+      body.innerHTML=list.map(s=>`
+        <div style="padding:12px 0;border-bottom:1px solid rgba(90,74,58,.1);">
+          <div style="font-family:'Noto Serif JP',serif;font-size:15px;color:var(--brown-dark);font-weight:700;">${s.labelRaw||s.label||'--'}</div>
+          <div style="font-size:11px;color:var(--brown-light);margin-top:3px;letter-spacing:.05em;">${s.name} ／ 築${s.age}年 駅${s.walk}分 ${s.rent}万円 ／ ${s.date}</div>
+          <div style="font-size:11px;color:var(--brown-light);margin-top:2px;">${(s.titles||[]).join('・')}</div>
+        </div>`).join('');
+    }
   }else{
     const titles=JSON.parse(localStorage.getItem('madori-titles')||'[]');
     title.textContent='称号一覧';
@@ -384,9 +509,13 @@ function startRoulette(){
   lockedCount=0;
   for(let i=0;i<3;i++){
     rouletteLocked[i]=false; rouletteValues[i]=null;
-    document.getElementById('rou-'+i).classList.remove('locked');
+    document.getElementById('rou-'+i).classList.remove('locked','active-slot','rare');
     document.getElementById('rou-val-'+i).classList.add('spinning');
+    const rb=document.getElementById('reroll-btn-'+i);
+    if(rb) rb.classList.remove('visible');
   }
+  // 最初は0番目だけアクティブ
+  document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
   for(let i=0;i<3;i++){
     if(rouletteIntervals[i])clearInterval(rouletteIntervals[i]);
@@ -408,8 +537,18 @@ function lockRoulette(idx){
   rouletteLocked[idx]=true;
   document.getElementById('rou-val-'+idx).textContent=val+rouletteUnits[idx];
   document.getElementById('rou-val-'+idx).classList.remove('spinning');
+  document.getElementById('rou-'+idx).classList.remove('active-slot');
   document.getElementById('rou-'+idx).classList.add('locked');
-  if(++lockedCount===3) document.getElementById('btn-rou-next').classList.add('visible');
+  // レア演出
+  if(isRare(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  // 個別再抽選ボタン表示
+  const rb=document.getElementById('reroll-btn-'+idx);
+  if(rb){rb.classList.add('visible');updateRerollBtnSlot(idx);}
+  // 次のスロットをアクティブに
+  if(idx+1<3) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
+  if(++lockedCount===3){
+    document.getElementById('btn-rou-next').classList.add('visible');
+  }
 }
 
 // ────────────────────────────────────────
@@ -438,10 +577,10 @@ function generateTitle(age,walk,rent,roomTypes){
 function countRoomLabel(roomTypes,counts){
   // 部屋数：洋室と和室のみ
   const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
-  // キッチン配置数→K²K³...上付き数字で表現
-  const sup={'1':'','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶'};
+  // キッチン配置数：1個は'K'、2個以上はK²K³...
+  const sup={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
   const k=counts['kitchen']||0;
-  const kLabel=k===0?'':`K${sup[String(k)]||String(k)}`;
+  const kLabel=k===0?'':`K${k>=2?(sup[k]||String(k)):''}`;
   // LDK表記（和室+洋室の数をLDKの前に）
   const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel||'K'}`;
   // トイレ・風呂
@@ -453,6 +592,13 @@ function countRoomLabel(roomTypes,counts){
   return ldkLabel+extra;
 }
 function showResult(){
+  // マドリスト名表示
+  const nameEl=document.getElementById('res-player-name');
+  if(nameEl){
+    const pname=window._playerName||'';
+    if(pname){nameEl.textContent=pname+' の間取り';nameEl.style.display='block';}
+    else{nameEl.style.display='none';}
+  }
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
   const rent=rouletteValues[2]??'--';
@@ -476,11 +622,12 @@ function showResult(){
   if(prevEl&&madoriSnapshot){
     prevEl.innerHTML='';
     const cv=document.createElement('canvas');
-    const maxW=340;
-    const scale=Math.min(maxW/madoriSnapshot.width,120/madoriSnapshot.height);
+    const maxW=Math.min(360, window.innerWidth-40);
+    const maxH=260;
+    const scale=Math.min(maxW/madoriSnapshot.width, maxH/madoriSnapshot.height);
     cv.width=madoriSnapshot.width*scale;
     cv.height=madoriSnapshot.height*scale;
-    cv.style.cssText='border-radius:8px;border:1px solid rgba(90,74,58,.12);box-shadow:0 2px 12px rgba(90,74,58,.1);';
+    cv.style.cssText='border-radius:10px;border:1px solid rgba(90,74,58,.15);box-shadow:0 4px 20px rgba(90,74,58,.12);max-width:100%;';
     cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
     prevEl.appendChild(cv);
   }
@@ -498,6 +645,14 @@ function showResult(){
     else oldTitles.push(t);
   });
   localStorage.setItem('madori-titles',JSON.stringify(saved));
+  // 結果データを一時保存（saveMadori用）
+  window._lastResult={
+    name:window._playerName||'マドリスト',
+    label:document.getElementById('res-room-label')?.textContent||roomLabel,
+    labelRaw:roomLabel, age, walk, rent,
+    titles:earned.map(t=>t.title),
+    date:new Date().toLocaleDateString('ja-JP'),
+  };
   // 新獲得称号（目立つ）
   const newEl=document.getElementById('res-titles-new');
   newEl.innerHTML=newTitles.length>0
@@ -525,14 +680,15 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',type:'youshitsu'},
-  {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu'},
-  {name:'廊下',w:1,h:2,color:0xE8E0D4,label:'廊下',type:'roka'},
-  {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン',type:'kitchen'},
-  {name:'トイレ',w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet'},
-  {name:'お風呂',w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath'},
-  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony'},
+  {name:'洋室8畳',w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',type:'youshitsu',  weight:22},
+  {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu',  weight:18},
+  {name:'廊下',   w:1,h:2,color:0xE8E0D4,label:'廊下',     type:'roka',      weight:16},
+  {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen',   weight:16},
+  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet',  weight:10},
+  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath',    weight:8},
+  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony',weight:10},
 ];
+const PARTS_WEIGHT_TOTAL=PARTS_DEF.reduce((s,d)=>s+d.weight,0);
 
 function svgToCanvas(dataUrl){
   return new Promise(resolve=>{
@@ -667,7 +823,11 @@ class PuzzleGame extends Phaser.Scene{
     });
   }
 
-  pickRandom(){return PARTS_DEF[Math.floor(Math.random()*PARTS_DEF.length)];}
+  pickRandom(){
+    let r=Math.random()*PARTS_WEIGHT_TOTAL;
+    for(const d of PARTS_DEF){r-=d.weight;if(r<=0)return d;}
+    return PARTS_DEF[PARTS_DEF.length-1];
+  }
   getShape(def,rot){
     let s=[];
     for(let r=0;r<def.h;r++){s.push([]);for(let c=0;c<def.w;c++)s[r].push(1);}
@@ -805,8 +965,11 @@ class PuzzleGame extends Phaser.Scene{
     if(canPlaceAnywhere(this.holdDef))return;
     // holdDefがない場合：ホールドすればqueue[0]が現在になる→置ければ完成しない
     if(!this.holdDef&&this.queue.length>0&&canPlaceAnywhere(this.queue[0]))return;
-    // 全部ダメ→完成ボタン表示
+    // 全部ダメ→完成ボタン表示、プレビューを非表示
     document.getElementById('btn-complete-overlay').classList.add('visible');
+    this.stopPreviewTween();
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
   }
   canPlace(shape,c,r){
     for(let dr=0;dr<shape.length;dr++)
@@ -823,7 +986,7 @@ class PuzzleGame extends Phaser.Scene{
       currentDef:def,rotation:this.rotation,queue:this.queue.slice(),
       holdDef:this.holdDef,holdUsed:this.holdUsed,partCount:this.partCount
     });
-    if(this.undoStack.length>30)this.undoStack.shift();
+    if(this.undoStack.length>1)this.undoStack.shift();
     const pid='p'+(++this.partCount);
     const color=def.color;
     for(let dr=0;dr<shape.length;dr++)
@@ -873,7 +1036,7 @@ class PuzzleGame extends Phaser.Scene{
       const def=this.queue[i];
       const shape=this.getShape(def,0);
       const sh=shape.length,sw=shape[0].length;
-      const cellSz=Math.min(Math.floor((UI_R-24)/sw),Math.floor(64/sh));
+      const cellSz=Math.min(Math.floor((UI_R-24)/sw),Math.floor(48/sh),20);
       const pw=sw*cellSz,ph=sh*cellSz;
       const ox=RCX-pw/2,oy=y;
       const alpha=i===0?1:0.45;
@@ -937,10 +1100,14 @@ class PuzzleGame extends Phaser.Scene{
   }
   stopPreviewTween(){
     if(this._previewTween){this._previewTween.stop();this._previewTween=null;}
+    this._clearPreviewLabels();
   }
   updatePreview(c,r){
+    // 完成ボタン表示中はプレビューを出さない
+    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this._clearPreviewLabels();
     this.previewGfx.clear();
     if(!this.currentDef)return;
     const shape=this.getShape(this.currentDef,this.rotation);
@@ -977,10 +1144,29 @@ class PuzzleGame extends Phaser.Scene{
       }
       if(target){
         this.previewImg=target;
-        if(ok){
-          this._previewTween=this.tweens.add({targets:target,alpha:{from:.75,to:.35},duration:600,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-        }
+        // ok/NG どちらでも点滅（NG時は赤みがかった範囲で点滅）
+        const alphaFrom=ok?0.75:0.68;
+        const alphaTo  =ok?0.35:0.25;
+        this._previewTween=this.tweens.add({targets:target,alpha:{from:alphaFrom,to:alphaTo},duration:600,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
       }
+      // プレビュー中ラベルテキスト（全パーツ共通）
+      {
+        const pw2=shape[0].length*CS, ph2=shape.length*CS;
+        const px2=this.sx(c), py2=this.sy(r);
+        const lbl=this.add.text(px2+pw2/2, py2+ph2/4, this.currentDef.label||this.currentDef.name,{
+          fontSize:'10px',fill:'#3a3028',align:'center',fontFamily:'Meiryo,sans-serif',
+          stroke:'#ffffffcc',strokeThickness:2
+        }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.75);
+        if(!this._previewLabels) this._previewLabels=[];
+        this._previewLabels.push(lbl);
+      }
+    }
+  }
+
+  _clearPreviewLabels(){
+    if(this._previewLabels){
+      this._previewLabels.forEach(l=>{if(l&&l.destroy)l.destroy();});
+      this._previewLabels=[];
     }
   }
 
