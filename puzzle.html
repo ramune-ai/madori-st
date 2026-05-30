@@ -43,40 +43,71 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .btn-sub:hover{border-color:var(--brown-light);color:var(--brown);background:rgba(90,74,58,.05);}
 
 /* ── ② ゲーム画面 ── */
-#screen-game{justify-content:center;align-items:center;padding:0;position:relative;background:var(--cream);overflow:hidden;width:100%;}
-#game-container{display:flex;justify-content:center;align-items:center;width:100%;}
+#screen-game{justify-content:flex-start;align-items:stretch;padding:0;position:relative;background:var(--cream);overflow:hidden;width:100%;min-height:100vh;}
+#game-container{display:flex;justify-content:center;align-items:center;flex:1;}
 #game-container canvas{display:block;margin:0 auto;}
 
-/* ゲーム下部バー */
+/* 上部NEXT/HOLDバー */
+#game-top-bar{
+  display:none;background:rgba(245,240,232,.97);border-bottom:1px solid rgba(90,74,58,.12);
+  padding:8px 12px 8px 12px;align-items:center;gap:8px;flex-shrink:0;
+  position:relative;z-index:30;
+}
+#game-top-bar.active{display:flex;}
+.next-hold-wrap{display:flex;gap:8px;flex:1;align-items:center;}
+.piece-preview-box{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;
+  padding:6px 10px;min-width:64px;
+}
+.piece-preview-box.hold-box{border-color:var(--accent);background:rgba(200,160,96,.06);}
+.piece-preview-label{font-size:9px;letter-spacing:.1em;color:var(--brown-light);font-weight:500;}
+.piece-preview-canvas{display:block;}
+.piece-name-text{font-size:9px;color:var(--brown);margin-top:1px;text-align:center;}
+.part-count-badge{
+  font-size:10px;color:var(--brown-light);letter-spacing:.05em;
+  background:rgba(90,74,58,.06);border-radius:20px;padding:3px 10px;flex-shrink:0;
+  border:1px solid rgba(90,74,58,.12);
+}
+
+/* ゲーム下部ボタンバー */
 #game-bottom-bar{
   position:fixed;bottom:0;left:0;right:0;
   display:none;
-  background:rgba(245,240,232,.96);
+  background:rgba(245,240,232,.97);
   border-top:1px solid rgba(90,74,58,.12);
   backdrop-filter:blur(8px);
   z-index:50;
-  padding:10px 24px;
+  padding:10px 16px 16px;
   align-items:center;
   justify-content:space-between;
-  gap:16px;
+  gap:8px;
 }
 #game-bottom-bar.active{display:flex;}
+.btn-op{
+  background:#fff;border:1.5px solid rgba(90,74,58,.25);color:var(--brown);
+  font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.08em;
+  padding:12px 0;border-radius:12px;cursor:pointer;transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.btn-op:active{background:rgba(90,74,58,.08);transform:scale(.96);}
+.btn-op .op-icon{font-size:22px;line-height:1;}
+.btn-op .op-label{font-size:10px;color:var(--brown-light);letter-spacing:.08em;}
+.btn-op.btn-rotate-r{background:var(--brown-dark);border-color:var(--brown-dark);color:#f5f0e8;flex:1.4;}
+.btn-op.btn-rotate-r .op-label{color:rgba(245,240,232,.7);}
+.btn-op.btn-hold-action{background:rgba(200,160,96,.15);border-color:var(--accent);color:var(--brown-dark);flex:1.2;}
+.btn-op-sep{width:1px;height:40px;background:rgba(90,74,58,.1);flex-shrink:0;}
+/* PC向けヒントバー（スマホでは非表示） */
 .hint-text{font-size:10px;color:var(--brown-light);letter-spacing:.08em;line-height:1.7;flex:1;}
-.game-btns{display:flex;gap:10px;flex-shrink:0;}
+.game-nav-btns{display:flex;gap:8px;flex-shrink:0;}
 .btn-game{
-  background:none;
-  border:1px solid rgba(90,74,58,.25);
-  color:var(--brown-light);
-  font-family:'Noto Serif JP',serif;
-  font-size:11px;
-  letter-spacing:.12em;
-  padding:8px 18px;
-  border-radius:3px;
-  cursor:pointer;
-  transition:all .2s;
-  white-space:nowrap;
+  background:none;border:1px solid rgba(90,74,58,.25);color:var(--brown-light);
+  font-family:'Noto Serif JP',serif;font-size:11px;letter-spacing:.12em;
+  padding:8px 14px;border-radius:3px;cursor:pointer;transition:all .2s;white-space:nowrap;
 }
 .btn-game:hover{border-color:var(--brown);color:var(--brown);background:rgba(90,74,58,.05);}
+@media(max-width:600px){.hint-text{display:none;}.game-nav-btns{flex-direction:column;gap:4px;}}
 
 /* 完成ボタン */
 #btn-complete-overlay{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
@@ -212,20 +243,67 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- ② ゲーム -->
 <div id="screen-game" class="screen">
+  <!-- 上部 NEXT / HOLD バー -->
+  <div id="game-top-bar">
+    <div class="next-hold-wrap">
+      <!-- 2個後 -->
+      <div class="piece-preview-box" id="preview-next2">
+        <div class="piece-preview-label">NEXT2</div>
+        <canvas class="piece-preview-canvas" id="canvas-next2" width="40" height="40"></canvas>
+        <div class="piece-name-text" id="name-next2">---</div>
+      </div>
+      <!-- 1個後 -->
+      <div class="piece-preview-box" id="preview-next1">
+        <div class="piece-preview-label">NEXT</div>
+        <canvas class="piece-preview-canvas" id="canvas-next1" width="40" height="40"></canvas>
+        <div class="piece-name-text" id="name-next1">---</div>
+      </div>
+      <!-- HOLD -->
+      <div class="piece-preview-box hold-box" id="preview-hold">
+        <div class="piece-preview-label">HOLD</div>
+        <canvas class="piece-preview-canvas" id="canvas-hold" width="40" height="40"></canvas>
+        <div class="piece-name-text" id="name-hold">なし</div>
+      </div>
+    </div>
+    <!-- 配置数 -->
+    <div class="part-count-badge" id="part-count-badge">0個</div>
+  </div>
+
   <div id="game-container"></div>
   <div id="btn-complete-overlay">
     <button onclick="onCompleteBtn()">完　成</button>
   </div>
 </div>
 
-<!-- ゲーム下部バー -->
-<div id="game-bottom-bar" style="display:none;">
-  <div class="hint-text">
-    矢印キー 移動　／　Space・Enter 配置　／　X 右回転　／　Z 左回転　／　Ctrl+Z 戻す　／　C・Shift ホールド　／　スマホ: タップで移動・ダブルタップで配置・UI上半分でホールド・UI下半分で回転
-  </div>
-  <div class="game-btns">
-    <button class="btn-game" onclick="gotoGame()">リ ト ラ イ</button>
-    <button class="btn-game" onclick="gotoStart()">ス タ ー ト へ</button>
+<!-- ゲーム下部ボタンバー -->
+<div id="game-bottom-bar">
+  <!-- 左：戻す -->
+  <button class="btn-op" id="btn-undo" onclick="if(gameScene)gameScene.doUndo()">
+    <span class="op-icon">↩</span>
+    <span class="op-label">戻す</span>
+  </button>
+  <div class="btn-op-sep"></div>
+  <!-- 中：左回転 -->
+  <button class="btn-op" onclick="if(gameScene)gameScene.rotatePiece(-1)">
+    <span class="op-icon">↺</span>
+    <span class="op-label">左回転</span>
+  </button>
+  <!-- 中右：右回転（大きめ・右手優遇） -->
+  <button class="btn-op btn-rotate-r" onclick="if(gameScene)gameScene.rotatePiece(1)">
+    <span class="op-icon">↻</span>
+    <span class="op-label">右回転</span>
+  </button>
+  <div class="btn-op-sep"></div>
+  <!-- 右：HOLD -->
+  <button class="btn-op btn-hold-action" onclick="if(gameScene)gameScene.doHold()">
+    <span class="op-icon">⏸</span>
+    <span class="op-label">ホールド</span>
+  </button>
+  <!-- 右端：リトライ・スタート -->
+  <div class="btn-op-sep"></div>
+  <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+    <button class="btn-game" onclick="gotoGame()">リトライ</button>
+    <button class="btn-game" onclick="gotoStart()">スタートへ</button>
   </div>
 </div>
 
@@ -320,12 +398,13 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   const bar=document.getElementById('game-bottom-bar');
-  if(bar){
-    if(id==='screen-game'){
-      bar.style.display='flex';
-    }else{
-      bar.style.display='none';
-    }
+  const topBar=document.getElementById('game-top-bar');
+  if(id==='screen-game'){
+    bar.classList.add('active');
+    if(topBar) topBar.classList.add('active');
+  }else{
+    bar.classList.remove('active');
+    if(topBar) topBar.classList.remove('active');
   }
 }
 
@@ -391,17 +470,25 @@ function updateRerollBtnSlot(idx){
 function doRerollSlot(idx){
   if(isRerollUsed(idx))return;
   markRerollUsed(idx);
-  // そのスロットだけリスピン→即確定
-  clearInterval(rouletteIntervals[idx]);
-  const pool=ROULETTE_POOLS[rouletteKeys[idx]];
-  const val=pool[Math.floor(Math.random()*pool.length)];
-  rouletteValues[idx]=val;
+  // スピン開始
   const valEl=document.getElementById('rou-val-'+idx);
-  valEl.textContent=val+rouletteUnits[idx];
-  // レア演出
   const item=document.getElementById('rou-'+idx);
-  if(isRare(idx,val)){item.classList.add('rare');}
-  else{item.classList.remove('rare');}
+  item.classList.remove('rare');
+  valEl.classList.add('spinning');
+  const pool=ROULETTE_POOLS[rouletteKeys[idx]];
+  // 500msスピンして確定
+  const spinInterval=setInterval(()=>{
+    valEl.textContent=pool[Math.floor(Math.random()*pool.length)]+rouletteUnits[idx];
+  },80);
+  setTimeout(()=>{
+    clearInterval(spinInterval);
+    const val=pool[Math.floor(Math.random()*pool.length)];
+    rouletteValues[idx]=val;
+    valEl.textContent=val+rouletteUnits[idx];
+    valEl.classList.remove('spinning');
+    if(isRare(idx,val)) item.classList.add('rare');
+    updateRerollBtnSlot(idx);
+  },500);
   updateRerollBtnSlot(idx);
 }
 
@@ -684,8 +771,8 @@ const PARTS_DEF=[
   {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu',  weight:18},
   {name:'廊下',   w:1,h:2,color:0xE8E0D4,label:'廊下',     type:'roka',      weight:16},
   {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen',   weight:16},
-  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet',  weight:10},
-  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath',    weight:8},
+  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet',  weight:9},
+  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath',    weight:9},
   {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony',weight:10},
 ];
 const PARTS_WEIGHT_TOTAL=PARTS_DEF.reduce((s,d)=>s+d.weight,0);
@@ -709,8 +796,8 @@ function svgToCanvas(dataUrl){
   });
 }
 
-const CS=40,COLS=7,ROWS=8,UI_R=180;
-const CANVAS_W=COLS*CS+UI_R, CANVAS_H=ROWS*CS;
+const CS=40,COLS=7,ROWS=8,UI_R=0;
+const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 const GENKAN_COLOR=0xD4A870;
 
 class PuzzleGame extends Phaser.Scene{
@@ -785,40 +872,26 @@ class PuzzleGame extends Phaser.Scene{
     this.downKey.on('down',()=>startRepeat(0,1));  this.upKey.on('down',()=>startRepeat(0,-1));
     this.leftKey.on('up',stopRepeat); this.rightKey.on('up',stopRepeat);
     this.downKey.on('up',stopRepeat); this.upKey.on('up',stopRepeat);
-    // タッチ・クリック操作（スマホ＆PC対応）
+    // タッチ・クリック操作（グリッドのみ。回転/ホールドはHTMLボタン）
     this._lastTapTime=0;
     this.input.on('pointerdown',(p)=>{
-      const bx=p.x, by=p.y;
-      const boardW=COLS*CS, boardH=ROWS*CS;
-      if(bx<boardW&&by<boardH){
-        if(!this.currentDef)return;
-        const shape=this.getShape(this.currentDef,this.rotation);
-        // タップした位置にカーソルを移動（パーツの左上が来るよう調整）
-        let tc=Math.floor(bx/CS);
-        let tr=Math.floor(by/CS);
-        // パーツ中心を合わせる（タップ位置をパーツの真ん中にする）
-        tc=Phaser.Math.Clamp(tc-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
-        tr=Phaser.Math.Clamp(tr-Math.floor(shape.length/2),0,ROWS-shape.length);
-        const now=Date.now();
-        const dt=now-this._lastTapTime;
-        const isSamePos=(tc===this.curC&&tr===this.curR);
+      const canvas=this.game.canvas;
+      const scaleX=CANVAS_W/canvas.offsetWidth;
+      const scaleY=CANVAS_H/canvas.offsetHeight;
+      const bx=p.x*scaleX, by=p.y*scaleY;
+      if(!this.currentDef)return;
+      const shape=this.getShape(this.currentDef,this.rotation);
+      let tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
+      let tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
+      const now=Date.now();
+      const isSamePos=(tc===this.curC&&tr===this.curR);
+      if(isSamePos&&now-this._lastTapTime<600){
+        this.placeAtCursor();
+        this._lastTapTime=0;
+      }else{
+        this.curC=tc; this.curR=tr;
+        this.updatePreview(this.curC,this.curR);
         this._lastTapTime=now;
-        if(isSamePos&&dt<600){
-          // 同じ場所に再タップ（300〜600ms）→配置
-          this.placeAtCursor();
-          this._lastTapTime=0;
-        }else{
-          // 違う場所or初回：カーソル移動のみ
-          this.curC=tc; this.curR=tr;
-          this.updatePreview(this.curC,this.curR);
-        }
-      }else if(bx>boardW){
-        // UI側タップ：上半分=ホールド、下半分=回転
-        if(by<boardH/2){
-          this.doHold();
-        }else{
-          this.rotatePiece(1);
-        }
       }
     });
   }
@@ -1006,7 +1079,6 @@ class PuzzleGame extends Phaser.Scene{
     for(let r=0;r<=ROWS;r++)g.lineBetween(0,this.sy(r),COLS*CS,this.sy(r));
     for(let c=0;c<=COLS;c++)g.lineBetween(this.sx(c),0,this.sx(c),ROWS*CS);
     g.lineStyle(3,0x8a7060,1); g.strokeRect(0,0,COLS*CS,ROWS*CS);
-    g.fillStyle(0xeae4dc,1); g.fillRect(COLS*CS,0,UI_R,CANVAS_H);
   }
   drawBoard(){
     const g=this.gridGfx; g.clear();
@@ -1023,62 +1095,45 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   drawUI(){
-    if(this._uiObjs){this._uiObjs.forEach(o=>o&&o.destroy());}
-    this._uiObjs=[];
-    const add=o=>{this._uiObjs.push(o);return o;};
-    const RX=COLS*CS, RCX=RX+UI_R/2;
-    let y=14;
+    // Phaser内のUIオブジェクトは不要なのでクリアのみ
+    if(this._uiObjs){this._uiObjs.forEach(o=>o&&o.destroy()); this._uiObjs=[];}
+    // HTML側の上部バーを更新
+    this._updateTopBar();
+  }
 
-    // NEXT
-    add(this.add.text(RCX,y,'NEXT',{fontSize:'10px',fill:'#9a8878',letterSpacing:4,fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-    y+=18;
-    for(let i=0;i<Math.min(2,this.queue.length);i++){
-      const def=this.queue[i];
+  _updateTopBar(){
+    // 配置数
+    const badge=document.getElementById('part-count-badge');
+    if(badge) badge.textContent=this.partCount+'個';
+    // NEXT1（queue[0]）・NEXT2（queue[1]）・HOLD
+    const slots=[
+      {def:this.queue[1], canvasId:'canvas-next2', nameId:'name-next2'},
+      {def:this.queue[0], canvasId:'canvas-next1', nameId:'name-next1'},
+      {def:this.holdDef,  canvasId:'canvas-hold',  nameId:'name-hold'},
+    ];
+    for(const {def,canvasId,nameId} of slots){
+      const cv=document.getElementById(canvasId);
+      const nm=document.getElementById(nameId);
+      if(!cv)continue;
+      const ctx=cv.getContext('2d');
+      ctx.clearRect(0,0,cv.width,cv.height);
+      if(nm) nm.textContent=def?def.name:'なし';
+      if(!def)continue;
       const shape=this.getShape(def,0);
       const sh=shape.length,sw=shape[0].length;
-      const cellSz=Math.min(Math.floor((UI_R-24)/sw),Math.floor(48/sh),20);
-      const pw=sw*cellSz,ph=sh*cellSz;
-      const ox=RCX-pw/2,oy=y;
-      const alpha=i===0?1:0.45;
-      const g=this.add.graphics().setDepth(10); add(g);
-      if(def.type==='washitsu'){this.drawWashitsuOnGraphics(g,ox,oy,pw,ph);g.setAlpha(alpha);}
-      else if(this.textures.exists(def.type)){add(this.add.image(ox+pw/2,oy+ph/2,def.type).setDisplaySize(pw-2,ph-2).setAlpha(alpha).setDepth(10));}
-      else{g.fillStyle(def.color,alpha);g.fillRect(ox,oy,pw,ph);}
-      g.lineStyle(1,0x908070,alpha);g.strokeRect(ox,oy,pw,ph);
-      add(this.add.text(RCX,oy+ph+3,def.name,{fontSize:'9px',fill:i===0?'#6a5a4a':'#a09080',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-      y+=ph+16;
-    }
-    // 区切り
-    y+=4;
-    const gd=this.add.graphics().setDepth(10);add(gd);gd.lineStyle(1,0xb8a898,.5);gd.lineBetween(RX+12,y,RX+UI_R-12,y);y+=10;
-    // HOLD
-    add(this.add.text(RCX,y,'HOLD',{fontSize:'10px',fill:'#9a8878',letterSpacing:4,fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
-    y+=18;
-    if(this.holdDef){
-      const shape=this.getShape(this.holdDef,0);
-      const sh=shape.length,sw=shape[0].length;
-      const cellSz=Math.min(Math.floor((UI_R-24)/sw),Math.floor(60/sh));
-      const pw=sw*cellSz,ph=sh*cellSz;
-      const ox=RCX-pw/2,oy=y;
-      const g=this.add.graphics().setDepth(10);add(g);
-      if(this.holdDef.type==='washitsu'){this.drawWashitsuOnGraphics(g,ox,oy,pw,ph);}
-      else if(this.textures.exists(this.holdDef.type)){add(this.add.image(ox+pw/2,oy+ph/2,this.holdDef.type).setDisplaySize(pw-2,ph-2).setDepth(10));}
-      else{g.fillStyle(this.holdDef.color,1);g.fillRect(ox,oy,pw,ph);}
-      g.lineStyle(2,0x706050,1);g.strokeRect(ox,oy,pw,ph);
-      y+=ph+4;
-    }else{
-      const g=this.add.graphics().setDepth(10);add(g);g.lineStyle(1,0xb8a898,.5);g.strokeRect(RCX-34,y,68,52);
-      add(this.add.text(RCX,y+26,'なし',{fontSize:'10px',fill:'#c0b0a0',fontFamily:'Meiryo'}).setOrigin(0.5,0.5).setDepth(10));
-      y+=56;
-    }
-    // 区切り
-    y+=8;
-    const gd2=this.add.graphics().setDepth(10);add(gd2);gd2.lineStyle(1,0xb8a898,.5);gd2.lineBetween(RX+12,y,RX+UI_R-12,y);y+=12;
-    // 配置数
-    add(this.add.text(RCX,y,'配置数',{fontSize:'10px',fill:'#9a8878',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));y+=16;
-    add(this.add.text(RCX,y,String(this.partCount),{fontSize:'26px',fill:'#5a4e42',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));y+=36;
-    if(this.undoStack.length>0){
-      add(this.add.text(RCX,y,'Ctrl+Z / 戻す',{fontSize:'9px',fill:'#8a6840',fontFamily:'Meiryo'}).setOrigin(0.5,0).setDepth(10));
+      const csz=Math.min(Math.floor(cv.width/sw),Math.floor(cv.height/sh));
+      const ox=Math.floor((cv.width-sw*csz)/2), oy=Math.floor((cv.height-sh*csz)/2);
+      // 色を16進→CSS変換
+      const hex='#'+def.color.toString(16).padStart(6,'0');
+      ctx.fillStyle=hex;
+      for(let r=0;r<sh;r++)for(let c=0;c<sw;c++){
+        if(!shape[r][c])continue;
+        ctx.fillRect(ox+c*csz+1,oy+r*csz+1,csz-2,csz-2);
+      }
+      ctx.strokeStyle='rgba(90,74,58,.4)';ctx.lineWidth=1;
+      ctx.strokeRect(ox,oy,sw*csz,sh*csz);
+      // 和室は緑枠
+      if(def.type==='washitsu'){ctx.strokeStyle='#5a8040';ctx.lineWidth=2;ctx.strokeRect(ox+1,oy+1,sw*csz-2,sh*csz-2);}
     }
   }
 
@@ -1219,22 +1274,19 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  // canvasサイズをウィンドウに合わせてスケール計算
+  const topBarH=document.getElementById('game-top-bar')?.offsetHeight||72;
+  const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||90;
+  const availH=window.innerHeight-topBarH-botBarH;
   const maxW=Math.min(window.innerWidth, CANVAS_W);
-  const maxH=Math.min(window.innerHeight-60, CANVAS_H);
+  const maxH=Math.min(availH, CANVAS_H);
   const scaleRatio=Math.min(maxW/CANVAS_W, maxH/CANVAS_H, 1);
-  const scaledW=Math.floor(CANVAS_W*scaleRatio);
-  const scaledH=Math.floor(CANVAS_H*scaleRatio);
   new Phaser.Game({
     type:Phaser.AUTO,
     width:CANVAS_W,height:CANVAS_H,
     backgroundColor:'#f0ece6',
     parent:'game-container',
     scene:PuzzleGame,
-    scale:{
-      mode:Phaser.Scale.NONE,
-      zoom:scaleRatio,
-    }
+    scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
   });
 }
 </script>
