@@ -51,7 +51,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #screen-game.active{display:flex;}
 #game-container{
   flex:1;display:flex;justify-content:center;align-items:center;
-  overflow:hidden;min-height:0;
+  overflow:hidden;min-height:0;position:relative;
 }
 #game-container canvas{display:block;}
 
@@ -79,8 +79,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:10px;
   padding:8px 14px 6px;flex:0 0 auto;min-width:80px;
 }
-.hold-combined-label{font-size:10px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:2px;}
-.hold-piece-name{font-size:10px;color:var(--brown);text-align:center;font-weight:500;}
+.next-piece-name{font-size:10px;color:var(--brown);text-align:center;font-weight:500;display:none;}
+.hold-piece-name{font-size:10px;color:var(--brown);text-align:center;font-weight:500;display:none;}
 /* 配置数バッジ */
 .part-count-badge{
   font-size:10px;color:var(--brown-light);letter-spacing:.05em;
@@ -146,20 +146,20 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .game-nav-btns{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
 
 /* 完成ボタン */
-#btn-complete-overlay{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
+#btn-complete-overlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
 #btn-complete-overlay.visible{display:block;}
 #btn-complete-overlay button{
-  background:rgba(58,42,26,.92);color:#f5f0e8;
+  background:#3a2a1a;color:#f5f0e8;
   font-family:'Noto Serif JP',serif;font-size:20px;letter-spacing:.2em;
-  padding:20px 56px;border:2px solid rgba(200,160,96,.6);border-radius:6px;
-  cursor:pointer;animation:gentlePulse 2s ease-in-out infinite;backdrop-filter:blur(4px);
+  padding:20px 56px;border:2px solid rgba(200,160,96,.7);border-radius:6px;
+  cursor:pointer;animation:gentlePulse 2s ease-in-out infinite;
 }
-#btn-complete-overlay button:hover{background:rgba(58,42,26,1);animation:none;transform:scale(1.04);transition:transform .15s;}
+#btn-complete-overlay button:hover{background:#2a1a0a;animation:none;transform:scale(1.04);transition:transform .15s;}
 
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
-.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px 20px 24px;margin-bottom:18px;cursor:pointer;transition:all .25s;position:relative;overflow:visible;opacity:.45;pointer-events:none;}
+.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px 20px 24px;margin-bottom:32px;cursor:pointer;transition:border-color .25s,box-shadow .25s;position:relative;overflow:visible;opacity:.45;pointer-events:none;}
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);animation:slotPulse 1.4s ease-in-out infinite;}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);box-shadow:none;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 /* locked でも再抽選ボタンだけは押せるようにする */
@@ -263,6 +263,19 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .res-title-new-label{font-size:10px;color:var(--accent-light);letter-spacing:.1em;background:rgba(255,255,255,.15);padding:2px 6px;border-radius:2px;}
 .res-titles-all{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;}
 .res-title-old-badge{display:inline-block;background:rgba(90,74,58,.08);color:var(--brown-light);font-size:12px;letter-spacing:.1em;padding:6px 14px;border-radius:3px;border:1px solid rgba(90,74,58,.15);}
+/* 称号画面 */
+.titles-heading{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:28px;}
+.title-new-item{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--brown-dark);color:#f5f0e8;
+  font-family:'Noto Serif JP',serif;font-size:17px;letter-spacing:.12em;
+  padding:14px 24px;border-radius:6px;width:100%;box-sizing:border-box;
+}
+.title-new-badge-inline{font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;letter-spacing:.08em;flex-shrink:0;}
+.titles-owned-section{margin-top:20px;width:100%;}
+.titles-owned-label-sm{font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;opacity:.7;}
+.titles-owned-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;opacity:.5;}
+.title-owned-chip{background:rgba(90,74,58,.08);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
 </style>
 </head>
 <body>
@@ -387,9 +400,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- ④ 称号発表画面（物件完成の手前） -->
 <div id="screen-titles" class="screen">
-  <div style="text-align:center;max-width:400px;width:100%;padding:32px 20px;">
-    <div style="font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.3em;color:var(--brown-light);margin-bottom:28px;">獲 得 称 号</div>
-    <div id="title-reveal-list" style="display:flex;flex-direction:column;align-items:center;gap:14px;min-height:120px;"></div>
+  <div style="text-align:center;max-width:420px;width:100%;padding:32px 20px;">
+    <div class="titles-heading">獲 得 称 号</div>
+    <div id="title-reveal-list" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;"></div>
+    <div class="titles-owned-section" id="titles-owned-section" style="display:none;">
+      <div class="titles-owned-label-sm">所 持 称 号</div>
+      <div class="titles-owned-chips" id="titles-owned-chips"></div>
+    </div>
     <button id="title-next-btn" onclick="gotoResult()" style="
       margin-top:36px;background:var(--brown-dark);color:#f5f0e8;
       font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;
@@ -402,7 +419,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ⑤ 結果画面 -->
 <div id="screen-result" class="screen">
   <div class="result-wrap">
-    <div class="result-title">間 取 り 結 果</div>
+    <div class="result-title">物 件 完 成 ！</div>
     <div id="res-player-name" style="font-size:12px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;margin-top:-12px;display:none;text-align:center;"></div>
 
     <!-- ① 物件詳細カード -->
@@ -511,7 +528,12 @@ const RARE_COND=[
 ];
 function isRare(idx,val){return RARE_COND[idx](val);}
 
-function getRerollKey(idx){return 'madori-reroll-'+idx+'-date';}
+// 再抽選確定プール（築浅5以下・駅近5以下）
+const REROLL_POOLS={
+  0:[0,1,2,3,4,5],   // 築浅確定
+  1:[1,2,3,4,5],     // 駅近確定
+  2:null,            // 家賃はPOP保留なので通常プール
+};
 // 開発中：再抽選制限なし（将来：広告視聴で1日1回）
 function isRerollUsed(idx){return false;}
 function markRerollUsed(idx){/* 開発中は何もしない */}
@@ -531,31 +553,28 @@ function updateRerollBtnSlot(idx){
 function doRerollSlot(idx){
   if(isRerollUsed(idx))return;
   markRerollUsed(idx);
-  // 再抽選ボタンを一時非表示・スロットをスピン状態に戻す
   const item=document.getElementById('rou-'+idx);
   const valEl=document.getElementById('rou-val-'+idx);
-  const rb=document.getElementById('reroll-btn-'+idx);
-  item.classList.remove('locked','rare','active-slot');
-  item.classList.add('active-slot');
-  valEl.classList.add('spinning');
-  if(rb) rb.classList.remove('visible');
-  // 物件完成ボタンも非表示に
-  document.getElementById('btn-rou-next').classList.remove('visible');
-  // 他の再抽選ボタンも非表示
+  // 再抽選ボタンと全POPを非表示
   for(let i=0;i<3;i++){
     const r=document.getElementById('reroll-btn-'+i);
     if(r) r.classList.remove('visible');
+    const p=document.querySelector(`#rou-${i} .reroll-pop`);
+    if(p) p.style.display='none';
   }
-  // スピン開始
+  item.classList.remove('locked','rare','active-slot');
+  item.classList.add('active-slot');
+  valEl.classList.add('spinning');
+  document.getElementById('btn-rou-next').classList.remove('visible');
   rouletteValues[idx]=null;
   rouletteLocked[idx]=false;
-  lockedCount = [0,1,2].filter(i=>i!==idx&&rouletteLocked[i]).length;
+  lockedCount=[0,1,2].filter(i=>i!==idx&&rouletteLocked[i]).length;
   if(rouletteIntervals[idx])clearInterval(rouletteIntervals[idx]);
-  const pool=ROULETTE_POOLS[rouletteKeys[idx]];
+  // 専用プール（築浅・駅近確定）or通常プール
+  const pool=REROLL_POOLS[idx]||ROULETTE_POOLS[rouletteKeys[idx]];
   rouletteIntervals[idx]=setInterval(()=>{
     valEl.textContent=pool[Math.floor(Math.random()*pool.length)]+rouletteUnits[idx];
   },80);
-  // タップで確定できるようにonclickを再設定（lockRouletteへ）
   item.onclick=()=>lockRoulette(idx);
   updateRerollBtnSlot(idx);
 }
@@ -641,47 +660,57 @@ function showTitlesReveal(){
   }
   const earned=generateTitles(age,walk,rent,roomTypes);
   const saved=JSON.parse(localStorage.getItem('madori-titles')||'[]');
-  const newTitles=[];
+  const newTitles=[], ownedTitles=[];
   earned.forEach(t=>{
-    if(!saved.includes(t.title)) newTitles.push(t.title);
+    if(!saved.includes(t.title)){newTitles.push(t.title);saved.unshift(t.title);}
+    else ownedTitles.push(t.title);
   });
-  earned.forEach(t=>{ if(!saved.includes(t.title)) saved.unshift(t.title); });
   localStorage.setItem('madori-titles',JSON.stringify(saved));
-  // _lastResultに称号を保持
   window._earnedTitles=earned;
   window._newTitles=newTitles;
 
   const listEl=document.getElementById('title-reveal-list');
   listEl.innerHTML='';
+  const ownedSection=document.getElementById('titles-owned-section');
+  const ownedChips=document.getElementById('titles-owned-chips');
+  if(ownedSection) ownedSection.style.display='none';
   const btn=document.getElementById('title-next-btn');
   btn.style.opacity='0'; btn.style.pointerEvents='none';
 
-  earned.forEach((t,i)=>{
-    const isNew=newTitles.includes(t.title);
+  // 新規称号：1つずつスライドイン
+  newTitles.forEach((title,i)=>{
     const el=document.createElement('div');
-    el.style.cssText=`
-      display:inline-flex;align-items:center;gap:8px;
-      background:var(--brown-dark);color:#f5f0e8;
-      font-family:'Noto Serif JP',serif;font-size:16px;letter-spacing:.12em;
-      padding:12px 24px;border-radius:6px;
-      opacity:0;transform:translateY(16px);
-      transition:opacity .4s ease,transform .4s ease;
-      transition-delay:${i*0.5}s;
-    `;
-    el.innerHTML=isNew
-      ?`<span style="font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;letter-spacing:.08em;">NEW！</span>${t.title}`
-      :t.title;
+    el.className='title-new-item';
+    el.style.opacity='0';
+    el.style.transform='translateY(20px)';
+    el.style.transition=`opacity .4s ease ${i*0.5}s, transform .4s ease ${i*0.5}s`;
+    el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${title}`;
     listEl.appendChild(el);
-    // フレーム後に発火させてトランジションを動かす
-    setTimeout(()=>{
-      el.style.opacity='1'; el.style.transform='translateY(0)';
-    }, 50+i*500);
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50+i*500);
   });
 
-  // 全部表示後にボタンを出す
+  const newDelay=50+newTitles.length*500;
+
+  // 既所持称号：新規の後に一気に連鎖表示
+  if(ownedTitles.length>0){
+    if(ownedChips){
+      ownedChips.innerHTML=ownedTitles.map(t=>`<span class="title-owned-chip">${t}</span>`).join('');
+      ownedChips.querySelectorAll('.title-owned-chip').forEach((c,i)=>{
+        c.style.opacity='0';
+        c.style.transition=`opacity .25s ease ${i*0.12}s`;
+      });
+    }
+    setTimeout(()=>{
+      if(ownedSection) ownedSection.style.display='block';
+      if(ownedChips) ownedChips.querySelectorAll('.title-owned-chip').forEach(c=>c.style.opacity='1');
+    }, newDelay+100);
+  }
+
+  // 全部出たらボタン表示
+  const totalDelay=newDelay+(ownedTitles.length>0?ownedTitles.length*120+300:200);
   setTimeout(()=>{
     btn.style.opacity='1'; btn.style.pointerEvents='auto';
-  }, 50+earned.length*500+200);
+  }, totalDelay);
 }
 
 // ────────────────────────────────────────
@@ -739,8 +768,10 @@ function startRoulette(){
     document.getElementById('rou-val-'+i).classList.add('spinning');
     const rb=document.getElementById('reroll-btn-'+i);
     if(rb) rb.classList.remove('visible');
+    // POPのstyle.displayをリセット（リトライ後も表示されるよう）
+    const pop=document.querySelector('#rou-'+i+' .reroll-pop');
+    if(pop) pop.style.display='';
   }
-  // 最初は0番目だけアクティブ
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
   for(let i=0;i<3;i++){
@@ -898,8 +929,8 @@ const PARTS_DEF=[
   {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu',  weight:19},
   {name:'廊下',   w:1,h:2,color:0xE8E0D4,label:'廊下',     type:'roka',      weight:17},
   {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen',   weight:17},
-  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet',  weight:7},
-  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath',    weight:7},
+  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ',   type:'toilet',    weight:7},
+  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂',   type:'bath',      weight:7},
   {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony',weight:9},
 ];
 const PARTS_WEIGHT_TOTAL=PARTS_DEF.reduce((s,d)=>s+d.weight,0);
@@ -1129,13 +1160,15 @@ class PuzzleGame extends Phaser.Scene{
       g.fillStyle(cell.color,1); g.fillRect(px+1,py+1,pw-2,ph-2);
       this.boardImgs[pid]=g;
     }
-    // ラベルテキスト追加
+    // ラベルテキスト追加（中央配置・サイズをパーツに合わせる）
     const labelText=cell.fixed?'玄関':(cell.label||'');
-    const lbl=this.add.text(px+pw/2,py+ph/4,labelText,{
-      fontSize:cell.fixed?'13px':'11px',
+    const labelFs=cell.fixed?13:Math.min(11,Math.floor(pw*0.28),Math.floor(ph*0.32));
+    const lbl=this.add.text(px+pw/2, py+ph/2, labelText,{
+      fontSize:labelFs+'px',
       fill:cell.fixed?'#604010':'#3a3028',
       align:'center',fontFamily:'Meiryo,sans-serif',
-      stroke:'#ffffffcc',strokeThickness:2
+      stroke:'#ffffffcc',strokeThickness:2,
+      wordWrap:{width:pw-4}
     }).setOrigin(0.5,0.5).setDepth(5);
     this.boardLabels[pid]=lbl;
   }
@@ -1370,7 +1403,7 @@ class PuzzleGame extends Phaser.Scene{
       {
         const pw2=shape[0].length*CS, ph2=shape.length*CS;
         const px2=this.sx(c), py2=this.sy(r);
-        const lbl=this.add.text(px2+pw2/2, py2+ph2/4, this.currentDef.label||this.currentDef.name,{
+        const lbl=this.add.text(px2+pw2/2, py2+ph2/2, this.currentDef.label||this.currentDef.name,{
           fontSize:'10px',fill:'#3a3028',align:'center',fontFamily:'Meiryo,sans-serif',
           stroke:'#ffffffcc',strokeThickness:2
         }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.75);
@@ -1411,28 +1444,28 @@ class PuzzleGame extends Phaser.Scene{
           }
         }
       }
-      // 塊全体をベージュで塗る
+      // 塊全体をベージュで塗る（境界線なし）
       for(const [r,c] of cells){
         const px=this.sx(c),py=this.sy(r);
         g.fillStyle(storageColor,0.9);
         g.fillRect(px+1,py+1,CS-2,CS-2);
-        g.lineStyle(1,0xb09070,0.4);
-        g.strokeRect(px+1,py+1,CS-2,CS-2);
       }
-      // 塊の中央セルに「収納」を1つだけ表示
-      cells.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-      const [cr,cc]=cells[Math.floor(cells.length/2)];
-      // 塊の外接矩形中心を計算
+      // 塊の外接矩形中心に「収納」を1つだけ表示（塊幅内に収まるよう）
       const minR=Math.min(...cells.map(([r])=>r));
       const maxR=Math.max(...cells.map(([r])=>r));
       const minC=Math.min(...cells.map(([,c])=>c));
       const maxC=Math.max(...cells.map(([,c])=>c));
       const cx=this.sx(minC)+(maxC-minC+1)*CS/2;
       const cy=this.sy(minR)+(maxR-minR+1)*CS/2;
-      this.add.text(cx, cy, '収納', {
-        fontSize:'11px',fill:'#6a4e2e',align:'center',
-        fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2.5
-      }).setOrigin(0.5,0.5).setDepth(5);
+      const blockW=(maxC-minC+1)*CS;
+      const blockH=(maxR-minR+1)*CS;
+      const fs=Math.min(11, Math.floor(blockW*0.32), Math.floor(blockH*0.55));
+      if(fs>=7){
+        this.add.text(cx, cy, '収納', {
+          fontSize:fs+'px',fill:'#6a4e2e',align:'center',
+          fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2
+        }).setOrigin(0.5,0.5).setDepth(5);
+      }
     }
   }
 
