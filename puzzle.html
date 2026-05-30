@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0047)file:///C:/Users/aidor/Downloads/puzzle_49.html -->
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>間取りすと</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./puzzle_49_files/css2" rel="stylesheet">
-<script src="./puzzle_49_files/phaser.min.js.ダウンロード"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -162,8 +162,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   </div>
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <div class="start-sub-btns">
-    <button class="btn-sub" onclick="openModal(&#39;saves&#39;)">間取り保存一覧</button>
-    <button class="btn-sub" onclick="openModal(&#39;titles&#39;)">称号一覧</button>
+    <button class="btn-sub" onclick="openModal('saves')">間取り保存一覧</button>
+    <button class="btn-sub" onclick="openModal('titles')">称号一覧</button>
   </div>
 </div>
 
@@ -314,12 +314,17 @@ function gotoGame(){
 }
 function onCompleteBtn(){
   if(!gameScene)return;
-  // ★バグ③修正: スナップショットを先に取り、収納描画はルーレット画面遷移後
-  captureMadoriSnapshot();
-  showMadoriBg(true);
-  showScreen('screen-roulette');
-  startRoulette();
-  // 背景用スナップショットは遷移後に収納を描画してから再取得（任意）
+  // 収納を先に描画してスナップショット取得
+  gameScene.fillEmptyAsStorage();
+  // 次のフレームでスナップショットを取る（描画完了を待つ）
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      captureMadoriSnapshot();
+      showMadoriBg(true);
+      showScreen('screen-roulette');
+      startRoulette();
+    });
+  });
 }
 function gotoResult(){
   showMadoriBg(true);
@@ -496,9 +501,11 @@ class PuzzleGame extends Phaser.Scene{
 
   create(){
     gameScene=this;
+    // セッションIDで古いPromiseコールバックを無効化（玄関重複防止）
+    this._sessionId=(this._sessionId||0)+1;
+    const sessionId=this._sessionId;
     this._storageGfx=null;
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
-    // pid -> オブジェクトのMapで管理（restart時も必ずリセット）
     this.boardImgs={};
     this.boardLabels={};
     this.partCount=0;
@@ -518,7 +525,9 @@ class PuzzleGame extends Phaser.Scene{
     Promise.all(entries.map(([k,v])=>svgToCanvas(v).then(cv=>{
       if(cv&&!this.textures.exists(k))this.textures.addCanvas(k,cv);
     }))).then(()=>{
-      this.placeGenkan(); // ★テクスチャロード後に呼ぶ
+      // セッションが変わっていたら（restart済み）何もしない
+      if(this._sessionId!==sessionId)return;
+      this.placeGenkan();
       this.drawBoard();
       this.nextPiece();
       this.drawUI();
@@ -641,9 +650,12 @@ class PuzzleGame extends Phaser.Scene{
     const pid=cell.pid;
     // 画像
     if(cell.fixed){
-      const img=this.add.image(px+pw/2,py+ph/2,'genkan')
-        .setDisplaySize(pw-2,ph-2).setDepth(2);
-      this.boardImgs[pid]=img;
+      // 玄関はGraphicsで直接描画（SVGの文字化け回避）
+      const g=this.add.graphics().setDepth(2);
+      g.fillStyle(0xD4A870,1); g.fillRect(px+1,py+1,pw-2,ph-2);
+      g.lineStyle(3,0x986830,1); g.strokeRect(px+2,py+2,pw-4,ph-4);
+      g.lineStyle(1.5,0x986830,1); g.lineBetween(px+2,py+ph/2,px+pw-2,py+ph/2);
+      this.boardImgs[pid]=g;
     }else if(cell.type==='washitsu'){
       const g=this.add.graphics().setDepth(2);
       this.drawWashitsuOnGraphics(g,px,py,pw,ph);
@@ -659,13 +671,13 @@ class PuzzleGame extends Phaser.Scene{
       g.fillStyle(cell.color,1); g.fillRect(px+1,py+1,pw-2,ph-2);
       this.boardImgs[pid]=g;
     }
-    // ラベル（pid単位で1つだけ）
+    // ラベルテキスト追加
     const labelText=cell.fixed?'玄関':(cell.label||'');
-    const lbl=this.add.text(px+pw/2,py+ph/2,labelText,{
-      fontSize:cell.fixed?'12px':'11px',
-      fill:cell.fixed?'#5a3010':'#3a3028',
-      align:'center',fontFamily:'Meiryo',
-      stroke:'#ffffffaa',strokeThickness:2
+    const lbl=this.add.text(px+pw/2,py+ph/4,labelText,{
+      fontSize:cell.fixed?'13px':'11px',
+      fill:cell.fixed?'#604010':'#3a3028',
+      align:'center',fontFamily:'Meiryo,sans-serif',
+      stroke:'#ffffffcc',strokeThickness:2
     }).setOrigin(0.5,0.5).setDepth(5);
     this.boardLabels[pid]=lbl;
   }
@@ -680,20 +692,23 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   checkNoPlace(){
-    if(this.cKey&&this.cKey.isDown)return;
-    if(this.shiftKey&&this.shiftKey.isDown)return;
-    const candidates=[];
-    if(this.currentDef)candidates.push(this.currentDef);
-    if(this.holdDef)candidates.push(this.holdDef);
-    if(candidates.length===0)return;
-    const allBlocked=candidates.every(def=>{
+    // 置けるかチェックする関数
+    const canPlaceAnywhere=(def)=>{
+      if(!def)return false;
       for(let rot=0;rot<4;rot++){
         const shape=this.getShape(def,rot);
-        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(this.canPlace(shape,c,r))return false;
+        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(this.canPlace(shape,c,r))return true;
       }
-      return true;
-    });
-    if(allBlocked) document.getElementById('btn-complete-overlay').classList.add('visible');
+      return false;
+    };
+    // 現在のピースが置ける→完成しない
+    if(canPlaceAnywhere(this.currentDef))return;
+    // holdDefが置ける→完成しない（ホールドすれば今のが消えてholdが来る）
+    if(canPlaceAnywhere(this.holdDef))return;
+    // holdDefがない場合：ホールドすればqueue[0]が現在になる→置ければ完成しない
+    if(!this.holdDef&&this.queue.length>0&&canPlaceAnywhere(this.queue[0]))return;
+    // 全部ダメ→完成ボタン表示
+    document.getElementById('btn-complete-overlay').classList.add('visible');
   }
   canPlace(shape,c,r){
     for(let dr=0;dr<shape.length;dr++)
@@ -914,6 +929,5 @@ function startPhaserGame(){
   });
 }
 </script>
-
-
-</body></html>
+</body>
+</html>
