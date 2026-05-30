@@ -159,8 +159,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
-.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px 20px 24px;margin-bottom:32px;cursor:pointer;transition:border-color .25s,box-shadow .25s;position:relative;overflow:visible;opacity:.45;pointer-events:none;}
-.roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);animation:slotPulse 1.4s ease-in-out infinite;}
+.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px;margin-bottom:28px;cursor:pointer;transition:border-color .2s;position:relative;overflow:visible;opacity:.45;pointer-events:none;will-change:opacity;}
+.roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,160,96,.25);}
+@keyframes slotPulse{0%{opacity:1;}100%{opacity:1;}}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);box-shadow:none;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 /* locked でも再抽選ボタンだけは押せるようにする */
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
@@ -534,6 +535,9 @@ const REROLL_POOLS={
   1:[1,2,3,4,5],     // 駅近確定
   2:null,            // 家賃はPOP保留なので通常プール
 };
+// 再抽選済みフラグ（per slot）
+const rerollDone=[false,false,false];
+
 // 開発中：再抽選制限なし（将来：広告視聴で1日1回）
 function isRerollUsed(idx){return false;}
 function markRerollUsed(idx){/* 開発中は何もしない */}
@@ -552,17 +556,14 @@ function updateRerollBtnSlot(idx){
 
 function doRerollSlot(idx){
   if(isRerollUsed(idx))return;
-  markRerollUsed(idx);
+  rerollDone[idx]=true;  // 再抽選済みフラグ
   const item=document.getElementById('rou-'+idx);
   const valEl=document.getElementById('rou-val-'+idx);
-  // 自分のボタン・POPだけ非表示
   const rb=document.getElementById('reroll-btn-'+idx);
   if(rb) rb.classList.remove('visible');
   const pop=document.querySelector('#rou-'+idx+' .reroll-pop');
   if(pop) pop.classList.remove('visible');
-  // 物件完成ボタンは非表示に
   document.getElementById('btn-rou-next').classList.remove('visible');
-  // 自スロットをリスピン状態に戻す
   item.classList.remove('locked','rare','active-slot');
   item.classList.add('active-slot');
   valEl.classList.add('spinning');
@@ -570,7 +571,6 @@ function doRerollSlot(idx){
   rouletteLocked[idx]=false;
   lockedCount=[0,1,2].filter(i=>i!==idx&&rouletteLocked[i]).length;
   if(rouletteIntervals[idx])clearInterval(rouletteIntervals[idx]);
-  // 専用プール（築浅・駅近確定）or通常プール
   const pool=REROLL_POOLS[idx]||ROULETTE_POOLS[rouletteKeys[idx]];
   rouletteIntervals[idx]=setInterval(()=>{
     valEl.textContent=pool[Math.floor(Math.random()*pool.length)]+rouletteUnits[idx];
@@ -603,8 +603,7 @@ function lockRerollSlot(idx){
     for(let i=0;i<3;i++){
       const rb=document.getElementById('reroll-btn-'+i);
       if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
-      const pop=document.querySelector('#rou-'+i+' .reroll-pop');
-      if(pop && !isRerollUsed(i)) pop.classList.add('visible');
+      // 再抽選完了後はどのスロットもPOPは表示しない
     }
   }
 }
@@ -616,7 +615,17 @@ function saveMadori(){
   const data=window._lastResult;
   if(!data){alert('まだ結果がありません');return;}
   const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
-  list.unshift({...data,id:Date.now()});
+  // 間取り図をbase64で保存（幅120pxにリサイズ）
+  let imgData='';
+  if(madoriSnapshot){
+    const cv=document.createElement('canvas');
+    const sc=Math.min(120/madoriSnapshot.width,90/madoriSnapshot.height);
+    cv.width=Math.floor(madoriSnapshot.width*sc);
+    cv.height=Math.floor(madoriSnapshot.height*sc);
+    cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
+    imgData=cv.toDataURL('image/png');
+  }
+  list.unshift({...data,id:Date.now(),img:imgData});
   if(list.length>10)list.splice(10);
   localStorage.setItem('madori-saves',JSON.stringify(list));
   const toast=document.getElementById('save-toast');
@@ -658,13 +667,12 @@ function onCompleteBtn(){
   });
 }
 function gotoTitles(){
-  // 称号を計算してから称号画面へ
-  showMadoriBg(true);
+  showMadoriBg(false);
   showScreen('screen-titles');
   showTitlesReveal();
 }
 function gotoResult(){
-  showMadoriBg(true);
+  showMadoriBg(false);
   showScreen('screen-result');
   showResult();
 }
@@ -705,6 +713,24 @@ function showTitlesReveal(){
   btn.style.opacity='0'; btn.style.pointerEvents='none';
 
   // 新規称号：1つずつスライドイン
+  const itemsToShow = newTitles.length > 0 ? newTitles : null;
+  if(newTitles.length===0 && earned.length===0){
+    // 称号ゼロ→「なし」をアニメーション付きで表示
+    const el=document.createElement('div');
+    el.className='title-new-item';
+    el.style.cssText='opacity:0;transform:translateY(20px);transition:opacity .4s ease 0.05s,transform .4s ease 0.05s;background:rgba(90,74,58,.1);color:var(--brown-light);';
+    el.textContent='な し';
+    listEl.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50);
+  } else if(newTitles.length===0){
+    // 新規なし・既所持のみ
+    const el=document.createElement('div');
+    el.className='title-new-item';
+    el.style.cssText='opacity:0;transform:translateY(20px);transition:opacity .4s ease 0.05s,transform .4s ease 0.05s;background:rgba(90,74,58,.1);color:var(--brown-light);font-size:14px;';
+    el.textContent='新規獲得なし';
+    listEl.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50);
+  }
   newTitles.forEach((title,i)=>{
     const el=document.createElement('div');
     el.className='title-new-item';
@@ -718,20 +744,7 @@ function showTitlesReveal(){
 
   const newDelay=50+newTitles.length*500;
 
-  // 既所持称号：新規の後に一気に連鎖表示
-  if(ownedTitles.length>0){
-    if(ownedChips){
-      ownedChips.innerHTML=ownedTitles.map(t=>`<span class="title-owned-chip">${t}</span>`).join('');
-      ownedChips.querySelectorAll('.title-owned-chip').forEach((c,i)=>{
-        c.style.opacity='0';
-        c.style.transition=`opacity .25s ease ${i*0.12}s`;
-      });
-    }
-    setTimeout(()=>{
-      if(ownedSection) ownedSection.style.display='block';
-      if(ownedChips) ownedChips.querySelectorAll('.title-owned-chip').forEach(c=>c.style.opacity='1');
-    }, newDelay+100);
-  }
+  // 既所持称号は表示しない（セクション非表示のまま）
 
   // 全部出たらボタン表示
   const totalDelay=newDelay+(ownedTitles.length>0?ownedTitles.length*120+300:200);
@@ -753,10 +766,14 @@ function openModal(type){
       body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に「💾 保存」ボタンで保存できます。</div>';
     }else{
       body.innerHTML=list.map(s=>`
-        <div style="padding:12px 0;border-bottom:1px solid rgba(90,74,58,.1);">
-          <div style="font-family:'Noto Serif JP',serif;font-size:15px;color:var(--brown-dark);font-weight:700;">${s.labelRaw||s.label||'--'}</div>
-          <div style="font-size:11px;color:var(--brown-light);margin-top:3px;letter-spacing:.05em;">${s.name} ／ 築${s.age}年 駅${s.walk}分 ${s.rent}万円 ／ ${s.date}</div>
-          <div style="font-size:11px;color:var(--brown-light);margin-top:2px;">${(s.titles||[]).join('・')}</div>
+        <div style="display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(90,74,58,.1);">
+          ${s.img?`<img src="${s.img}" style="width:80px;height:60px;object-fit:contain;border-radius:6px;border:1px solid rgba(90,74,58,.12);flex-shrink:0;background:#f5f0e8;" />`:'<div style="width:80px;height:60px;border-radius:6px;border:1px solid rgba(90,74,58,.12);background:#f0ece6;flex-shrink:0;"></div>'}
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:\'Noto Serif JP\',serif;font-size:17px;color:var(--brown-dark);font-weight:700;margin-bottom:4px;">${s.labelRaw||s.label||'--'}</div>
+            <div style="font-size:11px;color:var(--brown-light);letter-spacing:.04em;">築${s.age??'--'}年　駅${s.walk??'--'}分　${s.rent??'--'}万円</div>
+            <div style="font-size:10px;color:var(--brown-light);margin-top:3px;opacity:.7;">${s.date||''}</div>
+            ${s.titles&&s.titles.length?`<div style="font-size:10px;color:var(--brown-light);margin-top:4px;opacity:.8;">${s.titles.join('・')}</div>`:''}
+          </div>
         </div>`).join('');
     }
   }else{
@@ -789,6 +806,7 @@ let rouletteIntervals=[null,null,null];
 let lockedCount=0;
 function startRoulette(){
   lockedCount=0;
+  rerollDone[0]=rerollDone[1]=rerollDone[2]=false;
   for(let i=0;i<3;i++){
     rouletteLocked[i]=false; rouletteValues[i]=null;
     document.getElementById('rou-'+i).classList.remove('locked','active-slot','rare');
@@ -798,8 +816,8 @@ function startRoulette(){
     // POPをCSSクラスでリセット（style.displayは使わない）
     const pop=document.querySelector('#rou-'+i+' .reroll-pop');
     if(pop){pop.classList.remove('visible');pop.style.display='';}
-    // スロットのonclickをlockRouletteに戻す
-    document.getElementById('rou-'+i).onclick=()=>lockRoulette(i);
+    // スロットのonclickをlockRouletteに戻す（クロージャに注意してIIFE使用）
+    ;(function(n){ document.getElementById('rou-'+n).onclick=function(){lockRoulette(n);}; })(i);
   }
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
@@ -831,13 +849,10 @@ function lockRoulette(idx){
   if(idx+1<3) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
   if(++lockedCount===3){
     document.getElementById('btn-rou-next').classList.add('visible');
-    // 全確定後に再抽選ボタン・POPをまとめて表示
     for(let i=0;i<3;i++){
       const rb=document.getElementById('reroll-btn-'+i);
       if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
-      // そのスロットに対応するPOPだけ表示（再抽選未使用の場合のみ）
-      const pop=document.querySelector('#rou-'+i+' .reroll-pop');
-      if(pop && !isRerollUsed(i)) pop.classList.add('visible');
+      // POPは初回抽選では表示しない（再抽選後確定でのみ意味を持つ）
     }
   }
 }
@@ -1063,7 +1078,6 @@ class PuzzleGame extends Phaser.Scene{
     this.leftKey.on('up',stopRepeat); this.rightKey.on('up',stopRepeat);
     this.downKey.on('up',stopRepeat); this.upKey.on('up',stopRepeat);
     // タッチ・クリック操作（グリッドのみ。回転/ホールドはHTMLボタン）
-    this._lastTapTime=0;
     this.input.on('pointerdown',(p)=>{
       const canvas=this.game.canvas;
       const scaleX=CANVAS_W/canvas.offsetWidth;
@@ -1073,15 +1087,14 @@ class PuzzleGame extends Phaser.Scene{
       const shape=this.getShape(this.currentDef,this.rotation);
       let tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
       let tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
-      const now=Date.now();
       const isSamePos=(tc===this.curC&&tr===this.curR);
-      if(isSamePos&&now-this._lastTapTime<600){
+      if(isSamePos){
+        // 同じ場所タップ→即配置
         this.placeAtCursor();
-        this._lastTapTime=0;
       }else{
+        // 違う場所タップ→カーソル移動
         this.curC=tc; this.curR=tr;
         this.updatePreview(this.curC,this.curR);
-        this._lastTapTime=now;
       }
     });
   }
@@ -1120,7 +1133,7 @@ class PuzzleGame extends Phaser.Scene{
     else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
     this.rotation=0; this.holdUsed=false;
     this.updatePreview(this.curC,this.curR); this.drawUI();
-    // checkNoPlace()はキー離し後のnextPiece()から呼ばれるので、ここでは呼ばない
+    this.checkNoPlace();
   }
   doUndo(){
     if(this.undoStack.length===0)return;
@@ -1215,6 +1228,8 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   checkNoPlace(){
+    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+
     const canPlaceAnywhere=(def)=>{
       if(!def)return false;
       for(let rot=0;rot<4;rot++){
@@ -1223,15 +1238,18 @@ class PuzzleGame extends Phaser.Scene{
       }
       return false;
     };
-    // 現在のピースが置ける
+
+    // ① 現在のピースが置ける→続行
     if(canPlaceAnywhere(this.currentDef))return;
 
-    // ホールドできるかチェック（1回だけ）
     if(this.holdDef){
-      // holdDefがある：ホールドするとholdDefがcurrentになる
+      // holdDefがある場合：ホールド操作で holdDef ↔ current が入れ替わる
+      // → holdDefが置ければ続行
       if(canPlaceAnywhere(this.holdDef))return;
+      // holdDefも置けない場合、もうホールド操作に意味はない→終了
     } else {
-      // holdDefがない：ホールドするとqueue[0]がcurrentになる
+      // holdDefがない場合：ホールド操作で currentがholdに、queue[0]がcurrentになる
+      // → queue[0]が置ければ続行
       if(canPlaceAnywhere(this.queue[0]))return;
     }
 
@@ -1456,7 +1474,7 @@ class PuzzleGame extends Phaser.Scene{
     if(this._storageGfx){this._storageGfx.destroy();}
     this._storageGfx=this.add.graphics().setDepth(2);
     const g=this._storageGfx;
-    const storageColor=0xEEDCC8;
+    const storageColor=0xC9A882;  // 暗めブラウンベージュ
     const visited=Array.from({length:ROWS},()=>Array(COLS).fill(false));
 
     for(let r0=0;r0<ROWS;r0++)for(let c0=0;c0<COLS;c0++){
