@@ -1226,18 +1226,16 @@ class PuzzleGame extends Phaser.Scene{
     // 現在のピースが置ける
     if(canPlaceAnywhere(this.currentDef))return;
 
-    // ホールド後の状態をシミュレート
-    // holdDefがある → ホールドするとholdDefがcurrentに、currentがholdに
+    // ホールドできるかチェック（1回だけ）
     if(this.holdDef){
+      // holdDefがある：ホールドするとholdDefがcurrentになる
       if(canPlaceAnywhere(this.holdDef))return;
-      // ホールドした後のqueueの先頭もチェック（holdDefが置けなくても次のqueueで続けられる）
-      for(const q of this.queue){if(canPlaceAnywhere(q))return;}
     } else {
-      // holdDefがない → ホールドするとcurrentがholdに、queue[0]がcurrentに
-      for(const q of this.queue){if(canPlaceAnywhere(q))return;}
+      // holdDefがない：ホールドするとqueue[0]がcurrentになる
+      if(canPlaceAnywhere(this.queue[0]))return;
     }
 
-    // 全部ダメ→収納を描画→完成ボタン表示
+    // 全部ダメ→終了
     this.fillEmptyAsStorage();
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this.stopPreviewTween();
