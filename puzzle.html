@@ -50,24 +50,34 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* 上部NEXT/HOLDバー */
 #game-top-bar{
   display:none;background:rgba(245,240,232,.97);border-bottom:1px solid rgba(90,74,58,.12);
-  padding:8px 12px 8px 12px;align-items:center;gap:8px;flex-shrink:0;
+  padding:10px 12px 10px;align-items:center;justify-content:center;gap:10px;flex-shrink:0;
   position:relative;z-index:30;
 }
 #game-top-bar.active{display:flex;}
-.next-hold-wrap{display:flex;gap:8px;flex:1;align-items:center;}
-.piece-preview-box{
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;
-  padding:6px 10px;min-width:64px;
+/* NEXT合体枠（次の次＋次のパーツを横並び） */
+.next-combined-box{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:10px;
+  padding:8px 14px 6px;flex:1;max-width:200px;
 }
-.piece-preview-box.hold-box{border-color:var(--accent);background:rgba(200,160,96,.06);}
-.piece-preview-label{font-size:9px;letter-spacing:.1em;color:var(--brown-light);font-weight:500;}
-.piece-preview-canvas{display:block;}
-.piece-name-text{font-size:9px;color:var(--brown);margin-top:1px;text-align:center;}
+.next-combined-label{font-size:10px;letter-spacing:.12em;color:var(--brown-light);font-weight:600;margin-bottom:2px;}
+.next-combined-pieces{display:flex;align-items:center;justify-content:center;gap:10px;}
+.next-piece-slot{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.next-piece-sublabel{font-size:9px;letter-spacing:.08em;color:var(--brown-light);}
+.next-piece-name{font-size:10px;color:var(--brown);text-align:center;font-weight:500;}
+/* HOLD枠 */
+.hold-combined-box{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:10px;
+  padding:8px 14px 6px;flex:0 0 auto;min-width:80px;
+}
+.hold-combined-label{font-size:10px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:2px;}
+.hold-piece-name{font-size:10px;color:var(--brown);text-align:center;font-weight:500;}
+/* 配置数バッジ */
 .part-count-badge{
   font-size:10px;color:var(--brown-light);letter-spacing:.05em;
-  background:rgba(90,74,58,.06);border-radius:20px;padding:3px 10px;flex-shrink:0;
-  border:1px solid rgba(90,74,58,.12);
+  background:rgba(90,74,58,.06);border-radius:20px;padding:4px 10px;flex-shrink:0;
+  border:1px solid rgba(90,74,58,.12);position:absolute;right:12px;top:50%;transform:translateY(-50%);
 }
 
 /* ゲーム下部ボタンバー */
@@ -78,36 +88,56 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   border-top:1px solid rgba(90,74,58,.12);
   backdrop-filter:blur(8px);
   z-index:50;
-  padding:10px 16px 16px;
+  padding:10px 12px 18px;
   align-items:center;
-  justify-content:space-between;
+  justify-content:center;
   gap:8px;
 }
 #game-bottom-bar.active{display:flex;}
+/* 共通ボタン */
 .btn-op{
-  background:#fff;border:1.5px solid rgba(90,74,58,.25);color:var(--brown);
-  font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.08em;
-  padding:12px 0;border-radius:12px;cursor:pointer;transition:all .15s;
-  display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;
-  -webkit-tap-highlight-color:transparent;user-select:none;
+  background:#fff;
+  border:1.5px solid rgba(90,74,58,.22);
+  color:var(--brown);
+  font-family:'Noto Sans JP',sans-serif;
+  font-size:11px;
+  letter-spacing:.04em;
+  padding:10px 0 7px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  width:58px;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;
+  box-shadow:0 1px 4px rgba(90,74,58,.08);
 }
-.btn-op:active{background:rgba(90,74,58,.08);transform:scale(.96);}
-.btn-op .op-icon{font-size:22px;line-height:1;}
-.btn-op .op-label{font-size:10px;color:var(--brown-light);letter-spacing:.08em;}
-.btn-op.btn-rotate-r{background:var(--brown-dark);border-color:var(--brown-dark);color:#f5f0e8;flex:1.4;}
-.btn-op.btn-rotate-r .op-label{color:rgba(245,240,232,.7);}
-.btn-op.btn-hold-action{background:rgba(200,160,96,.15);border-color:var(--accent);color:var(--brown-dark);flex:1.2;}
-.btn-op-sep{width:1px;height:40px;background:rgba(90,74,58,.1);flex-shrink:0;}
-/* PC向けヒントバー（スマホでは非表示） */
-.hint-text{font-size:10px;color:var(--brown-light);letter-spacing:.08em;line-height:1.7;flex:1;}
-.game-nav-btns{display:flex;gap:8px;flex-shrink:0;}
+.btn-op:active{background:rgba(90,74,58,.08);transform:scale(.93);box-shadow:none;}
+.btn-op .op-icon{font-size:20px;line-height:1.1;}
+.btn-op .op-label{font-size:9px;color:var(--brown-light);}
+/* 回転ボタン強調 */
+.btn-op.btn-rotate{
+  width:70px;padding:12px 0 8px;border-radius:16px;
+  border-color:var(--brown-dark);background:var(--brown-dark);color:#f5f0e8;
+  box-shadow:0 3px 10px rgba(58,42,26,.28);
+}
+.btn-op.btn-rotate .op-icon{font-size:24px;}
+.btn-op.btn-rotate .op-label{color:rgba(245,240,232,.65);}
+.btn-op.btn-rotate:active{background:var(--brown);transform:scale(.93);}
+/* 保留ボタン */
+.btn-op.btn-hold-action{border-color:var(--accent);background:rgba(200,160,96,.1);color:var(--brown-dark);}
+.btn-op.btn-hold-action .op-label{color:var(--brown-light);}
+.btn-op.btn-hold-action:active{background:rgba(200,160,96,.25);}
+/* 仕切り */
+.btn-op-sep{width:1px;height:44px;background:rgba(90,74,58,.1);flex-shrink:0;}
+/* ナビボタン */
 .btn-game{
-  background:none;border:1px solid rgba(90,74,58,.25);color:var(--brown-light);
-  font-family:'Noto Serif JP',serif;font-size:11px;letter-spacing:.12em;
-  padding:8px 14px;border-radius:3px;cursor:pointer;transition:all .2s;white-space:nowrap;
+  background:none;border:1px solid rgba(90,74,58,.2);color:var(--brown-light);
+  font-family:'Noto Sans JP',sans-serif;font-size:10px;letter-spacing:.04em;
+  padding:6px 10px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;
 }
 .btn-game:hover{border-color:var(--brown);color:var(--brown);background:rgba(90,74,58,.05);}
-@media(max-width:600px){.hint-text{display:none;}.game-nav-btns{flex-direction:column;gap:4px;}}
+.game-nav-btns{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
 
 /* 完成ボタン */
 #btn-complete-overlay{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
@@ -243,27 +273,33 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- ② ゲーム -->
 <div id="screen-game" class="screen">
-  <!-- 上部 NEXT / HOLD バー -->
+  <!-- 上部バー：次のパーツ合体枠 ＋ 保留枠 -->
   <div id="game-top-bar">
-    <div class="next-hold-wrap">
-      <!-- 2個後 -->
-      <div class="piece-preview-box" id="preview-next2">
-        <div class="piece-preview-label">NEXT2</div>
-        <canvas class="piece-preview-canvas" id="canvas-next2" width="40" height="40"></canvas>
-        <div class="piece-name-text" id="name-next2">---</div>
+    <!-- NEXT合体枠：次の次 + 次のパーツ -->
+    <div class="next-combined-box">
+      <div class="next-combined-label">次のパーツ</div>
+      <div class="next-combined-pieces">
+        <!-- 次の次（小さめ） -->
+        <div class="next-piece-slot">
+          <div class="next-piece-sublabel">次の次</div>
+          <canvas id="canvas-next2" width="56" height="56"></canvas>
+          <div class="next-piece-name" id="name-next2">---</div>
+        </div>
+        <!-- 矢印 -->
+        <div style="font-size:14px;color:var(--brown-light);margin-bottom:12px;">→</div>
+        <!-- 次のパーツ（大きめ） -->
+        <div class="next-piece-slot">
+          <div class="next-piece-sublabel" style="color:var(--brown);font-weight:700;">次</div>
+          <canvas id="canvas-next1" width="72" height="72"></canvas>
+          <div class="next-piece-name" id="name-next1" style="font-weight:700;color:var(--brown-dark);">---</div>
+        </div>
       </div>
-      <!-- 1個後 -->
-      <div class="piece-preview-box" id="preview-next1">
-        <div class="piece-preview-label">NEXT</div>
-        <canvas class="piece-preview-canvas" id="canvas-next1" width="40" height="40"></canvas>
-        <div class="piece-name-text" id="name-next1">---</div>
-      </div>
-      <!-- HOLD -->
-      <div class="piece-preview-box hold-box" id="preview-hold">
-        <div class="piece-preview-label">HOLD</div>
-        <canvas class="piece-preview-canvas" id="canvas-hold" width="40" height="40"></canvas>
-        <div class="piece-name-text" id="name-hold">なし</div>
-      </div>
+    </div>
+    <!-- 保留枠 -->
+    <div class="hold-combined-box">
+      <div class="hold-combined-label">保留</div>
+      <canvas id="canvas-hold" width="56" height="56"></canvas>
+      <div class="hold-piece-name" id="name-hold">なし</div>
     </div>
     <!-- 配置数 -->
     <div class="part-count-badge" id="part-count-badge">0個</div>
@@ -277,31 +313,31 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- ゲーム下部ボタンバー -->
 <div id="game-bottom-bar">
-  <!-- 左：戻す -->
-  <button class="btn-op" id="btn-undo" onclick="if(gameScene)gameScene.doUndo()">
+  <!-- 戻す -->
+  <button class="btn-op" onclick="if(gameScene)gameScene.doUndo()">
     <span class="op-icon">↩</span>
     <span class="op-label">戻す</span>
   </button>
   <div class="btn-op-sep"></div>
-  <!-- 中：左回転 -->
-  <button class="btn-op" onclick="if(gameScene)gameScene.rotatePiece(-1)">
+  <!-- 左回転 -->
+  <button class="btn-op btn-rotate" onclick="if(gameScene)gameScene.rotatePiece(-1)">
     <span class="op-icon">↺</span>
     <span class="op-label">左回転</span>
   </button>
-  <!-- 中右：右回転（大きめ・右手優遇） -->
-  <button class="btn-op btn-rotate-r" onclick="if(gameScene)gameScene.rotatePiece(1)">
+  <!-- 右回転（右手優遇・同サイズで統一） -->
+  <button class="btn-op btn-rotate" onclick="if(gameScene)gameScene.rotatePiece(1)">
     <span class="op-icon">↻</span>
     <span class="op-label">右回転</span>
   </button>
   <div class="btn-op-sep"></div>
-  <!-- 右：HOLD -->
+  <!-- 保留 -->
   <button class="btn-op btn-hold-action" onclick="if(gameScene)gameScene.doHold()">
     <span class="op-icon">⏸</span>
-    <span class="op-label">ホールド</span>
+    <span class="op-label">保留</span>
   </button>
-  <!-- 右端：リトライ・スタート -->
   <div class="btn-op-sep"></div>
-  <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+  <!-- リトライ・スタートへ -->
+  <div class="game-nav-btns">
     <button class="btn-game" onclick="gotoGame()">リトライ</button>
     <button class="btn-game" onclick="gotoStart()">スタートへ</button>
   </div>
@@ -767,13 +803,13 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',type:'youshitsu',  weight:22},
-  {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu',  weight:18},
-  {name:'廊下',   w:1,h:2,color:0xE8E0D4,label:'廊下',     type:'roka',      weight:16},
-  {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen',   weight:16},
-  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet',  weight:9},
-  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath',    weight:9},
-  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony',weight:10},
+  {name:'洋室8畳',w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',type:'youshitsu',  weight:24},
+  {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu',  weight:19},
+  {name:'廊下',   w:1,h:2,color:0xE8E0D4,label:'廊下',     type:'roka',      weight:17},
+  {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen',   weight:17},
+  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet',  weight:7},
+  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath',    weight:7},
+  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony',weight:9},
 ];
 const PARTS_WEIGHT_TOTAL=PARTS_DEF.reduce((s,d)=>s+d.weight,0);
 
@@ -1102,10 +1138,9 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   _updateTopBar(){
-    // 配置数
     const badge=document.getElementById('part-count-badge');
     if(badge) badge.textContent=this.partCount+'個';
-    // NEXT1（queue[0]）・NEXT2（queue[1]）・HOLD
+    // canvas要素から実際のサイズを読み取って描画
     const slots=[
       {def:this.queue[1], canvasId:'canvas-next2', nameId:'name-next2'},
       {def:this.queue[0], canvasId:'canvas-next1', nameId:'name-next1'},
@@ -1115,25 +1150,33 @@ class PuzzleGame extends Phaser.Scene{
       const cv=document.getElementById(canvasId);
       const nm=document.getElementById(nameId);
       if(!cv)continue;
+      // canvas解像度をHTML属性に合わせる
+      const W=parseInt(cv.getAttribute('width')||'56');
+      const H=parseInt(cv.getAttribute('height')||'56');
+      cv.width=W; cv.height=H;
       const ctx=cv.getContext('2d');
-      ctx.clearRect(0,0,cv.width,cv.height);
+      ctx.clearRect(0,0,W,H);
       if(nm) nm.textContent=def?def.name:'なし';
       if(!def)continue;
       const shape=this.getShape(def,0);
       const sh=shape.length,sw=shape[0].length;
-      const csz=Math.min(Math.floor(cv.width/sw),Math.floor(cv.height/sh));
-      const ox=Math.floor((cv.width-sw*csz)/2), oy=Math.floor((cv.height-sh*csz)/2);
-      // 色を16進→CSS変換
+      const csz=Math.min(Math.floor((W-4)/sw),Math.floor((H-4)/sh));
+      const ox=Math.floor((W-sw*csz)/2), oy=Math.floor((H-sh*csz)/2);
       const hex='#'+def.color.toString(16).padStart(6,'0');
-      ctx.fillStyle=hex;
+      // セル塗り
       for(let r=0;r<sh;r++)for(let c=0;c<sw;c++){
         if(!shape[r][c])continue;
+        ctx.fillStyle=hex;
         ctx.fillRect(ox+c*csz+1,oy+r*csz+1,csz-2,csz-2);
+        // 和室：緑の内枠
+        if(def.type==='washitsu'){
+          ctx.strokeStyle='#5a8040';ctx.lineWidth=1.5;
+          ctx.strokeRect(ox+c*csz+2,oy+r*csz+2,csz-4,csz-4);
+        }
       }
-      ctx.strokeStyle='rgba(90,74,58,.4)';ctx.lineWidth=1;
-      ctx.strokeRect(ox,oy,sw*csz,sh*csz);
-      // 和室は緑枠
-      if(def.type==='washitsu'){ctx.strokeStyle='#5a8040';ctx.lineWidth=2;ctx.strokeRect(ox+1,oy+1,sw*csz-2,sh*csz-2);}
+      // パーツ外枠
+      ctx.strokeStyle='rgba(90,74,58,.45)';ctx.lineWidth=1.5;
+      ctx.strokeRect(ox+0.75,oy+0.75,sw*csz-1.5,sh*csz-1.5);
     }
   }
 
