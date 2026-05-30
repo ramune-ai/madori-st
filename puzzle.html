@@ -159,14 +159,21 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);min-height:100vh;}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
-.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px;margin-bottom:28px;cursor:pointer;transition:border-color .2s;position:relative;overflow:visible;opacity:.45;pointer-events:none;will-change:opacity;contain:layout;}
-.roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,160,96,.25);}
-@keyframes slotPulse{0%{opacity:1;}100%{opacity:1;}}
-.roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);box-shadow:none;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
-/* locked でも再抽選ボタンだけは押せるようにする */
+/* スロットのラッパー：高さを固定してブレを防ぐ */
+.roulette-item-wrap{width:340px;height:120px;margin-bottom:40px;position:relative;flex-shrink:0;}
+.roulette-item{
+  position:absolute;inset:0;
+  background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
+  padding:20px 24px;cursor:pointer;
+  transition:border-color .2s,outline-color .2s;
+  overflow:visible;opacity:.45;pointer-events:none;
+  outline:3px solid transparent;outline-offset:2px;
+}
+.roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
+.roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
 .roulette-item-label{font-size:14px;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:6px;font-weight:700;text-align:center;}
-.roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:all .1s;line-height:1.1;text-align:center;display:block;}
+.roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
 .roulette-item.rare .roulette-item-value{
@@ -186,31 +193,33 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.locked .tap-hint{display:none;}
 .roulette-item.locked::after{content:'✓ 確定';position:absolute;top:12px;right:14px;font-size:11px;color:var(--brown-light);letter-spacing:.1em;}
 .roulette-item.rare.locked::after{color:#c8860a;}
-.roulette-item.active-slot:hover{transform:translateX(4px);}
 /* 各スロット個別の再抽選ボタン */
 .reroll-slot-btn{
-  position:absolute;right:-16px;bottom:-16px;
+  position:absolute;right:-16px;bottom:-20px;
   background:var(--brown-dark);color:#f5f0e8;
   font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.08em;
   padding:10px 20px;border-radius:24px;border:none;cursor:pointer;
   white-space:nowrap;box-shadow:0 3px 10px rgba(58,42,26,.35);
-  transition:opacity .2s,transform .2s;display:none;z-index:20;pointer-events:auto;
+  transition:opacity .2s,transform .2s;
+  visibility:hidden;opacity:0;
+  z-index:20;pointer-events:none;
   will-change:transform;
 }
-.reroll-slot-btn.visible{display:block;}
+.reroll-slot-btn.visible{visibility:visible;opacity:1;pointer-events:auto;}
 .reroll-slot-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(58,42,26,.45);}
 .reroll-slot-btn.used{background:rgba(90,74,58,.25);color:var(--brown-light);cursor:not-allowed;box-shadow:none;}
 .reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
 /* 再抽選POP */
 .reroll-pop{
-  position:fixed;
+  position:absolute;left:10px;top:10px;
   font-size:10px;font-weight:700;letter-spacing:.06em;
   color:#fff;background:#2a9d8f;padding:3px 10px;border-radius:20px;
   border:none;white-space:nowrap;pointer-events:none;
-  display:none;box-shadow:0 2px 6px rgba(42,157,143,.35);z-index:200;
+  visibility:hidden;opacity:0;transition:opacity .2s;
+  box-shadow:0 2px 6px rgba(42,157,143,.35);z-index:5;
 }
-.reroll-pop.visible{display:block;}
-@keyframes slotPulse{0%,100%{box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);}50%{box-shadow:0 0 0 5px rgba(200,160,96,.4),0 8px 28px rgba(90,74,58,.18);}}
+.reroll-pop.visible{visibility:visible;opacity:1;}
+@keyframes slotPulse{0%,100%{outline-color:rgba(200,160,96,.25);}50%{outline-color:rgba(200,160,96,.5);}}
 .btn-roulette-next{margin-top:32px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
 .btn-roulette-next.visible{opacity:1;pointer-events:auto;}
 .btn-roulette-next:hover{transform:translateY(-2px);}
@@ -218,25 +227,25 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── ④ 結果 ── */
 #screen-result{background:rgba(245,240,232,0.82);}
 .result-wrap{text-align:center;max-width:440px;width:100%;}
-.result-title{font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.3em;color:var(--brown-light);margin-bottom:16px;}
-.result-property-card{background:#fff;border:1px solid rgba(90,74,58,.12);border-radius:14px;padding:16px 24px 18px;margin-bottom:16px;box-shadow:0 4px 20px rgba(90,74,58,.08);}
-.result-property-name{font-family:'Noto Serif JP',serif;font-size:13px;color:var(--brown-light);letter-spacing:.2em;margin-bottom:10px;}
-.result-stats{display:flex;justify-content:center;gap:20px;margin-top:4px;}
-.result-stat{text-align:center;}
-.result-stat-label{font-size:13px;color:var(--brown-light);letter-spacing:.1em;margin-bottom:4px;font-weight:500;}
-.result-stat-value{font-family:'Noto Serif JP',serif;font-size:28px;font-weight:700;color:var(--brown-dark);}
-.result-stat-unit{font-size:14px;color:var(--brown-light);margin-left:2px;}
-.result-divider{border:none;border-top:1px solid rgba(90,74,58,.1);margin:16px 0;}
-.result-title-section{margin-bottom:20px;}
-.result-title-label{font-size:11px;letter-spacing:.25em;color:var(--brown-light);margin-bottom:12px;}
-.result-title-badge{display:inline-block;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:18px;letter-spacing:.15em;padding:10px 32px;border-radius:4px;}
-.result-title-badge.new::before{content:'NEW！ ';font-size:11px;color:var(--accent-light);vertical-align:middle;}
-.result-comment{font-size:13px;color:var(--brown);line-height:1.8;margin-bottom:16px;min-height:44px;}
-.result-btns{display:flex;gap:12px;justify-content:center;margin-top:16px;}
-.btn-result{flex:1;max-width:140px;padding:14px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.1em;cursor:pointer;transition:all .2s;border:none;}
-.btn-result.primary{background:var(--brown-dark);color:#f5f0e8;}
-.btn-result.secondary{background:none;border:1px solid rgba(90,74,58,.3);color:var(--brown-light);}
+.result-title-hero{font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:10px;animation:popIn .5s ease both;text-shadow:0 2px 20px rgba(200,160,96,.5);}
+.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:52px;font-weight:700;color:var(--brown-dark);line-height:1;margin-bottom:20px;letter-spacing:.04em;}
+.result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;}
+.result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:12px 6px 10px;text-align:center;}
+.result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:6px;font-weight:500;}
+.result-spec-value{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;color:var(--brown-dark);line-height:1;}
+.result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
+#res-madori-preview{display:flex;justify-content:center;margin-bottom:16px;}
+/* 称号行 */
+.res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
+.res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
+.res-title-owned-chip{background:rgba(90,74,58,.07);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
+/* ボタン */
+.result-btns{display:flex;gap:10px;justify-content:center;margin-top:4px;}
+.btn-result{flex:1;max-width:130px;padding:13px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.1em;cursor:pointer;transition:transform .15s,box-shadow .15s;border:none;}
+.btn-result.primary{background:var(--brown-dark);color:#f5f0e8;box-shadow:0 4px 14px rgba(58,42,26,.22);}
+.btn-result.secondary{background:#fff;border:1px solid rgba(90,74,58,.22);color:var(--brown-light);}
 .btn-result:hover{transform:translateY(-2px);}
+.btn-result.primary:hover{box-shadow:0 6px 18px rgba(58,42,26,.3);}
 
 /* ── モーダル ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,42,26,.6);z-index:100;align-items:center;justify-content:center;}
@@ -259,11 +268,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 @keyframes popIn{0%{transform:scale(.8);opacity:0;}70%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
 @keyframes gentlePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,160,96,0);}50%{opacity:1;box-shadow:0 0 20px 6px rgba(200,160,96,.35);}}
 .pop-in{animation:popIn .4s ease both;}
-.res-titles-new{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px;}
-.res-title-new-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.12em;padding:10px 20px;border-radius:4px;animation:popIn .4s ease both;}
-.res-title-new-label{font-size:10px;color:var(--accent-light);letter-spacing:.1em;background:rgba(255,255,255,.15);padding:2px 6px;border-radius:2px;}
-.res-titles-all{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;}
-.res-title-old-badge{display:inline-block;background:rgba(90,74,58,.08);color:var(--brown-light);font-size:12px;letter-spacing:.1em;padding:6px 14px;border-radius:3px;border:1px solid rgba(90,74,58,.15);}
 /* 称号画面 */
 .titles-heading{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:28px;}
 .title-new-item{
@@ -373,25 +377,31 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ③ ルーレット -->
 <div id="screen-roulette" class="screen">
   <div class="roulette-title">物件情報を引いてみよう</div>
-  <div class="roulette-item" id="rou-0" onclick="lockRoulette(0)">
-    <div class="roulette-item-label">築 年 数</div>
-    <div class="roulette-item-value" id="rou-val-0">---</div>
-    <span class="tap-hint">タップで確定</span>
-    <button class="reroll-slot-btn" id="reroll-btn-0" onclick="event.stopPropagation();doRerollSlot(0)">🎲 再抽選</button>
-    <div class="reroll-pop">再抽選で築浅確定！</div>
+  <div class="roulette-item-wrap">
+    <div class="roulette-item" id="rou-0" onclick="lockRoulette(0)">
+      <div class="roulette-item-label">築 年 数</div>
+      <div class="roulette-item-value" id="rou-val-0">---</div>
+      <span class="tap-hint">タップで確定</span>
+      <button class="reroll-slot-btn" id="reroll-btn-0" onclick="event.stopPropagation();doRerollSlot(0)">🎲 再抽選</button>
+      <div class="reroll-pop">再抽選で築浅確定！</div>
+    </div>
   </div>
-  <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
-    <div class="roulette-item-label">駅 徒 歩</div>
-    <div class="roulette-item-value" id="rou-val-1">---</div>
-    <span class="tap-hint">タップで確定</span>
-    <button class="reroll-slot-btn" id="reroll-btn-1" onclick="event.stopPropagation();doRerollSlot(1)">🎲 再抽選</button>
-    <div class="reroll-pop">再抽選で駅近確定！</div>
+  <div class="roulette-item-wrap">
+    <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
+      <div class="roulette-item-label">駅 徒 歩</div>
+      <div class="roulette-item-value" id="rou-val-1">---</div>
+      <span class="tap-hint">タップで確定</span>
+      <button class="reroll-slot-btn" id="reroll-btn-1" onclick="event.stopPropagation();doRerollSlot(1)">🎲 再抽選</button>
+      <div class="reroll-pop">再抽選で駅近確定！</div>
+    </div>
   </div>
-  <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
-    <div class="roulette-item-label">家 賃</div>
-    <div class="roulette-item-value" id="rou-val-2">---</div>
-    <span class="tap-hint">タップで確定</span>
-    <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
+  <div class="roulette-item-wrap">
+    <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
+      <div class="roulette-item-label">家 賃</div>
+      <div class="roulette-item-value" id="rou-val-2">---</div>
+      <span class="tap-hint">タップで確定</span>
+      <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
+    </div>
   </div>
   <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoTitles()">物 件 完 成 →</button>
   <div style="font-size:10px;color:var(--brown-light);margin-top:8px;letter-spacing:.06em;text-align:center;">
@@ -420,32 +430,36 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ⑤ 結果画面 -->
 <div id="screen-result" class="screen">
   <div class="result-wrap">
-    <div class="result-title">物 件 完 成 ！</div>
-    <div id="res-player-name" style="font-size:12px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;margin-top:-12px;display:none;text-align:center;"></div>
+    <div class="result-title-hero">物 件 完 成 ！</div>
+    <div id="res-player-name" style="font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:10px;display:none;text-align:center;"></div>
+    <div class="result-ldk-hero" id="res-room-label">---</div>
 
-    <!-- ① 物件詳細カード -->
-    <div class="result-property-card pop-in">
-      <div class="result-property-name" id="res-room-label">---</div>
-      <div class="result-stats">
-        <div class="result-stat">
-          <div class="result-stat-label">築年数</div>
-          <div class="result-stat-value" id="res-age">--<span class="result-stat-unit">年</span></div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat-label">駅徒歩</div>
-          <div class="result-stat-value" id="res-walk">--<span class="result-stat-unit">分</span></div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat-label">家賃</div>
-          <div class="result-stat-value" id="res-rent">--<span class="result-stat-unit">万円</span></div>
-        </div>
+    <!-- スペックカード3列 -->
+    <div class="result-spec-grid pop-in">
+      <div class="result-spec-card">
+        <div class="result-spec-label">築 年 数</div>
+        <div class="result-spec-value" id="res-age">--<span class="result-spec-unit">年</span></div>
+      </div>
+      <div class="result-spec-card">
+        <div class="result-spec-label">駅 徒 歩</div>
+        <div class="result-spec-value" id="res-walk">--<span class="result-spec-unit">分</span></div>
+      </div>
+      <div class="result-spec-card">
+        <div class="result-spec-label">家 賃</div>
+        <div class="result-spec-value" id="res-rent">--<span class="result-spec-unit">万</span></div>
       </div>
     </div>
 
-    <!-- ② 間取り図プレビュー（大きめ） -->
-    <div id="res-madori-preview" style="display:flex;justify-content:center;margin-bottom:20px;"></div>
+    <!-- 間取り図プレビュー -->
+    <div id="res-madori-preview"></div>
 
-    <!-- ③ ボタン（間取り図直下） -->
+    <!-- 称号 -->
+    <div id="res-titles-wrap" style="display:none;width:100%;margin-bottom:16px;">
+      <div id="res-titles-new-row" style="display:none;"></div>
+      <div id="res-titles-owned-row" style="display:none;margin-top:8px;"></div>
+    </div>
+
+    <!-- ボタン -->
     <div class="result-btns">
       <button class="btn-result primary" onclick="gotoGame()">も う 一 度</button>
       <button class="btn-result secondary" onclick="saveMadori()">💾 保 存</button>
@@ -552,16 +566,6 @@ function updateRerollBtnSlot(idx){
     btn.classList.remove('used');
     btn.textContent='🎲 再抽選';
   }
-}
-
-// reroll-popをposition:fixedで正しい位置に合わせる
-function positionPop(idx){
-  const item=document.getElementById('rou-'+idx);
-  const pop=item&&item.querySelector('.reroll-pop');
-  if(!item||!pop)return;
-  const rect=item.getBoundingClientRect();
-  pop.style.left=Math.round(rect.left+10)+'px';
-  pop.style.top=Math.round(rect.top+10)+'px';
 }
 
 function doRerollSlot(idx){
@@ -722,42 +726,51 @@ function showTitlesReveal(){
   const btn=document.getElementById('title-next-btn');
   btn.style.opacity='0'; btn.style.pointerEvents='none';
 
-  // 新規称号：1つずつスライドイン
-  const itemsToShow = newTitles.length > 0 ? newTitles : null;
-  if(newTitles.length===0 && earned.length===0){
-    // 称号ゼロ→「なし」をアニメーション付きで表示
-    const el=document.createElement('div');
-    el.className='title-new-item';
-    el.style.cssText='opacity:0;transform:translateY(20px);transition:opacity .4s ease 0.05s,transform .4s ease 0.05s;background:rgba(90,74,58,.1);color:var(--brown-light);';
-    el.textContent='な し';
-    listEl.appendChild(el);
-    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50);
-  } else if(newTitles.length===0){
-    // 新規なし・既所持のみ
-    const el=document.createElement('div');
-    el.className='title-new-item';
-    el.style.cssText='opacity:0;transform:translateY(20px);transition:opacity .4s ease 0.05s,transform .4s ease 0.05s;background:rgba(90,74,58,.1);color:var(--brown-light);font-size:14px;';
-    el.textContent='新規獲得なし';
-    listEl.appendChild(el);
-    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50);
-  }
+  // 全称号を順番に優しく出現（NEW → 既所持の順）
+  // NEW称号：目立つスタイルで1つずつ
   newTitles.forEach((title,i)=>{
     const el=document.createElement('div');
     el.className='title-new-item';
-    el.style.opacity='0';
-    el.style.transform='translateY(20px)';
-    el.style.transition=`opacity .4s ease ${i*0.5}s, transform .4s ease ${i*0.5}s`;
+    el.style.cssText=`opacity:0;transform:translateY(16px);transition:opacity .5s cubic-bezier(.4,0,.2,1) ${i*0.55}s,transform .5s cubic-bezier(.4,0,.2,1) ${i*0.55}s;`;
     el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${title}`;
     listEl.appendChild(el);
-    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 50+i*500);
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 60);
   });
 
-  const newDelay=50+newTitles.length*500;
+  const newDelay=60+newTitles.length*550;
 
-  // 既所持称号は表示しない（セクション非表示のまま）
+  // 既所持称号：NEWが終わった後、1つずつ控えめに出現
+  ownedTitles.forEach((title,i)=>{
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='title-owned-chip';
+      el.style.cssText='opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease;display:block;margin-bottom:8px;';
+      el.textContent=title;
+      listEl.appendChild(el);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        el.style.opacity='1'; el.style.transform='translateY(0)';
+      }));
+    }, newDelay+i*300);
+  });
 
-  // 全部出たらボタン表示
-  const totalDelay=newDelay+(ownedTitles.length>0?ownedTitles.length*120+300:200);
+  // 称号ゼロのケース
+  if(earned.length===0){
+    const el=document.createElement('div');
+    el.className='title-new-item';
+    el.style.cssText='opacity:0;transform:translateY(16px);transition:opacity .5s ease .05s,transform .5s ease .05s;background:rgba(90,74,58,.1);color:var(--brown-light);';
+    el.textContent='な し';
+    listEl.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 60);
+  } else if(newTitles.length===0){
+    // 既所持のみ＝新規なしメッセージ
+    const el=document.createElement('div');
+    el.style.cssText='opacity:0;transform:translateY(10px);transition:opacity .4s ease .05s,transform .4s ease .05s;font-size:12px;color:var(--brown-light);letter-spacing:.15em;margin-bottom:12px;';
+    el.textContent='新規獲得なし';
+    listEl.insertBefore(el,listEl.firstChild);
+    setTimeout(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; }, 60);
+  }
+
+  const totalDelay=newDelay+ownedTitles.length*300+400;
   setTimeout(()=>{
     btn.style.opacity='1'; btn.style.pointerEvents='auto';
   }, totalDelay);
@@ -867,7 +880,6 @@ function lockRoulette(idx){
       if(i<2 && !rerollDone[i]){
         const pop=document.querySelector('#rou-'+i+' .reroll-pop');
         if(pop && rouletteValues[i]!==null && rouletteValues[i]>5){
-          positionPop(i);
           pop.classList.add('visible');
         }
       }
@@ -922,7 +934,6 @@ function countRoomLabel(roomTypes,counts){
   return ldkLabel+extra;
 }
 function showResult(){
-  // マドリスト名表示
   const nameEl=document.getElementById('res-player-name');
   if(nameEl){
     const pname=window._playerName||'';
@@ -932,9 +943,9 @@ function showResult(){
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
   const rent=rouletteValues[2]??'--';
-  document.getElementById('res-age').innerHTML=age+'<span class="result-stat-unit">年</span>';
-  document.getElementById('res-walk').innerHTML=walk+'<span class="result-stat-unit">分</span>';
-  document.getElementById('res-rent').innerHTML=rent+'<span class="result-stat-unit">万円</span>';
+  document.getElementById('res-age').innerHTML=age+'<span class="result-spec-unit">年</span>';
+  document.getElementById('res-walk').innerHTML=walk+'<span class="result-spec-unit">分</span>';
+  document.getElementById('res-rent').innerHTML=rent+'<span class="result-spec-unit">万</span>';
   const roomTypes=new Set(), counts={};
   if(gameScene&&gameScene.grid){
     const seenPids=new Set();
@@ -946,29 +957,53 @@ function showResult(){
       }
     }));
   }
-  // 間取り図プレビュー（より大きく）
+  // 間取りラベル：+WC等を同行に小さくインライン表示
+  const roomLabel=countRoomLabel(roomTypes,counts);
+  const ldkMatch=roomLabel.match(/^([^+]+)(.*)/);
+  const heroEl=document.getElementById('res-room-label');
+  if(heroEl){
+    const main=ldkMatch?ldkMatch[1]:roomLabel;
+    const sub=ldkMatch?ldkMatch[2]:'';
+    heroEl.innerHTML=main+(sub?`<span style="font-size:28px;color:var(--brown-dark);letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
+  }
+  // 間取り図プレビュー
   const prevEl=document.getElementById('res-madori-preview');
   if(prevEl&&madoriSnapshot){
     prevEl.innerHTML='';
     const cv=document.createElement('canvas');
-    const maxW=Math.min(420, window.innerWidth-24);
-    const maxH=320;
-    const scale=Math.min(maxW/madoriSnapshot.width, maxH/madoriSnapshot.height);
-    cv.width=madoriSnapshot.width*scale;
-    cv.height=madoriSnapshot.height*scale;
-    cv.style.cssText='border-radius:10px;border:1px solid rgba(90,74,58,.15);box-shadow:0 4px 20px rgba(90,74,58,.12);max-width:100%;';
+    const maxW=Math.min(420,window.innerWidth-24), maxH=320;
+    const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
+    cv.width=madoriSnapshot.width*scale; cv.height=madoriSnapshot.height*scale;
+    cv.style.cssText='display:block;border-radius:12px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;';
     cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
     prevEl.appendChild(cv);
   }
-  // 間取りラベル
-  const roomLabel=countRoomLabel(roomTypes,counts);
-  const ldkMatch=roomLabel.match(/^([^+]+)(.*)/);
-  document.getElementById('res-room-label').innerHTML=
-    ldkMatch?`<span style="font-size:32px;font-weight:700;font-family:'Noto Serif JP',serif;color:var(--brown-dark)">${ldkMatch[1]}</span><span style="font-size:15px;color:var(--brown-light)">${ldkMatch[2]}</span>`:roomLabel;
-  // 保存用データ（称号はgotoTitlesで計算済み）
+  // 称号表示：今回条件を満たした全称号（NEWだけ少し目立つ）
+  const newTitles=window._newTitles||[];
+  const earnedTitles=(window._earnedTitles||[]).map(t=>t.title);
+  const titlesWrap=document.getElementById('res-titles-wrap');
+  const newRow=document.getElementById('res-titles-new-row');
+  const ownedRow=document.getElementById('res-titles-owned-row');
+  if(titlesWrap&&newRow&&ownedRow){
+    newRow.innerHTML=''; ownedRow.innerHTML='';
+    newRow.style.display='none'; ownedRow.style.display='none';
+    if(earnedTitles.length>0){
+      newRow.style.cssText='display:flex;flex-wrap:wrap;gap:7px;justify-content:center;';
+      earnedTitles.forEach(t=>{
+        const isNew=newTitles.includes(t);
+        const chip=document.createElement('div');
+        chip.style.cssText=isNew
+          ?'display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:\'Noto Serif JP\',serif;font-size:13px;letter-spacing:.08em;padding:6px 14px;border-radius:4px;'
+          :'display:inline-flex;align-items:center;font-family:\'Noto Serif JP\',serif;font-size:12px;letter-spacing:.06em;padding:5px 12px;border-radius:20px;background:rgba(90,74,58,.07);color:var(--brown-light);border:1px solid rgba(90,74,58,.15);';
+        chip.innerHTML=isNew?`<span style="font-size:9px;background:rgba(255,255,255,.22);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;">NEW</span>${t}`:t;
+        newRow.appendChild(chip);
+      });
+    }
+    titlesWrap.style.display=earnedTitles.length?'block':'none';
+  }
   window._lastResult={
     name:window._playerName||'マドリスト',
-    label:document.getElementById('res-room-label')?.textContent||roomLabel,
+    label:roomLabel,
     labelRaw:roomLabel, age, walk, rent,
     titles:(window._earnedTitles||[]).map(t=>t.title),
     date:new Date().toLocaleDateString('ja-JP'),
@@ -1151,8 +1186,10 @@ class PuzzleGame extends Phaser.Scene{
     if(this.holdDef){[this.holdDef,this.currentDef]=[this.currentDef,this.holdDef];}
     else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
     this.rotation=0; this.holdUsed=false;
+    const shape=this.getShape(this.currentDef,0);
+    this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     this.updatePreview(this.curC,this.curR); this.drawUI();
-    // checkNoPlace は nextPiece に一本化（doHold では呼ばない）
+    // checkNoPlace は nextPiece に一本化。doHold後はプレイヤーが操作できるので呼ばない
   }
   doUndo(){
     if(this.undoStack.length===0)return;
@@ -1258,19 +1295,12 @@ class PuzzleGame extends Phaser.Scene{
       return false;
     };
 
-    // ① 現在のピースが置ける→続行
+    // current が置ける→続行
     if(canPlaceAnywhere(this.currentDef))return;
-
-    if(this.holdDef){
-      // holdDefがある場合：ホールド操作で holdDef ↔ current が入れ替わる
-      // → holdDefが置ければ続行
-      if(canPlaceAnywhere(this.holdDef))return;
-      // holdDefも置けない場合、もうホールド操作に意味はない→終了
-    } else {
-      // holdDefがない場合：ホールド操作で currentがholdに、queue[0]がcurrentになる
-      // → queue[0]が置ければ続行
-      if(canPlaceAnywhere(this.queue[0]))return;
-    }
+    // hold が置ける→ホールドすれば続行
+    if(canPlaceAnywhere(this.holdDef))return;
+    // queue 内のいずれかが置ける→ホールドを繰り返せば引き出せる
+    if(this.queue.some(d=>canPlaceAnywhere(d)))return;
 
     // 全部ダメ→終了
     this.fillEmptyAsStorage();
