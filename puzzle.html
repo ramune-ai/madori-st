@@ -208,7 +208,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   border:none;white-space:nowrap;pointer-events:none;
   display:none;box-shadow:0 2px 6px rgba(42,157,143,.35);
 }
-.reroll-slot-btn.visible~.reroll-pop{display:block;}
+.reroll-pop.visible{display:block;}
 @keyframes slotPulse{0%,100%{box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);}50%{box-shadow:0 0 0 5px rgba(200,160,96,.4),0 8px 28px rgba(90,74,58,.18);}}
 .btn-roulette-next{margin-top:32px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
 .btn-roulette-next.visible{opacity:1;pointer-events:auto;}
@@ -555,17 +555,17 @@ function doRerollSlot(idx){
   markRerollUsed(idx);
   const item=document.getElementById('rou-'+idx);
   const valEl=document.getElementById('rou-val-'+idx);
-  // 再抽選ボタンと全POPを非表示
-  for(let i=0;i<3;i++){
-    const r=document.getElementById('reroll-btn-'+i);
-    if(r) r.classList.remove('visible');
-    const p=document.querySelector(`#rou-${i} .reroll-pop`);
-    if(p) p.style.display='none';
-  }
+  // 自分のボタン・POPだけ非表示
+  const rb=document.getElementById('reroll-btn-'+idx);
+  if(rb) rb.classList.remove('visible');
+  const pop=document.querySelector('#rou-'+idx+' .reroll-pop');
+  if(pop) pop.classList.remove('visible');
+  // 物件完成ボタンは非表示に
+  document.getElementById('btn-rou-next').classList.remove('visible');
+  // 自スロットをリスピン状態に戻す
   item.classList.remove('locked','rare','active-slot');
   item.classList.add('active-slot');
   valEl.classList.add('spinning');
-  document.getElementById('btn-rou-next').classList.remove('visible');
   rouletteValues[idx]=null;
   rouletteLocked[idx]=false;
   lockedCount=[0,1,2].filter(i=>i!==idx&&rouletteLocked[i]).length;
@@ -768,9 +768,11 @@ function startRoulette(){
     document.getElementById('rou-val-'+i).classList.add('spinning');
     const rb=document.getElementById('reroll-btn-'+i);
     if(rb) rb.classList.remove('visible');
-    // POPのstyle.displayをリセット（リトライ後も表示されるよう）
+    // POPをCSSクラスでリセット（style.displayは使わない）
     const pop=document.querySelector('#rou-'+i+' .reroll-pop');
-    if(pop) pop.style.display='';
+    if(pop){pop.classList.remove('visible');pop.style.display='';}
+    // スロットのonclickをlockRouletteに戻す
+    document.getElementById('rou-'+i).onclick=()=>lockRoulette(i);
   }
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
@@ -802,10 +804,13 @@ function lockRoulette(idx){
   if(idx+1<3) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
   if(++lockedCount===3){
     document.getElementById('btn-rou-next').classList.add('visible');
-    // 全確定後に再抽選ボタンをまとめて表示
+    // 全確定後に再抽選ボタン・POPをまとめて表示
     for(let i=0;i<3;i++){
       const rb=document.getElementById('reroll-btn-'+i);
       if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
+      // そのスロットに対応するPOPだけ表示（再抽選未使用の場合のみ）
+      const pop=document.querySelector('#rou-'+i+' .reroll-pop');
+      if(pop && !isRerollUsed(i)) pop.classList.add('visible');
     }
   }
 }
@@ -1191,19 +1196,21 @@ class PuzzleGame extends Phaser.Scene{
       }
       return false;
     };
-    // 現在のピースが置ける→完成しない
+    // 現在のピースが置ける
     if(canPlaceAnywhere(this.currentDef))return;
 
-    // 保留操作をシミュレート：
-    // holdDefがある場合→ホールドするとcurrentがholdに、holdがcurrentになる
-    // holdDefがない場合→ホールドするとcurrentがholdに、queue[0]がcurrentになる
-    const afterHoldCurrent = this.holdDef ? this.holdDef : (this.queue.length>0?this.queue[0]:null);
-    if(canPlaceAnywhere(afterHoldCurrent))return;
+    // ホールド後の状態をシミュレート
+    // holdDefがある → ホールドするとholdDefがcurrentに、currentがholdに
+    if(this.holdDef){
+      if(canPlaceAnywhere(this.holdDef))return;
+      // ホールドした後のqueueの先頭もチェック（holdDefが置けなくても次のqueueで続けられる）
+      for(const q of this.queue){if(canPlaceAnywhere(q))return;}
+    } else {
+      // holdDefがない → ホールドするとcurrentがholdに、queue[0]がcurrentに
+      for(const q of this.queue){if(canPlaceAnywhere(q))return;}
+    }
 
-    // holdDefがある場合、ホールド後のqueueの先頭もチェック
-    if(this.holdDef && this.queue.length>0 && canPlaceAnywhere(this.queue[0]))return;
-
-    // 全部ダメ→収納を描画→完成ボタン表示、プレビューを非表示
+    // 全部ダメ→収納を描画→完成ボタン表示
     this.fillEmptyAsStorage();
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this.stopPreviewTween();
@@ -1444,11 +1451,11 @@ class PuzzleGame extends Phaser.Scene{
           }
         }
       }
-      // 塊全体をベージュで塗る（境界線なし）
+      // 塊全体をベージュで塗る（境界線なし・隙間なし）
       for(const [r,c] of cells){
         const px=this.sx(c),py=this.sy(r);
         g.fillStyle(storageColor,0.9);
-        g.fillRect(px+1,py+1,CS-2,CS-2);
+        g.fillRect(px,py,CS,CS);  // 隙間なし
       }
       // 塊の外接矩形中心に「収納」を1つだけ表示（塊幅内に収まるよう）
       const minR=Math.min(...cells.map(([r])=>r));
