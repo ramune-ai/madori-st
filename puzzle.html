@@ -157,9 +157,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #btn-complete-overlay button:hover{background:#2a1a0a;animation:none;transform:scale(1.04);transition:transform .15s;}
 
 /* ── ③ ルーレット ── */
-#screen-roulette{background:rgba(245,240,232,0.82);}
+#screen-roulette{background:rgba(245,240,232,0.82);min-height:100vh;}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
-.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px;margin-bottom:28px;cursor:pointer;transition:border-color .2s;position:relative;overflow:visible;opacity:.45;pointer-events:none;will-change:opacity;}
+.roulette-item{width:340px;background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;padding:20px 24px;margin-bottom:28px;cursor:pointer;transition:border-color .2s;position:relative;overflow:visible;opacity:.45;pointer-events:none;will-change:opacity;contain:layout;}
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);box-shadow:0 0 0 3px rgba(200,160,96,.25);}
 @keyframes slotPulse{0%{opacity:1;}100%{opacity:1;}}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);box-shadow:none;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
@@ -203,11 +203,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
 /* 再抽選POP */
 .reroll-pop{
-  position:absolute;left:10px;top:10px;
+  position:fixed;
   font-size:10px;font-weight:700;letter-spacing:.06em;
   color:#fff;background:#2a9d8f;padding:3px 10px;border-radius:20px;
   border:none;white-space:nowrap;pointer-events:none;
-  display:none;box-shadow:0 2px 6px rgba(42,157,143,.35);z-index:5;
+  display:none;box-shadow:0 2px 6px rgba(42,157,143,.35);z-index:200;
 }
 .reroll-pop.visible{display:block;}
 @keyframes slotPulse{0%,100%{box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);}50%{box-shadow:0 0 0 5px rgba(200,160,96,.4),0 8px 28px rgba(90,74,58,.18);}}
@@ -554,6 +554,16 @@ function updateRerollBtnSlot(idx){
   }
 }
 
+// reroll-popをposition:fixedで正しい位置に合わせる
+function positionPop(idx){
+  const item=document.getElementById('rou-'+idx);
+  const pop=item&&item.querySelector('.reroll-pop');
+  if(!item||!pop)return;
+  const rect=item.getBoundingClientRect();
+  pop.style.left=Math.round(rect.left+10)+'px';
+  pop.style.top=Math.round(rect.top+10)+'px';
+}
+
 function doRerollSlot(idx){
   if(isRerollUsed(idx))return;
   rerollDone[idx]=true;  // 再抽選済みフラグ
@@ -852,7 +862,15 @@ function lockRoulette(idx){
     for(let i=0;i<3;i++){
       const rb=document.getElementById('reroll-btn-'+i);
       if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
-      // POPは初回抽選では表示しない（再抽選後確定でのみ意味を持つ）
+      // 初回確定後POP表示：再抽選で改善できる値のときだけ表示
+      // idx=0(築年数) val>5、idx=1(駅徒歩) val>5 のときPOP表示（idx=2は対象外）
+      if(i<2 && !rerollDone[i]){
+        const pop=document.querySelector('#rou-'+i+' .reroll-pop');
+        if(pop && rouletteValues[i]!==null && rouletteValues[i]>5){
+          positionPop(i);
+          pop.classList.add('visible');
+        }
+      }
     }
   }
 }
@@ -1015,6 +1033,7 @@ class PuzzleGame extends Phaser.Scene{
     this._sessionId=(this._sessionId||0)+1;
     const sessionId=this._sessionId;
     this._storageGfx=null;
+    this._storageTexts=[];
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
     this.boardImgs={};
     this.boardLabels={};
@@ -1133,7 +1152,7 @@ class PuzzleGame extends Phaser.Scene{
     else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
     this.rotation=0; this.holdUsed=false;
     this.updatePreview(this.curC,this.curR); this.drawUI();
-    this.checkNoPlace();
+    // checkNoPlace は nextPiece に一本化（doHold では呼ばない）
   }
   doUndo(){
     if(this.undoStack.length===0)return;
@@ -1472,6 +1491,9 @@ class PuzzleGame extends Phaser.Scene{
 
   fillEmptyAsStorage(){
     if(this._storageGfx){this._storageGfx.destroy();}
+    // 前回生成した収納テキストを全て破棄（重複防止）
+    if(this._storageTexts){this._storageTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});}
+    this._storageTexts=[];
     this._storageGfx=this.add.graphics().setDepth(2);
     const g=this._storageGfx;
     const storageColor=0xC9A882;  // 暗めブラウンベージュ
@@ -1512,11 +1534,12 @@ class PuzzleGame extends Phaser.Scene{
       const blockH=(maxR-minR+1)*CS;
       // 1マスのとき小さく、複数マスのとき少し大きく
       const fs=cells.length===1?8:Math.min(11, Math.floor(Math.sqrt(cells.length)*5));
-      this.add.text(cx, cy, '収納', {
+      const t=this.add.text(cx, cy, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
         fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2,
         wordWrap:{width:CS*Math.min(cells.length,3)-4}
       }).setOrigin(0.5,0.5).setDepth(5);
+      this._storageTexts.push(t);
     }
   }
 
