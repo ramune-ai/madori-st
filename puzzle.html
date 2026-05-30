@@ -90,7 +90,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #btn-complete-overlay button:hover{background:rgba(58,42,26,1);animation:none;transform:scale(1.04);transition:transform .15s;}
 
 /* ── ③ ルーレット ── */
-#screen-roulette{background:var(--cream);}
+#screen-roulette{background:rgba(245,240,232,0.82);}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:32px;text-align:center;}
 .roulette-item{width:340px;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:20px 28px;margin-bottom:16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
 .roulette-item.locked{cursor:default;border-color:var(--accent);background:linear-gradient(135deg,#fffbf5,#fff8ec);}
@@ -106,7 +106,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
 /* ── ④ 結果 ── */
-#screen-result{background:var(--cream);}
+#screen-result{background:rgba(245,240,232,0.82);}
 .result-wrap{text-align:center;max-width:400px;width:100%;}
 .result-title{font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.3em;color:var(--brown-light);margin-bottom:24px;}
 .result-property-card{background:#fff;border:1px solid rgba(90,74,58,.12);border-radius:12px;padding:28px 32px;margin-bottom:28px;box-shadow:0 4px 20px rgba(90,74,58,.08);}
@@ -139,8 +139,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── 間取り背景 ── */
 .madori-bg{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .6s ease;}
 .madori-bg.visible{opacity:1;}
-.madori-bg canvas{max-width:80vw;max-height:80vh;opacity:.10;filter:blur(1px) sepia(.3);border-radius:8px;}
-#screen-roulette,#screen-result{position:relative;z-index:1;}
+.madori-bg canvas{max-width:80vw;max-height:80vh;opacity:.18;filter:blur(1px) sepia(.2);border-radius:8px;}
+#screen-roulette,#screen-result{position:relative;z-index:1;background:transparent!important;}
 
 /* ── アニメーション ── */
 @keyframes fadeDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
@@ -183,7 +183,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ゲーム下部バー -->
 <div id="game-bottom-bar" style="display:none;">
   <div class="hint-text">
-    矢印キー 移動　／　Space・Enter 配置　／　X 右回転　／　Z 左回転　／　Ctrl+Z 戻す　／　C・Shift ホールド　／　スマホ: タップで移動・2回タップで配置・UI側タップでホールド
+    矢印キー 移動　／　Space・Enter 配置　／　X 右回転　／　Z 左回転　／　Ctrl+Z 戻す　／　C・Shift ホールド　／　スマホ: タップで移動・ダブルタップで配置・UI上半分でホールド・UI下半分で回転
   </div>
   <div class="game-btns">
     <button class="btn-game" onclick="gotoGame()">リ ト ラ イ</button>
@@ -212,7 +212,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <div class="roulette-item-value" id="rou-val-2">---</div>
     <span class="tap-hint">タップで確定</span>
   </div>
-  <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoResult()">称号を見る →</button>
+  <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoResult()">物 件 完 成 →</button>
 </div>
 
 <!-- ④ 結果 -->
@@ -322,9 +322,12 @@ function gotoGame(){
 }
 function onCompleteBtn(){
   if(!gameScene)return;
-  // 収納を先に描画してスナップショット取得
+  // プレビュー（赤いパーツ表示）を消す
+  gameScene.stopPreviewTween();
+  if(gameScene.previewImg){gameScene.previewImg.destroy();gameScene.previewImg=null;}
+  gameScene.previewGfx.clear();
+  // 収納を描画してスナップショット
   gameScene.fillEmptyAsStorage();
-  // 次のフレームでスナップショットを取る（描画完了を待つ）
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
       captureMadoriSnapshot();
@@ -435,10 +438,11 @@ function generateTitle(age,walk,rent,roomTypes){
 function countRoomLabel(roomTypes,counts){
   // 部屋数：洋室と和室のみ
   const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
-  // キッチン配置数→K2,K3...の通常表記
+  // キッチン配置数→K²K³...上付き数字で表現
+  const sup={'1':'','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶'};
   const k=counts['kitchen']||0;
-  const kLabel=k===0?'':(k===1?'K':`K${k}`);
-  // LDK表記
+  const kLabel=k===0?'':`K${sup[String(k)]||String(k)}`;
+  // LDK表記（和室+洋室の数をLDKの前に）
   const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel||'K'}`;
   // トイレ・風呂
   const wc=counts['toilet']||0;
@@ -457,8 +461,14 @@ function showResult(){
   document.getElementById('res-rent').innerHTML=rent+'<span class="result-stat-unit">万円</span>';
   const roomTypes=new Set(), counts={};
   if(gameScene&&gameScene.grid){
+    // pid単位でカウント（セル数ではなくパーツ数）
+    const seenPids=new Set();
     gameScene.grid.forEach(row=>row.forEach(cell=>{
-      if(cell&&!cell.fixed){roomTypes.add(cell.type);counts[cell.type]=(counts[cell.type]||0)+1;}
+      if(cell&&!cell.fixed&&!seenPids.has(cell.pid)){
+        seenPids.add(cell.pid);
+        roomTypes.add(cell.type);
+        counts[cell.type]=(counts[cell.type]||0)+1;
+      }
     }));
   }
   // 完成間取りをcanvasプレビューとして結果画面に表示
@@ -619,23 +629,40 @@ class PuzzleGame extends Phaser.Scene{
     this.downKey.on('down',()=>startRepeat(0,1));  this.upKey.on('down',()=>startRepeat(0,-1));
     this.leftKey.on('up',stopRepeat); this.rightKey.on('up',stopRepeat);
     this.downKey.on('up',stopRepeat); this.upKey.on('up',stopRepeat);
-    // タッチ操作（スマホ対応）
+    // タッチ・クリック操作（スマホ＆PC対応）
+    this._lastTapTime=0;
     this.input.on('pointerdown',(p)=>{
       const bx=p.x, by=p.y;
       const boardW=COLS*CS, boardH=ROWS*CS;
       if(bx<boardW&&by<boardH){
-        // ボード内タップ：カーソルを移動して配置
-        const tc=Math.floor(bx/CS), tr=Math.floor(by/CS);
-        if(tc===this.curC&&tr===this.curR){
+        if(!this.currentDef)return;
+        const shape=this.getShape(this.currentDef,this.rotation);
+        // タップした位置にカーソルを移動（パーツの左上が来るよう調整）
+        let tc=Math.floor(bx/CS);
+        let tr=Math.floor(by/CS);
+        // パーツ中心を合わせる（タップ位置をパーツの真ん中にする）
+        tc=Phaser.Math.Clamp(tc-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
+        tr=Phaser.Math.Clamp(tr-Math.floor(shape.length/2),0,ROWS-shape.length);
+        const now=Date.now();
+        const dt=now-this._lastTapTime;
+        const isSamePos=(tc===this.curC&&tr===this.curR);
+        this._lastTapTime=now;
+        if(isSamePos&&dt<600){
+          // 同じ場所に再タップ（300〜600ms）→配置
           this.placeAtCursor();
+          this._lastTapTime=0;
         }else{
-          this.curC=Phaser.Math.Clamp(tc,0,COLS-(this.currentDef?this.getShape(this.currentDef,this.rotation)[0].length:1));
-          this.curR=Phaser.Math.Clamp(tr,0,ROWS-(this.currentDef?this.getShape(this.currentDef,this.rotation).length:1));
+          // 違う場所or初回：カーソル移動のみ
+          this.curC=tc; this.curR=tr;
           this.updatePreview(this.curC,this.curR);
         }
       }else if(bx>boardW){
-        // UI側タップ：ホールド
-        this.doHold();
+        // UI側タップ：上半分=ホールド、下半分=回転
+        if(by<boardH/2){
+          this.doHold();
+        }else{
+          this.rotatePiece(1);
+        }
       }
     });
   }
@@ -923,24 +950,36 @@ class PuzzleGame extends Phaser.Scene{
       if(!shape[dr][dc])continue;
       const nr=r+dr,nc=c+dc;
       if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
-      g.fillStyle(ok?0x88cc88:0xcc4444,.3);
+      g.fillStyle(ok?0x88cc88:0xcc4444,ok?0.2:0.22);
       g.fillRect(this.sx(nc)+1,this.sy(nr)+1,CS-2,CS-2);
     }
-    if(ok){
+    // ok/NGどちらでも画像プレビューを表示（赤くても何のパーツか分かるように）
+    {
       const pw=shape[0].length*CS,ph=shape.length*CS;
       const px=this.sx(c),py=this.sy(r);
       let target=null;
       if(this.currentDef.type==='washitsu'){
         const g2=this.add.graphics().setDepth(4);
-        this.drawWashitsuOnGraphics(g2,px,py,pw,ph);g2.setAlpha(0.75);target=g2;
+        this.drawWashitsuOnGraphics(g2,px,py,pw,ph);
+        g2.setAlpha(ok?0.75:0.65);
+        // NG時は赤いオーバーレイをgraphicsで追加
+        if(!ok){
+          g2.fillStyle(0xff4444,0.12);
+          g2.fillRect(px,py,pw,ph);
+        }
+        target=g2;
       }else if(this.textures.exists(this.currentDef.type)){
         const rot=this.rotation%4,dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
         target=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
-          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setAlpha(.75).setDepth(4);
+          .setDisplaySize(dw-2,dh-2).setAngle(rot*90)
+          .setAlpha(ok?0.75:0.68).setDepth(4);
+        if(!ok) target.setTint(0xffcccc);
       }
       if(target){
         this.previewImg=target;
-        this._previewTween=this.tweens.add({targets:target,alpha:{from:.75,to:.35},duration:600,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+        if(ok){
+          this._previewTween=this.tweens.add({targets:target,alpha:{from:.75,to:.35},duration:600,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+        }
       }
     }
   }
@@ -994,13 +1033,21 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
+  // canvasサイズをウィンドウに合わせてスケール計算
+  const maxW=Math.min(window.innerWidth, CANVAS_W);
+  const maxH=Math.min(window.innerHeight-60, CANVAS_H);
+  const scaleRatio=Math.min(maxW/CANVAS_W, maxH/CANVAS_H, 1);
+  const scaledW=Math.floor(CANVAS_W*scaleRatio);
+  const scaledH=Math.floor(CANVAS_H*scaleRatio);
   new Phaser.Game({
-    type:Phaser.AUTO,width:CANVAS_W,height:CANVAS_H,
-    backgroundColor:'#f0ece6',parent:'game-container',scene:PuzzleGame,
+    type:Phaser.AUTO,
+    width:CANVAS_W,height:CANVAS_H,
+    backgroundColor:'#f0ece6',
+    parent:'game-container',
+    scene:PuzzleGame,
     scale:{
-      mode:Phaser.Scale.FIT,
-      autoCenter:Phaser.Scale.CENTER_BOTH,
-      width:CANVAS_W,height:CANVAS_H,
+      mode:Phaser.Scale.NONE,
+      zoom:scaleRatio,
     }
   });
 }
