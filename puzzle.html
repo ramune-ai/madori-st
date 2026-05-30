@@ -187,12 +187,22 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.08em;
   padding:10px 20px;border-radius:24px;border:none;cursor:pointer;
   white-space:nowrap;box-shadow:0 3px 10px rgba(58,42,26,.35);
-  transition:all .2s;display:none;z-index:20;pointer-events:auto;
+  transition:opacity .2s,transform .2s;display:none;z-index:20;pointer-events:auto;
+  will-change:transform;
 }
 .reroll-slot-btn.visible{display:block;}
 .reroll-slot-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(58,42,26,.45);}
 .reroll-slot-btn.used{background:rgba(90,74,58,.25);color:var(--brown-light);cursor:not-allowed;box-shadow:none;}
 .reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
+/* 再抽選POP */
+.reroll-pop{
+  position:absolute;left:12px;bottom:-22px;
+  font-size:10px;font-weight:700;letter-spacing:.06em;
+  color:#c8860a;background:#fff8d6;padding:2px 8px;border-radius:20px;
+  border:1px solid #e8c040;white-space:nowrap;pointer-events:none;
+  display:none;
+}
+.reroll-slot-btn.visible~.reroll-pop{display:block;}
 @keyframes slotPulse{0%,100%{box-shadow:0 0 0 3px rgba(200,160,96,.25),0 6px 24px rgba(90,74,58,.12);}50%{box-shadow:0 0 0 5px rgba(200,160,96,.4),0 8px 28px rgba(90,74,58,.18);}}
 .btn-roulette-next{margin-top:32px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
 .btn-roulette-next.visible{opacity:1;pointer-events:auto;}
@@ -273,33 +283,30 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- ② ゲーム -->
 <div id="screen-game" class="screen">
-  <!-- 上部バー：次のパーツ合体枠 ＋ 保留枠 -->
+  <!-- 上部バー：保留枠（左） ＋ 次のパーツ合体枠（右） -->
   <div id="game-top-bar">
-    <!-- NEXT合体枠：次の次 + 次のパーツ -->
+    <!-- 保留枠（左） -->
+    <div class="hold-combined-box">
+      <div class="hold-combined-label">保留</div>
+      <canvas id="canvas-hold" width="56" height="56"></canvas>
+      <div class="hold-piece-name" id="name-hold">なし</div>
+    </div>
+    <!-- NEXT合体枠（右）：次の次 + 次のパーツ -->
     <div class="next-combined-box">
       <div class="next-combined-label">次のパーツ</div>
       <div class="next-combined-pieces">
-        <!-- 次の次（小さめ） -->
         <div class="next-piece-slot">
           <div class="next-piece-sublabel">次の次</div>
           <canvas id="canvas-next2" width="56" height="56"></canvas>
           <div class="next-piece-name" id="name-next2">---</div>
         </div>
-        <!-- 矢印 -->
         <div style="font-size:14px;color:var(--brown-light);margin-bottom:12px;">→</div>
-        <!-- 次のパーツ（大きめ） -->
         <div class="next-piece-slot">
           <div class="next-piece-sublabel" style="color:var(--brown);font-weight:700;">次</div>
           <canvas id="canvas-next1" width="72" height="72"></canvas>
           <div class="next-piece-name" id="name-next1" style="font-weight:700;color:var(--brown-dark);">---</div>
         </div>
       </div>
-    </div>
-    <!-- 保留枠 -->
-    <div class="hold-combined-box">
-      <div class="hold-combined-label">保留</div>
-      <canvas id="canvas-hold" width="56" height="56"></canvas>
-      <div class="hold-piece-name" id="name-hold">なし</div>
     </div>
     <!-- 配置数 -->
     <div class="part-count-badge" id="part-count-badge">0個</div>
@@ -354,12 +361,14 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <div class="roulette-item-value" id="rou-val-0">---</div>
     <span class="tap-hint">タップで確定</span>
     <button class="reroll-slot-btn" id="reroll-btn-0" onclick="event.stopPropagation();doRerollSlot(0)">🎲 再抽選</button>
+    <div class="reroll-pop">📺 再抽選で築浅確定！</div>
   </div>
   <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
     <div class="roulette-item-label">駅 徒 歩</div>
     <div class="roulette-item-value" id="rou-val-1">---</div>
     <span class="tap-hint">タップで確定</span>
     <button class="reroll-slot-btn" id="reroll-btn-1" onclick="event.stopPropagation();doRerollSlot(1)">🎲 再抽選</button>
+    <div class="reroll-pop">📺 再抽選で駅近確定！</div>
   </div>
   <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
     <div class="roulette-item-label">家 賃</div>
@@ -368,6 +377,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
   </div>
   <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoResult()">物 件 完 成 →</button>
+  <div style="font-size:10px;color:var(--brown-light);margin-top:8px;letter-spacing:.06em;text-align:center;">
+    ※ 再抽選は広告視聴で無料（実装予定）
+  </div>
 </div>
 
 <!-- ④ 結果 -->
@@ -488,8 +500,9 @@ const RARE_COND=[
 function isRare(idx,val){return RARE_COND[idx](val);}
 
 function getRerollKey(idx){return 'madori-reroll-'+idx+'-date';}
-function isRerollUsed(idx){return localStorage.getItem(getRerollKey(idx))===new Date().toDateString();}
-function markRerollUsed(idx){localStorage.setItem(getRerollKey(idx),new Date().toDateString());}
+// 開発中：再抽選制限なし（将来：広告視聴で1日1回）
+function isRerollUsed(idx){return false;}
+function markRerollUsed(idx){/* 開発中は何もしない */}
 
 function updateRerollBtnSlot(idx){
   const btn=document.getElementById('reroll-btn-'+idx);
@@ -545,17 +558,21 @@ function saveMadori(){
   if(toast){toast.style.display='block';setTimeout(()=>{toast.style.display='none';},2000);}
 }
 function gotoGame(){
-  // マドリスト名を保存
   const inp=document.getElementById('player-name-input');
   if(inp) window._playerName=inp.value.trim()||'';
   showMadoriBg(false);
   showScreen('screen-game');
   document.getElementById('btn-complete-overlay').classList.remove('visible');
+  // 既存のPhaserインスタンスを破棄して新規作成（再起動でツモが変わる問題を防ぐ）
+  const existing=document.querySelector('#game-container canvas');
+  if(existing){
+    // Phaserゲームを完全に破棄
+    if(window._phaserGame){window._phaserGame.destroy(true);window._phaserGame=null;}
+    gameScene=null; gameStarted=false;
+  }
   if(!gameStarted){
     gameStarted=true;
     setTimeout(()=>startPhaserGame(),50);
-  }else if(gameScene){
-    gameScene.scene.restart();
   }
 }
 function onCompleteBtn(){
@@ -698,15 +715,21 @@ function generateTitle(age,walk,rent,roomTypes){
   return generateTitles(age,walk,rent,roomTypes)[0];
 }
 function countRoomLabel(roomTypes,counts){
-  // 部屋数：洋室と和室のみ
   const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
-  // キッチン配置数：1個は'K'、2個以上はK²K³...
   const sup={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
   const k=counts['kitchen']||0;
-  const kLabel=k===0?'':`K${k>=2?(sup[k]||String(k)):''}`;
-  // LDK表記（和室+洋室の数をLDKの前に）
-  const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel||'K'}`;
-  // トイレ・風呂
+  // キッチン0個→R表記、1個→LDK、2個以上→LDK²など
+  if(k===0){
+    // キッチンなし：部屋数R
+    const wc=counts['toilet']||0;
+    const bath=counts['bath']||0;
+    let extra='';
+    if(wc>0) extra+=`+${wc>1?wc:''}WC`;
+    if(bath>0) extra+=`+${bath>1?bath:''}B`;
+    return (rooms>0?rooms:'')+'R'+extra;
+  }
+  const kLabel=`K${k>=2?(sup[k]||String(k)):''}`;
+  const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel}`;
   const wc=counts['toilet']||0;
   const bath=counts['bath']||0;
   let extra='';
@@ -1074,7 +1097,8 @@ class PuzzleGame extends Phaser.Scene{
     if(canPlaceAnywhere(this.holdDef))return;
     // holdDefがない場合：ホールドすればqueue[0]が現在になる→置ければ完成しない
     if(!this.holdDef&&this.queue.length>0&&canPlaceAnywhere(this.queue[0]))return;
-    // 全部ダメ→完成ボタン表示、プレビューを非表示
+    // 全部ダメ→収納を描画→完成ボタン表示、プレビューを非表示
+    this.fillEmptyAsStorage();
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
@@ -1140,7 +1164,6 @@ class PuzzleGame extends Phaser.Scene{
   _updateTopBar(){
     const badge=document.getElementById('part-count-badge');
     if(badge) badge.textContent=this.partCount+'個';
-    // canvas要素から実際のサイズを読み取って描画
     const slots=[
       {def:this.queue[1], canvasId:'canvas-next2', nameId:'name-next2'},
       {def:this.queue[0], canvasId:'canvas-next1', nameId:'name-next1'},
@@ -1150,33 +1173,56 @@ class PuzzleGame extends Phaser.Scene{
       const cv=document.getElementById(canvasId);
       const nm=document.getElementById(nameId);
       if(!cv)continue;
-      // canvas解像度をHTML属性に合わせる
       const W=parseInt(cv.getAttribute('width')||'56');
       const H=parseInt(cv.getAttribute('height')||'56');
       cv.width=W; cv.height=H;
       const ctx=cv.getContext('2d');
       ctx.clearRect(0,0,W,H);
-      if(nm) nm.textContent=def?def.name:'なし';
+      if(nm) nm.textContent=def?(def.name||def.label?.replace('\n','')):'なし';
       if(!def)continue;
       const shape=this.getShape(def,0);
-      const sh=shape.length,sw=shape[0].length;
-      const csz=Math.min(Math.floor((W-4)/sw),Math.floor((H-4)/sh));
+      const sh=shape.length, sw=shape[0].length;
+      const csz=Math.min(Math.floor((W-6)/sw), Math.floor((H-6)/sh));
       const ox=Math.floor((W-sw*csz)/2), oy=Math.floor((H-sh*csz)/2);
-      const hex='#'+def.color.toString(16).padStart(6,'0');
-      // セル塗り
-      for(let r=0;r<sh;r++)for(let c=0;c<sw;c++){
-        if(!shape[r][c])continue;
-        ctx.fillStyle=hex;
-        ctx.fillRect(ox+c*csz+1,oy+r*csz+1,csz-2,csz-2);
-        // 和室：緑の内枠
-        if(def.type==='washitsu'){
-          ctx.strokeStyle='#5a8040';ctx.lineWidth=1.5;
-          ctx.strokeRect(ox+c*csz+2,oy+r*csz+2,csz-4,csz-4);
+
+      if(def.type==='washitsu'){
+        // 和室：畳パターンをcanvasで描く
+        ctx.fillStyle='#eaf2da';
+        ctx.fillRect(ox,oy,sw*csz,sh*csz);
+        ctx.strokeStyle='#5a8040'; ctx.lineWidth=2;
+        ctx.strokeRect(ox+1,oy+1,sw*csz-2,sh*csz-2);
+        // 格子線
+        ctx.strokeStyle='#7a9a55'; ctx.lineWidth=0.8;
+        for(let r=1;r<sh;r++){ctx.beginPath();ctx.moveTo(ox,oy+r*csz);ctx.lineTo(ox+sw*csz,oy+r*csz);ctx.stroke();}
+        for(let c=1;c<sw;c++){ctx.beginPath();ctx.moveTo(ox+c*csz,oy);ctx.lineTo(ox+c*csz,oy+sh*csz);ctx.stroke();}
+      } else if(this.textures.exists(def.type)){
+        // SVGテクスチャが既にロード済み→ Phaser内部のcanvasから取り出してdrawImage
+        const frame=this.textures.getFrame(def.type);
+        if(frame&&frame.source&&frame.source.image){
+          ctx.drawImage(frame.source.image, ox, oy, sw*csz, sh*csz);
+        } else {
+          // フォールバック：色ブロック
+          ctx.fillStyle='#'+def.color.toString(16).padStart(6,'0');
+          ctx.fillRect(ox+1,oy+1,sw*csz-2,sh*csz-2);
         }
+      } else {
+        // テクスチャなし：色ブロック＋グリッド
+        const hex='#'+def.color.toString(16).padStart(6,'0');
+        ctx.fillStyle=hex;
+        ctx.fillRect(ox+1,oy+1,sw*csz-2,sh*csz-2);
+        ctx.strokeStyle='rgba(90,74,58,.5)'; ctx.lineWidth=1;
+        for(let r=1;r<sh;r++){ctx.beginPath();ctx.moveTo(ox,oy+r*csz);ctx.lineTo(ox+sw*csz,oy+r*csz);ctx.stroke();}
+        for(let c=1;c<sw;c++){ctx.beginPath();ctx.moveTo(ox+c*csz,oy);ctx.lineTo(ox+c*csz,oy+sh*csz);ctx.stroke();}
       }
-      // パーツ外枠
-      ctx.strokeStyle='rgba(90,74,58,.45)';ctx.lineWidth=1.5;
+      // 外枠
+      ctx.strokeStyle='rgba(90,74,58,.5)'; ctx.lineWidth=1.5;
       ctx.strokeRect(ox+0.75,oy+0.75,sw*csz-1.5,sh*csz-1.5);
+      // ラベル文字
+      const labelStr=def.label?def.label.replace('\n',' '):def.name;
+      ctx.fillStyle='rgba(58,42,26,0.75)';
+      ctx.font=`bold ${Math.max(8,Math.min(10,csz*0.6))}px Meiryo,sans-serif`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(labelStr.split('\n')[0], ox+sw*csz/2, oy+sh*csz/2);
     }
   }
 
@@ -1317,13 +1363,12 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  const topBarH=document.getElementById('game-top-bar')?.offsetHeight||72;
-  const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||90;
-  const availH=window.innerHeight-topBarH-botBarH;
-  const maxW=Math.min(window.innerWidth, CANVAS_W);
-  const maxH=Math.min(availH, CANVAS_H);
-  const scaleRatio=Math.min(maxW/CANVAS_W, maxH/CANVAS_H, 1);
-  new Phaser.Game({
+  const topBarH=document.getElementById('game-top-bar')?.offsetHeight||80;
+  const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||100;
+  const availH=window.innerHeight-topBarH-botBarH-4;
+  const availW=window.innerWidth;
+  const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H, 1);
+  window._phaserGame=new Phaser.Game({
     type:Phaser.AUTO,
     width:CANVAS_W,height:CANVAS_H,
     backgroundColor:'#f0ece6',
