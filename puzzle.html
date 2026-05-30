@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>間取りすと</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
@@ -43,9 +43,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .btn-sub:hover{border-color:var(--brown-light);color:var(--brown);background:rgba(90,74,58,.05);}
 
 /* ── ② ゲーム画面 ── */
-#screen-game{justify-content:center;align-items:center;padding:0;position:relative;background:var(--cream);}
-#game-container{display:flex;justify-content:center;align-items:center;}
-#game-container canvas{display:block;}
+#screen-game{justify-content:center;align-items:center;padding:0;position:relative;background:var(--cream);overflow:hidden;width:100%;}
+#game-container{display:flex;justify-content:center;align-items:center;width:100%;}
+#game-container canvas{display:block;margin:0 auto;}
 
 /* ゲーム下部バー */
 #game-bottom-bar{
@@ -149,6 +149,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 @keyframes popIn{0%{transform:scale(.8);opacity:0;}70%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
 @keyframes gentlePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,160,96,0);}50%{opacity:.75;box-shadow:0 0 20px 6px rgba(200,160,96,.25);}}
 .pop-in{animation:popIn .4s ease both;}
+.res-titles-new{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px;}
+.res-title-new-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.12em;padding:10px 20px;border-radius:4px;animation:popIn .4s ease both;}
+.res-title-new-label{font-size:10px;color:var(--accent-light);letter-spacing:.1em;background:rgba(255,255,255,.15);padding:2px 6px;border-radius:2px;}
+.res-titles-all{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px;}
+.res-title-old-badge{display:inline-block;background:rgba(90,74,58,.08);color:var(--brown-light);font-size:12px;letter-spacing:.1em;padding:6px 14px;border-radius:3px;border:1px solid rgba(90,74,58,.15);}
 </style>
 </head>
 <body>
@@ -178,7 +183,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ゲーム下部バー -->
 <div id="game-bottom-bar" style="display:none;">
   <div class="hint-text">
-    矢印キー 移動（長押し加速）　／　Space・Enter 配置　／　X 右回転　／　Z 左回転　／　Ctrl+Z 戻す　／　C・Shift ホールド
+    矢印キー 移動　／　Space・Enter 配置　／　X 右回転　／　Z 左回転　／　Ctrl+Z 戻す　／　C・Shift ホールド　／　スマホ: タップで移動・2回タップで配置・UI側タップでホールド
   </div>
   <div class="game-btns">
     <button class="btn-game" onclick="gotoGame()">リ ト ラ イ</button>
@@ -214,6 +219,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <div id="screen-result" class="screen">
   <div class="result-wrap">
     <div class="result-title">間 取 り 結 果</div>
+    <div id="res-madori-preview" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
     <div class="result-property-card pop-in">
       <div class="result-property-name" id="res-room-label">---</div>
       <div class="result-stats">
@@ -234,9 +240,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <hr class="result-divider">
     <div class="result-title-section">
       <div class="result-title-label">獲 得 称 号</div>
-      <div class="result-title-badge new pop-in" id="res-title-badge">---</div>
+      <div id="res-titles-new" class="res-titles-new"></div>
+      <div class="result-comment" id="res-comment"></div>
+      <div class="result-title-label" style="margin-top:16px">所 持 称 号 一 覧</div>
+      <div id="res-titles-all" class="res-titles-all"></div>
     </div>
-    <div class="result-comment" id="res-comment"></div>
     <div class="result-btns">
       <button class="btn-result primary" onclick="gotoGame()">も う 一 度</button>
       <button class="btn-result secondary" onclick="gotoStart()">戻 る</button>
@@ -404,24 +412,41 @@ function lockRoulette(idx){
 // ────────────────────────────────────────
 // 称号・結果
 // ────────────────────────────────────────
-function generateTitle(age,walk,rent,roomTypes){
+function generateTitles(age,walk,rent,roomTypes){
+  // 複数称号を返す（条件に合うものを全部）
   const has=t=>roomTypes.has(t);
-  if(age<=5&&walk<=5&&rent<=8) return{title:'掘り出し物件の達人',comment:'新しくて駅近で安い！そんな夢の物件を作り上げました。',isNew:true};
-  if(age>=40) return{title:'レトロ愛好家',comment:'年季の入った物件に味わいを感じる。そんな間取りすとです。',isNew:true};
-  if(walk<=3) return{title:'駅前派',comment:'徒歩3分以内！毎日の通勤が楽になりそうです。',isNew:true};
-  if(walk>=30) return{title:'静寂の探求者',comment:'駅から離れた場所でこそ感じられる、静かな暮らしがあります。',isNew:true};
-  if(rent>=50) return{title:'高級志向',comment:'良いものには相応の対価を。上質な暮らしを追求した間取りです。',isNew:true};
-  if(rent<=6&&walk<=10) return{title:'コスパ王',comment:'リーズナブルな家賃で駅近を確保。生活力の高い間取りすとです。',isNew:true};
-  if(has('washitsu')&&has('youshitsu')) return{title:'和洋折衷の使い手',comment:'和室と洋室を組み合わせた、センス溢れる間取りです。',isNew:true};
-  if(has('wic')) return{title:'収納マニア',comment:'WICを完備！整理整頓が行き届いた暮らしが目に浮かびます。',isNew:true};
-  if(has('balcony')) return{title:'採光重視派',comment:'バルコニーで光と風を取り込む。気持ちの良い間取りです。',isNew:true};
-  if(!has('bath')&&!has('toilet')) return{title:'謎の間取りすと',comment:'お風呂もトイレもない…？独自の美学を持つ間取りすとです。',isNew:true};
-  return{title:'間取りすと見習い',comment:'はじめての一歩！経験を積んで素敵な間取りを目指そう。',isNew:false};
+  const earned=[];
+  if(age<=5&&walk<=5&&rent<=8) earned.push({title:'掘り出し物件の達人',comment:'新しくて駅近で安い！夢の物件を作り上げました。'});
+  if(age>=40) earned.push({title:'レトロ愛好家',comment:'年季の入った物件に味わいを感じる間取りすとです。'});
+  if(walk<=3) earned.push({title:'駅前派',comment:'徒歩3分以内！毎日の通勤が楽になりそうです。'});
+  if(walk>=30) earned.push({title:'静寂の探求者',comment:'駅から離れた場所での静かな暮らし。'});
+  if(rent>=50) earned.push({title:'高級志向',comment:'上質な暮らしを追求した間取りです。'});
+  if(rent<=6&&walk<=10) earned.push({title:'コスパ王',comment:'リーズナブルな家賃で駅近を確保。'});
+  if(has('washitsu')&&has('youshitsu')) earned.push({title:'和洋折衷の使い手',comment:'和室と洋室を組み合わせたセンス溢れる間取り。'});
+  if(has('wic')) earned.push({title:'収納マニア',comment:'WICを完備！整理整頓が行き届いた暮らし。'});
+  if(has('balcony')) earned.push({title:'採光重視派',comment:'バルコニーで光と風を取り込む間取りです。'});
+  if(!has('bath')&&!has('toilet')) earned.push({title:'謎の間取りすと',comment:'お風呂もトイレもない…独自の美学の間取りすとです。'});
+  if(earned.length===0) earned.push({title:'間取りすと見習い',comment:'はじめての一歩！経験を積んで素敵な間取りを目指そう。'});
+  return earned;
+}
+function generateTitle(age,walk,rent,roomTypes){
+  return generateTitles(age,walk,rent,roomTypes)[0];
 }
 function countRoomLabel(roomTypes,counts){
-  const r=(counts['youshitsu']||0)+(counts['washitsu']||0);
-  const ldk=(counts['kitchen']||0)>0?'LDK':'K';
-  return r===0?ldk:`${r}${ldk}`;
+  // 部屋数：洋室と和室のみ
+  const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
+  // キッチン配置数→K2,K3...の通常表記
+  const k=counts['kitchen']||0;
+  const kLabel=k===0?'':(k===1?'K':`K${k}`);
+  // LDK表記
+  const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel||'K'}`;
+  // トイレ・風呂
+  const wc=counts['toilet']||0;
+  const bath=counts['bath']||0;
+  let extra='';
+  if(wc>0) extra+=`+${wc>1?wc:''}WC`;
+  if(bath>0) extra+=`+${bath>1?bath:''}B`;
+  return ldkLabel+extra;
 }
 function showResult(){
   const age=rouletteValues[0]??'--';
@@ -436,14 +461,43 @@ function showResult(){
       if(cell&&!cell.fixed){roomTypes.add(cell.type);counts[cell.type]=(counts[cell.type]||0)+1;}
     }));
   }
-  document.getElementById('res-room-label').textContent=countRoomLabel(roomTypes,counts);
-  const {title,comment,isNew}=generateTitle(age,walk,rent,roomTypes);
-  const badge=document.getElementById('res-title-badge');
-  badge.textContent=title;
-  badge.className='result-title-badge pop-in'+(isNew?' new':'');
-  document.getElementById('res-comment').textContent=comment;
+  // 完成間取りをcanvasプレビューとして結果画面に表示
+  const prevEl=document.getElementById('res-madori-preview');
+  if(prevEl&&madoriSnapshot){
+    prevEl.innerHTML='';
+    const cv=document.createElement('canvas');
+    const maxW=340;
+    const scale=Math.min(maxW/madoriSnapshot.width,120/madoriSnapshot.height);
+    cv.width=madoriSnapshot.width*scale;
+    cv.height=madoriSnapshot.height*scale;
+    cv.style.cssText='border-radius:8px;border:1px solid rgba(90,74,58,.12);box-shadow:0 2px 12px rgba(90,74,58,.1);';
+    cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
+    prevEl.appendChild(cv);
+  }
+  // 間取りラベル（太字LDK）
+  const roomLabel=countRoomLabel(roomTypes,counts);
+  const ldkMatch=roomLabel.match(/^([^+]+)(.*)/);
+  document.getElementById('res-room-label').innerHTML=
+    ldkMatch?`<span style="font-size:28px;font-weight:700;font-family:'Noto Serif JP',serif;color:var(--brown-dark)">${ldkMatch[1]}</span><span style="font-size:14px;color:var(--brown-light)">${ldkMatch[2]}</span>`:roomLabel;
+  // 複数称号
+  const earned=generateTitles(age,walk,rent,roomTypes);
   const saved=JSON.parse(localStorage.getItem('madori-titles')||'[]');
-  if(!saved.includes(title)){saved.unshift(title);localStorage.setItem('madori-titles',JSON.stringify(saved));}
+  const newTitles=[], oldTitles=[];
+  earned.forEach(t=>{
+    if(!saved.includes(t.title)){newTitles.push(t);saved.unshift(t.title);}
+    else oldTitles.push(t);
+  });
+  localStorage.setItem('madori-titles',JSON.stringify(saved));
+  // 新獲得称号（目立つ）
+  const newEl=document.getElementById('res-titles-new');
+  newEl.innerHTML=newTitles.length>0
+    ?newTitles.map((t,i)=>`<div class="res-title-new-badge" style="animation-delay:${i*0.1}s"><span class="res-title-new-label">NEW！</span>${t.title}</div>`).join('')
+    :(earned.length>0?`<div class="res-title-new-badge"><span style="font-size:10px;color:var(--accent-light);margin-right:6px">獲得</span>${earned[0].title}</div>`:'');
+  // コメント
+  document.getElementById('res-comment').textContent=earned[0]?.comment||'';
+  // 所持称号一覧（全部）
+  const allEl=document.getElementById('res-titles-all');
+  allEl.innerHTML=saved.map(t=>`<span class="res-title-old-badge">${t}</span>`).join('');
 }
 
 // ────────────────────────────────────────
@@ -463,12 +517,11 @@ const SVG_TEX={
 const PARTS_DEF=[
   {name:'洋室8畳',w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',type:'youshitsu'},
   {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu'},
-  {name:'廊下(短)',w:1,h:2,color:0xE8E0D4,label:'廊下\n(短)',type:'roka'},
-  {name:'廊下(長)',w:1,h:4,color:0xE8E0D4,label:'廊下\n(長)',type:'roka'},
+  {name:'廊下',w:1,h:2,color:0xE8E0D4,label:'廊下',type:'roka'},
   {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン',type:'kitchen'},
   {name:'トイレ',w:1,h:2,color:0xD4EEF8,label:'トイレ\n2畳',type:'toilet'},
   {name:'お風呂',w:2,h:2,color:0xB8DFF0,label:'お風呂\n4畳',type:'bath'},
-  {name:'バルコニー',w:4,h:1,color:0xFFE566,label:'バルコニー',type:'balcony'},
+  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony'},
 ];
 
 function svgToCanvas(dataUrl){
@@ -490,7 +543,7 @@ function svgToCanvas(dataUrl){
   });
 }
 
-const CS=40,COLS=9,ROWS=10,UI_R=180;
+const CS=40,COLS=7,ROWS=8,UI_R=180;
 const CANVAS_W=COLS*CS+UI_R, CANVAS_H=ROWS*CS;
 const GENKAN_COLOR=0xD4A870;
 
@@ -566,6 +619,25 @@ class PuzzleGame extends Phaser.Scene{
     this.downKey.on('down',()=>startRepeat(0,1));  this.upKey.on('down',()=>startRepeat(0,-1));
     this.leftKey.on('up',stopRepeat); this.rightKey.on('up',stopRepeat);
     this.downKey.on('up',stopRepeat); this.upKey.on('up',stopRepeat);
+    // タッチ操作（スマホ対応）
+    this.input.on('pointerdown',(p)=>{
+      const bx=p.x, by=p.y;
+      const boardW=COLS*CS, boardH=ROWS*CS;
+      if(bx<boardW&&by<boardH){
+        // ボード内タップ：カーソルを移動して配置
+        const tc=Math.floor(bx/CS), tr=Math.floor(by/CS);
+        if(tc===this.curC&&tr===this.curR){
+          this.placeAtCursor();
+        }else{
+          this.curC=Phaser.Math.Clamp(tc,0,COLS-(this.currentDef?this.getShape(this.currentDef,this.rotation)[0].length:1));
+          this.curR=Phaser.Math.Clamp(tr,0,ROWS-(this.currentDef?this.getShape(this.currentDef,this.rotation).length:1));
+          this.updatePreview(this.curC,this.curR);
+        }
+      }else if(bx>boardW){
+        // UI側タップ：ホールド
+        this.doHold();
+      }
+    });
   }
 
   pickRandom(){return PARTS_DEF[Math.floor(Math.random()*PARTS_DEF.length)];}
@@ -925,6 +997,11 @@ function startPhaserGame(){
   new Phaser.Game({
     type:Phaser.AUTO,width:CANVAS_W,height:CANVAS_H,
     backgroundColor:'#f0ece6',parent:'game-container',scene:PuzzleGame,
+    scale:{
+      mode:Phaser.Scale.FIT,
+      autoCenter:Phaser.Scale.CENTER_BOTH,
+      width:CANVAS_W,height:CANVAS_H,
+    }
   });
 }
 </script>
