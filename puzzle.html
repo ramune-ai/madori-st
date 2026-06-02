@@ -58,7 +58,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── 上部バー（2段） ── */
 #game-top-bar{
   display:flex;flex-direction:column;flex-shrink:0;
-  background:rgba(245,240,232,.98);border-bottom:1px solid rgba(90,74,58,.12);
+  background:rgba(245,240,232,.98);
   position:relative;z-index:30;
 }
 /* 1段目：設置数 + ナビボタン */
@@ -131,7 +131,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-bottom-bar{
   display:flex;flex-shrink:0;
   background:rgba(245,240,232,.97);
-  border-top:1px solid rgba(90,74,58,.12);
   z-index:50;padding:12px 16px 18px;
   align-items:center;justify-content:center;gap:14px;
 }
@@ -362,12 +361,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div id="next-col">
         <div class="next-row">
           <div class="next-sublabel">次の次</div>
-          <canvas id="canvas-next2" width="44" height="44"></canvas>
+          <canvas id="canvas-next2" width="64" height="64"></canvas>
         </div>
         <div style="font-size:8px;color:var(--brown-light);margin:1px 0;">↓</div>
         <div class="next-row">
           <div class="next-sublabel em">次</div>
-          <canvas id="canvas-next1" width="52" height="52"></canvas>
+          <canvas id="canvas-next1" width="76" height="76"></canvas>
         </div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
@@ -379,7 +378,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <!-- 保留 -->
       <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
         <div class="hold-label">保留</div>
-        <canvas id="canvas-hold" width="52" height="52"></canvas>
+        <canvas id="canvas-hold" width="76" height="76"></canvas>
         <div id="hold-hint">タップで交換</div>
       </div>
     </div>
@@ -1320,30 +1319,66 @@ class PuzzleGame extends Phaser.Scene{
       const scaleY=CANVAS_H/canvas.offsetHeight;
       const bx=p.x*scaleX, by=p.y*scaleY;
       if(!this.currentDef)return;
-      const shape=this.getShape(this.currentDef,this.rotation);
-      let tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
-      let tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
 
-      // プレビューが表示中（ドラッグ後）なら土地タップで即配置
+      const shape=this.getShape(this.currentDef,this.rotation);
+      const pw=shape[0].length, ph=shape.length;
+      const tapC=Math.floor(bx/CS);
+      const tapR=Math.floor(by/CS);
+      const tc=Phaser.Math.Clamp(Math.round(bx/CS-pw/2),0,COLS-pw);
+      const tr=Phaser.Math.Clamp(Math.round(by/CS-ph/2),0,ROWS-ph);
+
       const hasPreview=this.previewImg||!this._isPreviewEmpty();
       if(hasPreview){
-        this.curC=tc; this.curR=tr;
-        this.placeAtCursor();
-      } else {
-        // プレビューなし: 従来通りカーソル移動→同位置タップで配置
-        const isSamePos=(tc===this.curC&&tr===this.curR);
-        if(isSamePos){
+        // プレビュー表示中：パーツ範囲内タップで配置確定、範囲外で移動
+        const inPiece=(tapC>=this.curC&&tapC<this.curC+pw&&tapR>=this.curR&&tapR<this.curR+ph);
+        if(inPiece){
           this.placeAtCursor();
-        }else{
+        } else {
           this.curC=tc; this.curR=tr;
-          // カーソル移動してもプレビューは出さない（ドラッグで出す方式）
+          this.updatePreview(this.curC,this.curR);
         }
+      } else {
+        // プレビューなし：1回目タップ → プレビュー表示（まだ配置しない）
+        this.curC=tc; this.curR=tr;
+        this.updatePreview(this.curC,this.curR);
       }
     });
     if(this.game.canvas){
       this.game.canvas.addEventListener('contextmenu',e=>e.preventDefault());
     }
+    // _setupPieceDrag を先に呼び、その後 土地内長押しを設定
     this._setupPieceDrag();
+    this._setupPlacedPieceDrag();
+  }
+
+  _setupPlacedPieceDrag(){
+    const canvas=this.game.canvas;
+    if(!canvas)return;
+    let pressTimer=null;
+    let pressing=false;
+    const LONG_PRESS_MS=400;
+
+    const onDown=(clientX,clientY)=>{
+      pressing=true;
+      pressTimer=setTimeout(()=>{
+        if(!pressing)return;
+        if(!this.undoStack.length)return;
+        // undoして手元に戻してからドラッグ開始
+        this.doUndo();
+        if(this.currentDef&&this._triggerDragStart){
+          this._triggerDragStart(clientX,clientY);
+        }
+      }, LONG_PRESS_MS);
+    };
+    const onUp=()=>{pressing=false;clearTimeout(pressTimer);};
+    const onMove=()=>{pressing=false;clearTimeout(pressTimer);};
+
+    canvas.addEventListener('mousedown',(e)=>{if(e.button===0)onDown(e.clientX,e.clientY);});
+    canvas.addEventListener('mouseup',onUp);
+    canvas.addEventListener('mousemove',onMove);
+    canvas.addEventListener('touchstart',(e)=>{const t=e.touches[0];onDown(t.clientX,t.clientY);},{passive:true});
+    canvas.addEventListener('touchend',onUp);
+    canvas.addEventListener('touchmove',onMove,{passive:true});
   }
 
   // プレビューGraphicsが空かどうか判定
@@ -1375,7 +1410,12 @@ class PuzzleGame extends Phaser.Scene{
       ghost.style.display='block';
       ghost.style.left=clientX+'px';
       ghost.style.top=clientY+'px';
+      // 枠内のcanvasを空にする
+      const cc=document.getElementById('canvas-current');
+      if(cc){cc.width=cc.width;}
     };
+    // 外部から呼べるよう公開
+    this._triggerDragStart=(cx,cy)=>startDrag(cx,cy);
 
     const moveDrag=(clientX,clientY)=>{
       if(!dragging)return;
@@ -1405,8 +1445,8 @@ class PuzzleGame extends Phaser.Scene{
         return;
       }
       const shape=this.getShape(this.currentDef,this.rotation);
-      const tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
-      const tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
+      const tc=Phaser.Math.Clamp(Math.round(bx/CS-shape[0].length/2),0,COLS-shape[0].length);
+      const tr=Phaser.Math.Clamp(Math.round(by/CS-shape.length/2),0,ROWS-shape.length);
       if(tc!==this.curC||tr!==this.curR){
         this.curC=tc; this.curR=tr;
         this.updatePreview(this.curC,this.curR);
@@ -1444,8 +1484,17 @@ class PuzzleGame extends Phaser.Scene{
         this.stopPreviewTween();
         if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
         this.previewGfx.clear();
+        this.drawUI(); // canvas-current 復元
+        return;
       }
-      // グリッド内ならプレビューを残す（ユーザーはそのまま土地をタップ/クリックで配置）
+      // グリッド内リリース: Math.roundで最終位置を確定してプレビューを残す
+      {
+        const shape=this.getShape(this.currentDef,this.rotation);
+        const tc=Phaser.Math.Clamp(Math.round(bx/CS-shape[0].length/2),0,COLS-shape[0].length);
+        const tr=Phaser.Math.Clamp(Math.round(by/CS-shape.length/2),0,ROWS-shape.length);
+        this.curC=tc; this.curR=tr;
+        this.updatePreview(this.curC,this.curR);
+      }
     };
 
     const cancelDrag=()=>{
@@ -1456,7 +1505,13 @@ class PuzzleGame extends Phaser.Scene{
       this.stopPreviewTween();
       if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
       this.previewGfx.clear();
+      this.drawUI(); // canvas-current を復元
     };
+
+    // 土地内長押し→undoから来るドラッグ開始イベント
+    wrap.addEventListener('startDragFromOutside',(e)=>{
+      startDrag(e.detail.clientX, e.detail.clientY);
+    });
 
     // マウス長押しでドラッグ開始
     wrap.addEventListener('mousedown',(e)=>{
@@ -1527,18 +1582,23 @@ class PuzzleGame extends Phaser.Scene{
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
-    const oldShape=this.getShape(this.currentDef,this.rotation);
     this.rotation=(this.rotation+dir+4)%4;
     const newShape=this.getShape(this.currentDef,this.rotation);
-    // 回転前後でパーツの中心位置を維持するようにカーソルを補正
-    const oldCenterC=this.curC+oldShape[0].length/2;
-    const oldCenterR=this.curR+oldShape.length/2;
-    this.curC=Math.round(oldCenterC-newShape[0].length/2);
-    this.curR=Math.round(oldCenterR-newShape.length/2);
-    // グリッド内にクランプ
-    this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
-    this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
-    this.updatePreview(this.curC,this.curR); this.drawUI();
+    // プレビューが出ていた場合のみ curC/curR をクランプして更新
+    const hadPreview=this.previewImg||!this._isPreviewEmpty();
+    if(hadPreview){
+      this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
+      this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
+      this.updatePreview(this.curC,this.curR);
+    } else {
+      // プレビューなし：回転だけ記録、位置は動かさない
+      this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
+      this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
+      this.stopPreviewTween();
+      if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+      this.previewGfx.clear();
+    }
+    this.drawUI();
   }
   doHold(){
     if(!this.currentDef)return;
@@ -1782,9 +1842,9 @@ class PuzzleGame extends Phaser.Scene{
 
     // ── 次/次次 canvas ──
     const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2', size:44},
-      {def:this.queue[0], canvasId:'canvas-next1', size:52},
-      {def:this.holdDef,  canvasId:'canvas-hold',  size:52},
+      {def:this.queue[1], canvasId:'canvas-next2', size:64},
+      {def:this.queue[0], canvasId:'canvas-next1', size:76},
+      {def:this.holdDef,  canvasId:'canvas-hold',  size:76},
     ];
     for(const {def,canvasId,size} of nextSlots){
       const cv=document.getElementById(canvasId);
