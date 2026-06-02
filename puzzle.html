@@ -1263,6 +1263,7 @@ class PuzzleGame extends Phaser.Scene{
     // ドラッグ状態リセット（リトライ時にゴーストが残らないよう）
     this._placedLongPressActive=false;
     this._triggerDragStart=null;
+    this._dragDropped=false;
     const ghost=document.getElementById('drag-ghost');
     if(ghost){ghost.style.display='none';}
     // document レベルのリスナーをリセット
@@ -1333,6 +1334,8 @@ class PuzzleGame extends Phaser.Scene{
       }
       // 土地内長押しタイマー動作中はタップを無効（長押し移動と競合しないように）
       if(this._placedLongPressActive)return;
+      // ドラッグ中もタップ無効
+      if(this._isDragging&&this._isDragging())return;
       const canvas=this.game.canvas;
       const scaleX=CANVAS_W/canvas.offsetWidth;
       const scaleY=CANVAS_H/canvas.offsetHeight;
@@ -1348,18 +1351,30 @@ class PuzzleGame extends Phaser.Scene{
 
       const hasPreview=this.previewImg||!this._isPreviewEmpty();
       if(hasPreview){
-        // プレビュー表示中：パーツ範囲内タップで配置確定、範囲外で移動
-        const inPiece=(tapC>=this.curC&&tapC<this.curC+pw&&tapR>=this.curR&&tapR<this.curR+ph);
-        if(inPiece){
+        // プレビュー表示中：どこをタップしても配置確定
+        // （ドラッグ→離した後のタップ1回で配置できるようにする）
+        if(this._dragDropped){
+          // ドラッグでドロップした直後：1回タップで配置確定
+          this._dragDropped=false;
           this.placeAtCursor();
         } else {
+          // タップ2回目：パーツ範囲内なら配置確定、外なら移動
+          const inPiece=(tapC>=this.curC&&tapC<this.curC+pw&&tapR>=this.curR&&tapR<this.curR+ph);
+          if(inPiece){
+            this.placeAtCursor();
+          } else {
+            this.curC=tc; this.curR=tr;
+            this.updatePreview(this.curC,this.curR);
+          }
+        }
+      } else {
+        // プレビューなし：ドラッグ後のみプレビュー表示済みのはずなので
+        // 直接タップ（ドラッグなし）の場合はプレビュー表示する（1回目タップ=プレビュー）
+        if(!this._dragDropped){
           this.curC=tc; this.curR=tr;
           this.updatePreview(this.curC,this.curR);
         }
-      } else {
-        // プレビューなし：1回目タップ → プレビュー表示（まだ配置しない）
-        this.curC=tc; this.curR=tr;
-        this.updatePreview(this.curC,this.curR);
+        this._dragDropped=false;
       }
     });
     if(this.game.canvas){
@@ -1381,15 +1396,21 @@ class PuzzleGame extends Phaser.Scene{
     const onDown=(clientX,clientY)=>{
       if(this._isDragging&&this._isDragging())return;
       startX=clientX; startY=clientY;
-      this._placedLongPressActive=true;
+      // _placedLongPressActive はここでは立てない。
+      // 長押し判定が成立した瞬間（タイムアウト内）だけ立てて
+      // Phaserのpointerdownブロックは最小限にする。
+      if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
       pressTimer=setTimeout(()=>{
         pressTimer=null;
-        this._placedLongPressActive=false;
         if(!this.undoStack.length)return;
+        // 長押し確定：pointerdown競合防止フラグを一時的に立てる
+        this._placedLongPressActive=true;
         this.doUndo();
         if(this.currentDef&&this._triggerDragStart){
           this._triggerDragStart(clientX,clientY);
         }
+        // ドラッグ開始後すぐにフラグを下ろす（ドラッグ中はisDragging()で判断）
+        this._placedLongPressActive=false;
       }, LONG_PRESS_MS);
     };
     const onUp=()=>{
@@ -1515,6 +1536,7 @@ class PuzzleGame extends Phaser.Scene{
           this.stopPreviewTween();
           if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
           this.previewGfx.clear();
+          this._dragDropped=false;
           return;
         }
       }
@@ -1541,6 +1563,8 @@ class PuzzleGame extends Phaser.Scene{
         const tr=Phaser.Math.Clamp(Math.round(by/CS-shape.length/2),0,ROWS-shape.length);
         this.curC=tc; this.curR=tr;
         this.updatePreview(this.curC,this.curR);
+        // ドロップ完了フラグ：次の土地タップで即確定させる
+        this._dragDropped=true;
       }
     };
 
@@ -1549,6 +1573,7 @@ class PuzzleGame extends Phaser.Scene{
       ghost.style.display='none';
       if(holdCol) holdCol.classList.remove('drag-over');
       clearTimeout(longPressTimer);
+      this._dragDropped=false;
       this.stopPreviewTween();
       if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
       this.previewGfx.clear();
@@ -1556,16 +1581,26 @@ class PuzzleGame extends Phaser.Scene{
     };
 
     // 土地内長押し→undoから来るドラッグ開始イベント
-    wrap.addEventListener('startDragFromOutside',(e)=>{
-      startDrag(e.detail.clientX, e.detail.clientY);
-    });
+    // wrap のリスナーはリトライ時に蓄積するため、古いものを必ず削除してから再登録
+    if(wrap._madoriStartDragOutside){ wrap.removeEventListener('startDragFromOutside',wrap._madoriStartDragOutside); }
+    if(wrap._madoriMouseDown){        wrap.removeEventListener('mousedown',wrap._madoriMouseDown); }
+    if(wrap._madoriContextMenu){      wrap.removeEventListener('contextmenu',wrap._madoriContextMenu); }
+    if(wrap._madoriTouchStart){       wrap.removeEventListener('touchstart',wrap._madoriTouchStart); }
+    if(wrap._madoriTouchMove){        wrap.removeEventListener('touchmove',wrap._madoriTouchMove); }
+    if(wrap._madoriTouchEnd){         wrap.removeEventListener('touchend',wrap._madoriTouchEnd); }
+    if(wrap._madoriTouchCancel){      wrap.removeEventListener('touchcancel',wrap._madoriTouchCancel); }
+
+    wrap._madoriStartDragOutside=(e)=>{ startDrag(e.detail.clientX, e.detail.clientY); };
+    wrap.addEventListener('startDragFromOutside', wrap._madoriStartDragOutside);
 
     // マウス長押しでドラッグ開始
-    wrap.addEventListener('mousedown',(e)=>{
+    wrap._madoriMouseDown=(e)=>{
       if(e.button!==0)return;
       e.preventDefault();
       longPressTimer=setTimeout(()=>startDrag(e.clientX,e.clientY), LONG_PRESS_MS);
-    });
+    };
+    wrap.addEventListener('mousedown', wrap._madoriMouseDown);
+
     // document レベルのリスナーは以前のものを必ず削除してから再登録
     if(document._madoriMouseMove) document.removeEventListener('mousemove',document._madoriMouseMove);
     if(document._madoriMouseUp)   document.removeEventListener('mouseup',  document._madoriMouseUp);
@@ -1573,24 +1608,25 @@ class PuzzleGame extends Phaser.Scene{
     document._madoriMouseUp  =(e)=>{ clearTimeout(longPressTimer); if(dragging) endDrag(e.clientX,e.clientY); };
     document.addEventListener('mousemove', document._madoriMouseMove);
     document.addEventListener('mouseup',   document._madoriMouseUp);
+
     // 右クリック on wrap → 右回転
-    wrap.addEventListener('contextmenu',(e)=>{
-      e.preventDefault();
-      this.rotatePiece(1);
-    });
+    wrap._madoriContextMenu=(e)=>{ e.preventDefault(); this.rotatePiece(1); };
+    wrap.addEventListener('contextmenu', wrap._madoriContextMenu);
 
     // タッチ：即ドラッグ開始（長押し不要、ブラウザスクロールを防ぐ）
-    wrap.addEventListener('touchstart',(e)=>{
-      e.preventDefault(); // ブラウザのスクロール・引っ張りを防ぐ
+    wrap._madoriTouchStart=(e)=>{
+      e.preventDefault();
       const t=e.touches[0];
       startDrag(t.clientX,t.clientY);
-    },{passive:false});
-    wrap.addEventListener('touchmove',(e)=>{
+    };
+    wrap.addEventListener('touchstart', wrap._madoriTouchStart,{passive:false});
+    wrap._madoriTouchMove=(e)=>{
       e.preventDefault();
       const t=e.touches[0];
       if(dragging) moveDrag(t.clientX,t.clientY);
-    },{passive:false});
-    wrap.addEventListener('touchend',(e)=>{
+    };
+    wrap.addEventListener('touchmove', wrap._madoriTouchMove,{passive:false});
+    wrap._madoriTouchEnd=(e)=>{
       e.preventDefault();
       if(dragging){
         const t=e.changedTouches[0];
@@ -1598,8 +1634,10 @@ class PuzzleGame extends Phaser.Scene{
       } else {
         clearTimeout(longPressTimer);
       }
-    },{passive:false});
-    wrap.addEventListener('touchcancel',cancelDrag);
+    };
+    wrap.addEventListener('touchend', wrap._madoriTouchEnd,{passive:false});
+    wrap._madoriTouchCancel=cancelDrag;
+    wrap.addEventListener('touchcancel', wrap._madoriTouchCancel);
   }
 
   pickRandom(){
@@ -2181,25 +2219,33 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      // 2フレーム待ってレイアウト完全確定後に計測
-      const topBarH=document.getElementById('game-top-bar')?.offsetHeight||0;
-      const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||0;
-      const availH=window.innerHeight-topBarH-botBarH;
-      const availW=window.innerWidth;
-      const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H);
-      window._gameScaleRatio=scaleRatio;
-      window._phaserGame=new Phaser.Game({
-        type:Phaser.AUTO,
-        width:CANVAS_W,height:CANVAS_H,
-        backgroundColor:'#f0ece6',
-        parent:'game-container',
-        scene:PuzzleGame,
-        scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
-      });
+  // ゲーム画面のフレックスレイアウトが完全に確定してからサイズ計測する。
+  // offsetHeight=0のままPhaserを起動すると土地が上下に切れるため、
+  // 確定するまで最大10フレーム待つ。
+  let attempts=0;
+  const tryStart=()=>{
+    const topBarH=document.getElementById('game-top-bar')?.offsetHeight||0;
+    const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||0;
+    // どちらも0のままならまだレイアウト未確定 → もう1フレーム待つ
+    if((topBarH===0||botBarH===0)&&attempts<10){
+      attempts++;
+      requestAnimationFrame(tryStart);
+      return;
+    }
+    const availH=window.innerHeight-topBarH-botBarH;
+    const availW=window.innerWidth;
+    const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H);
+    window._gameScaleRatio=scaleRatio;
+    window._phaserGame=new Phaser.Game({
+      type:Phaser.AUTO,
+      width:CANVAS_W,height:CANVAS_H,
+      backgroundColor:'#f0ece6',
+      parent:'game-container',
+      scene:PuzzleGame,
+      scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
     });
-  });
+  };
+  requestAnimationFrame(tryStart);
 }
 
 // 起動時プロフィール表示
