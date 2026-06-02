@@ -1898,6 +1898,8 @@ class PuzzleGame extends Phaser.Scene{
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(labelStr, ox+pw/2, oy+ph/2);
   }
+
+  moveCursor(dc,dr){
     if(!this.currentDef)return;
     const shape=this.getShape(this.currentDef,this.rotation);
     this.curC=Phaser.Math.Clamp(this.curC+dc,0,COLS-shape[0].length);
