@@ -372,7 +372,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
-        <canvas id="canvas-current" width="120" height="120"></canvas>
+        <canvas id="canvas-current" width="120" height="120" style="display:block;width:120px;height:120px;"></canvas>
         <div id="current-piece-hint" style="font-size:8px;color:var(--brown-light);">ドラッグ or 土地タップ</div>
       </div>
       <!-- 保留 -->
@@ -1246,7 +1246,6 @@ class PuzzleGame extends Phaser.Scene{
 
   create(){
     gameScene=this;
-    // セッションIDで古いPromiseコールバックを無効化（玄関重複防止）
     this._sessionId=(this._sessionId||0)+1;
     const sessionId=this._sessionId;
     this._storageGfx=null;
@@ -1261,6 +1260,14 @@ class PuzzleGame extends Phaser.Scene{
     this.holdDef=null; this.holdUsed=false;
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
+    // ドラッグ状態リセット（リトライ時にゴーストが残らないよう）
+    this._placedLongPressActive=false;
+    this._triggerDragStart=null;
+    const ghost=document.getElementById('drag-ghost');
+    if(ghost){ghost.style.display='none';}
+    // document レベルのリスナーをリセット
+    if(document._madoriMouseMove){document.removeEventListener('mousemove',document._madoriMouseMove);document._madoriMouseMove=null;}
+    if(document._madoriMouseUp)  {document.removeEventListener('mouseup',  document._madoriMouseUp);  document._madoriMouseUp=null;}
     this.bgGfx=this.add.graphics().setDepth(0);
     this.gridGfx=this.add.graphics().setDepth(1);
     this.previewGfx=this.add.graphics().setDepth(4);
@@ -1302,7 +1309,7 @@ class PuzzleGame extends Phaser.Scene{
     this.xKey.on('down',()=>this.rotatePiece(1));
     this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(-1); });
     this.cKey.on('down',()=>this.doHold());
-    this.shiftKey.on('down',()=>this.doHold());
+    // Shiftはスクショショートカットと競合するため hold から除外
     this.spaceKey.on('down',()=>this.placeAtCursor());
     this.enterKey.on('down',()=>this.placeAtCursor());
     this._moveRepeat={timer:null,delay:200,interval:80};
@@ -1369,10 +1376,9 @@ class PuzzleGame extends Phaser.Scene{
     let pressTimer=null;
     let startX=0, startY=0;
     const LONG_PRESS_MS=500;
-    const MOVE_THRESHOLD=8; // px以上動いたらキャンセル
+    const MOVE_THRESHOLD=10;
 
     const onDown=(clientX,clientY)=>{
-      // 現在パーツのドラッグ中は無効
       if(this._isDragging&&this._isDragging())return;
       startX=clientX; startY=clientY;
       this._placedLongPressActive=true;
@@ -1387,38 +1393,37 @@ class PuzzleGame extends Phaser.Scene{
       }, LONG_PRESS_MS);
     };
     const onUp=()=>{
-      this._placedLongPressActive=false;
       if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
+      this._placedLongPressActive=false;
     };
     const onMove=(cx,cy)=>{
       if(!pressTimer)return;
       const dx=cx-startX, dy=cy-startY;
       if(Math.sqrt(dx*dx+dy*dy)>MOVE_THRESHOLD){
+        clearTimeout(pressTimer);pressTimer=null;
         this._placedLongPressActive=false;
-        clearTimeout(pressTimer); pressTimer=null;
       }
     };
-    // 既存リスナーを削除してから再登録
-    if(canvas._madoriPlacedDown) canvas.removeEventListener('mousedown',canvas._madoriPlacedDown);
-    if(canvas._madoriPlacedUp)   canvas.removeEventListener('mouseup',  canvas._madoriPlacedUp);
-    if(canvas._madoriPlacedMove) canvas.removeEventListener('mousemove',canvas._madoriPlacedMove);
-    if(canvas._madoriPlacedTStart) canvas.removeEventListener('touchstart',canvas._madoriPlacedTStart);
-    if(canvas._madoriPlacedTEnd)   canvas.removeEventListener('touchend',  canvas._madoriPlacedTEnd);
-    if(canvas._madoriPlacedTMove)  canvas.removeEventListener('touchmove', canvas._madoriPlacedTMove);
 
-    canvas._madoriPlacedDown =(e)=>{if(e.button===0)onDown(e.clientX,e.clientY);};
-    canvas._madoriPlacedUp   =()=>onUp();
-    canvas._madoriPlacedMove =(e)=>onMove(e.clientX,e.clientY);
-    canvas._madoriPlacedTStart=(e)=>{const t=e.touches[0];onDown(t.clientX,t.clientY);};
-    canvas._madoriPlacedTEnd  =()=>onUp();
-    canvas._madoriPlacedTMove =(e)=>{const t=e.touches[0];onMove(t.clientX,t.clientY);};
-
-    canvas.addEventListener('mousedown', canvas._madoriPlacedDown);
-    canvas.addEventListener('mouseup',   canvas._madoriPlacedUp);
-    canvas.addEventListener('mousemove', canvas._madoriPlacedMove);
-    canvas.addEventListener('touchstart',canvas._madoriPlacedTStart,{passive:true});
-    canvas.addEventListener('touchend',  canvas._madoriPlacedTEnd);
-    canvas.addEventListener('touchmove', canvas._madoriPlacedTMove,{passive:true});
+    // 既存リスナーを削除してから再登録（リトライ対応）
+    ['_mPD','_mPU','_mPM','_tPS','_tPE','_tPM'].forEach(k=>{
+      if(canvas[k]){
+        const evt={_mPD:'mousedown',_mPU:'mouseup',_mPM:'mousemove',_tPS:'touchstart',_tPE:'touchend',_tPM:'touchmove'}[k];
+        canvas.removeEventListener(evt,canvas[k]);
+      }
+    });
+    canvas._mPD=(e)=>{if(e.button===0)onDown(e.clientX,e.clientY);};
+    canvas._mPU=()=>onUp();
+    canvas._mPM=(e)=>onMove(e.clientX,e.clientY);
+    canvas._tPS=(e)=>{const t=e.touches[0];onDown(t.clientX,t.clientY);};
+    canvas._tPE=()=>onUp();
+    canvas._tPM=(e)=>{const t=e.touches[0];onMove(t.clientX,t.clientY);};
+    canvas.addEventListener('mousedown', canvas._mPD);
+    canvas.addEventListener('mouseup',   canvas._mPU);
+    canvas.addEventListener('mousemove', canvas._mPM);
+    canvas.addEventListener('touchstart',canvas._tPS,{passive:true});
+    canvas.addEventListener('touchend',  canvas._tPE);
+    canvas.addEventListener('touchmove', canvas._tPM,{passive:true});
   }
 
   // プレビューGraphicsが空かどうか判定
@@ -1438,23 +1443,23 @@ class PuzzleGame extends Phaser.Scene{
     const startDrag=(clientX,clientY)=>{
       if(!this.currentDef||dragging)return;
       dragging=true;
+      const W=120, H=120;
+      ghost.width=W; ghost.height=H;
+      ghost.style.width=W+'px'; ghost.style.height=H+'px';
       const shape=this.getShape(this.currentDef,this.rotation);
       const sw=shape[0].length, sh=shape.length;
       const scale=window._gameScaleRatio||1;
-      const cellSize=Math.round(CS*scale);
-      const pw=sw*cellSize, ph=sh*cellSize;
-      const margin=4;
-      const gw=pw+margin*2, gh=ph+margin*2;
-      ghost.width=gw; ghost.height=gh;
-      ghost.style.width=gw+'px'; ghost.style.height=gh+'px';
+      const cellPx=Math.min(Math.round(CS*scale), Math.floor(W/sw), Math.floor(H/sh));
+      const pw=sw*cellPx, ph=sh*cellPx;
+      const ox=Math.floor((W-pw)/2), oy=Math.floor((H-ph)/2);
       const ctx=ghost.getContext('2d');
-      ctx.clearRect(0,0,gw,gh);
-      this._drawDefOnCanvasFixed(ctx,this.currentDef,margin,margin,pw,ph,this.rotation);
+      ctx.clearRect(0,0,W,H);
+      this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
       ghost.style.display='block';
       ghost.style.left=clientX+'px';
       ghost.style.top=clientY+'px';
       const cc=document.getElementById('canvas-current');
-      if(cc){cc.width=cc.width;}
+      if(cc){const c=cc.getContext('2d');c.clearRect(0,0,cc.width,cc.height);}
     };
     this._triggerDragStart=(cx,cy)=>startDrag(cx,cy);
     this._isDragging=()=>dragging;
@@ -1919,22 +1924,22 @@ class PuzzleGame extends Phaser.Scene{
       this._drawDefOnCanvas(ctx,def,size,size);
     }
 
-    // ── 現在パーツ canvas（土地と同じ見た目サイズで描画）──
+    // ── 現在パーツ canvas（固定120×120、中央に描画）──
     const cc=document.getElementById('canvas-current');
     if(cc&&this.currentDef){
+      const W=120, H=120;
+      cc.width=W; cc.height=H;
+      cc.style.width=W+'px'; cc.style.height=H+'px';
       const shape=this.getShape(this.currentDef,this.rotation);
       const sw=shape[0].length, sh=shape.length;
-      // scaleRatioが確定していればそれを使い、土地上と同じピクセルサイズで描く
+      // scaleRatioを使って土地と同じセルサイズで描画、120px内に収まる場合はそのサイズ
       const scale=window._gameScaleRatio||1;
-      const cellSize=Math.round(CS*scale);
-      const pw=sw*cellSize, ph=sh*cellSize;
-      const margin=4;
-      const cw=pw+margin*2, ch=ph+margin*2;
-      cc.width=cw; cc.height=ch;
-      cc.style.width=cw+'px'; cc.style.height=ch+'px';
+      const cellPx=Math.min(Math.round(CS*scale), Math.floor(W/sw), Math.floor(H/sh));
+      const pw=sw*cellPx, ph=sh*cellPx;
+      const ox=Math.floor((W-pw)/2), oy=Math.floor((H-ph)/2);
       const ctx=cc.getContext('2d');
-      ctx.clearRect(0,0,cw,ch);
-      this._drawDefOnCanvasFixed(ctx,this.currentDef,margin,margin,pw,ph,this.rotation);
+      ctx.clearRect(0,0,W,H);
+      this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
     }
   }
 
@@ -2176,24 +2181,24 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  // レイアウト確定後に高さを計測してキャンバスサイズを決める
   requestAnimationFrame(()=>{
-    const topBarH=document.getElementById('game-top-bar')?.offsetHeight||120;
-    const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||100;
-    const safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat')||'0')||0;
-    const availH=window.innerHeight-topBarH-botBarH;
-    const availW=window.innerWidth;
-    const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H);
-    window._phaserGame=new Phaser.Game({
-      type:Phaser.AUTO,
-      width:CANVAS_W,height:CANVAS_H,
-      backgroundColor:'#f0ece6',
-      parent:'game-container',
-      scene:PuzzleGame,
-      scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
+    requestAnimationFrame(()=>{
+      // 2フレーム待ってレイアウト完全確定後に計測
+      const topBarH=document.getElementById('game-top-bar')?.offsetHeight||0;
+      const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||0;
+      const availH=window.innerHeight-topBarH-botBarH;
+      const availW=window.innerWidth;
+      const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H);
+      window._gameScaleRatio=scaleRatio;
+      window._phaserGame=new Phaser.Game({
+        type:Phaser.AUTO,
+        width:CANVAS_W,height:CANVAS_H,
+        backgroundColor:'#f0ece6',
+        parent:'game-container',
+        scene:PuzzleGame,
+        scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
+      });
     });
-    // scaleRatioを保存してcanvas-currentの描画に使う
-    window._gameScaleRatio=scaleRatio;
   });
 }
 
