@@ -64,12 +64,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* 1段目：設置数 + ナビボタン */
 #game-top-row1{
   display:flex;align-items:center;justify-content:space-between;
-  padding:6px 10px 4px;gap:8px;border-bottom:1px solid rgba(90,74,58,.07);
+  padding:4px 8px 3px;gap:8px;
 }
 /* 設置数グリッド */
 #part-count-grid{
   display:grid;grid-template-columns:repeat(4,auto);
-  gap:2px 10px;font-size:10px;color:var(--brown-light);
+  gap:1px 8px;font-size:10px;color:var(--brown-light);
   font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em;flex:1;
 }
 .pc-item{display:flex;align-items:center;gap:3px;white-space:nowrap;}
@@ -78,30 +78,30 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ナビボタン */
 #game-nav-btns{display:flex;gap:5px;flex-shrink:0;}
 .btn-nav{background:none;border:1px solid rgba(90,74,58,.2);color:var(--brown-light);
-  font-size:9px;letter-spacing:.04em;padding:5px 9px;border-radius:6px;
+  font-size:9px;letter-spacing:.04em;padding:4px 8px;border-radius:6px;
   cursor:pointer;transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
 .btn-nav:active{background:rgba(90,74,58,.1);}
 
 /* 2段目：次次/次 | 現在パーツ | 保留 */
 #game-top-row2{
   display:flex;align-items:center;justify-content:center;
-  padding:6px 8px 6px;gap:8px;
+  padding:3px 8px 4px;gap:6px;
 }
 /* 次のパーツ縦並び（左） */
 #next-col{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
-  background:#fff;border:1px solid rgba(90,74,58,.12);border-radius:8px;
-  padding:5px 8px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:#fff;border-radius:8px;
+  padding:4px 7px;flex-shrink:0;
 }
-.next-row{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
 .next-sublabel{font-size:8px;color:var(--brown-light);letter-spacing:.06em;}
 .next-sublabel.em{color:var(--brown);font-weight:700;}
 
 /* 現在パーツ（中央・大きく・ドラッグ可） */
 #current-piece-wrap{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
   background:rgba(200,160,96,.08);border:2px solid var(--accent);border-radius:10px;
-  padding:6px 10px;flex-shrink:0;cursor:grab;user-select:none;
+  padding:5px 8px;flex-shrink:0;cursor:grab;user-select:none;
   -webkit-tap-highlight-color:transparent;
   position:relative;
 }
@@ -112,19 +112,20 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ドラッグゴースト */
 #drag-ghost{
   position:fixed;pointer-events:none;z-index:9000;
-  opacity:0.75;display:none;transform:translate(-50%,-50%);
+  opacity:0.8;display:none;transform:translate(-50%,-50%);
 }
 
 /* 保留（右） */
 #hold-col{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
   background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
-  padding:5px 8px;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  min-width:60px;
+  padding:4px 7px;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  min-width:58px;transition:background .15s,border-color .15s;
 }
+#hold-col.drag-over{background:rgba(200,160,96,.3);border-color:var(--brown-dark);}
 #hold-col:active{background:rgba(200,160,96,.18);}
 .hold-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
-#hold-hint{font-size:8px;color:var(--brown-light);margin-top:1px;}
+#hold-hint{font-size:8px;color:var(--brown-light);margin-top:0;}
 
 /* ── 下部ボタンバー ── */
 #game-bottom-bar{
@@ -1308,10 +1309,9 @@ class PuzzleGame extends Phaser.Scene{
     this.downKey.on('down',()=>startRepeat(0,1));  this.upKey.on('down',()=>startRepeat(0,-1));
     this.leftKey.on('up',stopRepeat); this.rightKey.on('up',stopRepeat);
     this.downKey.on('up',stopRepeat); this.upKey.on('up',stopRepeat);
-    // タッチ・クリック操作（グリッド内：タップ移動・同位置タップで配置）
+    // タッチ・クリック操作（グリッド内）
     this.input.on('pointerdown',(p)=>{
       if(p.rightButtonDown()){
-        // 右クリック → 右回転
         this.rotatePiece(1);
         return;
       }
@@ -1323,34 +1323,46 @@ class PuzzleGame extends Phaser.Scene{
       const shape=this.getShape(this.currentDef,this.rotation);
       let tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
       let tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
-      const isSamePos=(tc===this.curC&&tr===this.curR);
-      if(isSamePos){
-        this.placeAtCursor();
-      }else{
+
+      // プレビューが表示中（ドラッグ後）なら土地タップで即配置
+      const hasPreview=this.previewImg||!this._isPreviewEmpty();
+      if(hasPreview){
         this.curC=tc; this.curR=tr;
-        this.updatePreview(this.curC,this.curR);
+        this.placeAtCursor();
+      } else {
+        // プレビューなし: 従来通りカーソル移動→同位置タップで配置
+        const isSamePos=(tc===this.curC&&tr===this.curR);
+        if(isSamePos){
+          this.placeAtCursor();
+        }else{
+          this.curC=tc; this.curR=tr;
+          // カーソル移動してもプレビューは出さない（ドラッグで出す方式）
+        }
       }
     });
-    // Phaser canvas 右クリックメニュー抑制
     if(this.game.canvas){
       this.game.canvas.addEventListener('contextmenu',e=>e.preventDefault());
     }
-    // ── 現在パーツのドラッグ操作 ──
     this._setupPieceDrag();
+  }
+
+  // プレビューGraphicsが空かどうか判定
+  _isPreviewEmpty(){
+    return !this.previewImg && (!this.previewGfx || !this.previewGfx.commandBuffer || this.previewGfx.commandBuffer.length===0);
   }
 
   _setupPieceDrag(){
     const wrap=document.getElementById('current-piece-wrap');
     const ghost=document.getElementById('drag-ghost');
+    const holdCol=document.getElementById('hold-col');
     if(!wrap||!ghost)return;
     let dragging=false;
     let longPressTimer=null;
-    const LONG_PRESS_MS=180; // PCでも短めにして快適に
+    const LONG_PRESS_MS=160;
 
     const startDrag=(clientX,clientY)=>{
       if(!this.currentDef||dragging)return;
       dragging=true;
-      // ゴースト準備
       ghost.width=80; ghost.height=80;
       const ctx=ghost.getContext('2d');
       ctx.clearRect(0,0,80,80);
@@ -1364,7 +1376,15 @@ class PuzzleGame extends Phaser.Scene{
       if(!dragging)return;
       ghost.style.left=clientX+'px';
       ghost.style.top=clientY+'px';
-      // グリッド上のカーソル位置を更新
+
+      // 保留枠のハイライト
+      if(holdCol){
+        const hr=holdCol.getBoundingClientRect();
+        const overHold=clientX>=hr.left&&clientX<=hr.right&&clientY>=hr.top&&clientY<=hr.bottom;
+        holdCol.classList.toggle('drag-over',overHold);
+      }
+
+      // グリッド上のプレビューを更新
       const canvas=this.game.canvas;
       if(!canvas)return;
       const rect=canvas.getBoundingClientRect();
@@ -1372,7 +1392,13 @@ class PuzzleGame extends Phaser.Scene{
       const scaleY=CANVAS_H/canvas.offsetHeight;
       const bx=(clientX-rect.left)*scaleX;
       const by=(clientY-rect.top)*scaleY;
-      if(bx<0||by<0||bx>CANVAS_W||by>CANVAS_H)return;
+      if(bx<0||by<0||bx>CANVAS_W||by>CANVAS_H){
+        // グリッド外ならプレビュー消す
+        this.stopPreviewTween();
+        if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+        this.previewGfx.clear();
+        return;
+      }
       const shape=this.getShape(this.currentDef,this.rotation);
       const tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
       const tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
@@ -1386,30 +1412,48 @@ class PuzzleGame extends Phaser.Scene{
       if(!dragging)return;
       dragging=false;
       ghost.style.display='none';
-      const canvas=this.game.canvas;
-      if(!canvas)return;
-      const rect=canvas.getBoundingClientRect();
-      const scaleX=CANVAS_W/canvas.offsetWidth;
-      const scaleY=CANVAS_H/canvas.offsetHeight;
-      const bx=(clientX-rect.left)*scaleX;
-      const by=(clientY-rect.top)*scaleY;
-      if(bx>=0&&by>=0&&bx<=CANVAS_W&&by<=CANVAS_H){
-        // グリッド内でリリース → 配置
-        const shape=this.getShape(this.currentDef,this.rotation);
-        const tc=Phaser.Math.Clamp(Math.floor(bx/CS)-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
-        const tr=Phaser.Math.Clamp(Math.floor(by/CS)-Math.floor(shape.length/2),0,ROWS-shape.length);
-        this.curC=tc; this.curR=tr;
-        this.placeAtCursor();
+      if(holdCol) holdCol.classList.remove('drag-over');
+
+      // 保留枠の上でリリース → hold操作
+      if(holdCol){
+        const hr=holdCol.getBoundingClientRect();
+        if(clientX>=hr.left&&clientX<=hr.right&&clientY>=hr.top&&clientY<=hr.bottom){
+          this.doHold();
+          // プレビュー消す（doHold内でdrawUI→updatePreviewが呼ばれるが初期プレビューは出さない）
+          this.stopPreviewTween();
+          if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+          this.previewGfx.clear();
+          return;
+        }
       }
+
+      // グリッド外リリース → プレビューだけ消す（配置しない）
+      // グリッド内リリース → プレビューを残す（土地内クリックで配置する方式）
+      const canvas=this.game.canvas;
+      if(!canvas){ this.stopPreviewTween(); if(this.previewImg){this.previewImg.destroy();this.previewImg=null;} this.previewGfx.clear(); return; }
+      const rect=canvas.getBoundingClientRect();
+      const bx=(clientX-rect.left)*(CANVAS_W/canvas.offsetWidth);
+      const by=(clientY-rect.top)*(CANVAS_H/canvas.offsetHeight);
+      if(bx<0||by<0||bx>CANVAS_W||by>CANVAS_H){
+        // グリッド外→プレビュー消す
+        this.stopPreviewTween();
+        if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+        this.previewGfx.clear();
+      }
+      // グリッド内ならプレビューを残す（ユーザーはそのまま土地をタップ/クリックで配置）
     };
 
     const cancelDrag=()=>{
       dragging=false;
       ghost.style.display='none';
+      if(holdCol) holdCol.classList.remove('drag-over');
       clearTimeout(longPressTimer);
+      this.stopPreviewTween();
+      if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+      this.previewGfx.clear();
     };
 
-    // マウス：長押し or すぐドラッグ開始
+    // マウス長押しでドラッグ開始
     wrap.addEventListener('mousedown',(e)=>{
       if(e.button!==0)return;
       e.preventDefault();
@@ -1422,13 +1466,13 @@ class PuzzleGame extends Phaser.Scene{
       clearTimeout(longPressTimer);
       if(dragging) endDrag(e.clientX,e.clientY);
     });
-    // マウス右クリック on wrap → 右回転
+    // 右クリック on wrap → 右回転
     wrap.addEventListener('contextmenu',(e)=>{
       e.preventDefault();
       this.rotatePiece(1);
     });
 
-    // タッチ：長押しでドラッグ開始
+    // タッチ長押しでドラッグ開始
     wrap.addEventListener('touchstart',(e)=>{
       const t=e.touches[0];
       longPressTimer=setTimeout(()=>startDrag(t.clientX,t.clientY), LONG_PRESS_MS);
@@ -1469,7 +1513,11 @@ class PuzzleGame extends Phaser.Scene{
     this.rotation=0; this.holdUsed=false;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
-    this.drawUI(); this.updatePreview(this.curC,this.curR);
+    this.drawUI();
+    // プレビューはドラッグ開始まで表示しない
+    this.stopPreviewTween();
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
     this.checkNoPlace();
   }
   rotatePiece(dir=1){
@@ -1494,7 +1542,10 @@ class PuzzleGame extends Phaser.Scene{
     this.rotation=0; this.holdUsed=false;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
-    this.updatePreview(this.curC,this.curR); this.drawUI();
+    this.stopPreviewTween();
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this.previewGfx.clear();
+    this.drawUI();
   }
   doUndo(){
     if(this.undoStack.length===0)return;
@@ -1510,7 +1561,7 @@ class PuzzleGame extends Phaser.Scene{
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
     this.previewGfx.clear();
-    this.updatePreview(this.curC,this.curR);
+    // プレビューはドラッグ開始まで表示しない
     document.getElementById('btn-complete-overlay').classList.remove('visible');
     this.checkNoPlace();
   }
