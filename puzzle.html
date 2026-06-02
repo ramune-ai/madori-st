@@ -100,10 +100,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #current-piece-wrap{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   background:rgba(200,160,96,.08);border:2px solid var(--accent);border-radius:10px;
-  padding:6px 10px;flex-shrink:0;cursor:grab;user-select:none;
+  padding:4px 6px;flex-shrink:0;cursor:grab;user-select:none;
   -webkit-tap-highlight-color:transparent;
+  touch-action:none;
   position:relative;
-  min-width:110px;min-height:110px;
 }
 #current-piece-wrap:active{cursor:grabbing;}
 #current-piece-wrap .piece-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
@@ -131,37 +131,37 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-bottom-bar{
   display:flex;flex-shrink:0;
   background:rgba(245,240,232,.97);
-  z-index:50;padding:12px 16px 18px;
-  align-items:center;justify-content:center;gap:14px;
+  z-index:50;padding:14px 16px 22px;
+  align-items:center;justify-content:center;gap:16px;
 }
 /* 戻すボタン */
 .btn-undo{
   background:#fff;border:1.5px solid rgba(90,74,58,.22);color:var(--brown);
-  font-size:11px;letter-spacing:.04em;padding:13px 18px 10px;border-radius:14px;
+  font-size:12px;letter-spacing:.04em;padding:15px 20px 12px;border-radius:16px;
   cursor:pointer;transition:all .15s;display:flex;flex-direction:column;
-  align-items:center;gap:4px;flex-shrink:0;
+  align-items:center;gap:5px;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;user-select:none;
   box-shadow:0 1px 4px rgba(90,74,58,.08);
 }
 .btn-undo:active{background:rgba(90,74,58,.08);transform:scale(.93);}
-.btn-undo .undo-icon{font-size:22px;line-height:1.1;}
-.btn-undo .undo-label{font-size:9px;color:var(--brown-light);}
-/* 回転ボタン（左右まとめてひとつのユニット） */
+.btn-undo .undo-icon{font-size:26px;line-height:1.1;}
+.btn-undo .undo-label{font-size:10px;color:var(--brown-light);}
+/* 回転ボタン */
 #rotate-unit{
   display:flex;align-items:center;gap:0;
-  background:var(--brown-dark);border-radius:20px;
+  background:var(--brown-dark);border-radius:22px;
   box-shadow:0 3px 10px rgba(58,42,26,.28);overflow:hidden;
 }
 .btn-rotate-new{
   background:transparent;border:none;color:#f5f0e8;
-  padding:14px 22px 12px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:16px 26px 14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
   transition:background .15s;-webkit-tap-highlight-color:transparent;user-select:none;
 }
 .btn-rotate-new:active{background:rgba(255,255,255,.15);}
-.btn-rotate-new .rot-icon{font-size:26px;line-height:1.1;}
-.btn-rotate-new .rot-label{font-size:9px;color:rgba(245,240,232,.65);letter-spacing:.04em;}
-#rotate-divider{width:1px;background:rgba(255,255,255,.15);align-self:stretch;margin:10px 0;}
+.btn-rotate-new .rot-icon{font-size:30px;line-height:1.1;}
+.btn-rotate-new .rot-label{font-size:10px;color:rgba(245,240,232,.65);letter-spacing:.04em;}
+#rotate-divider{width:1px;background:rgba(255,255,255,.15);align-self:stretch;margin:12px 0;}
 
 /* 完成ボタン */
 #btn-complete-overlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
@@ -361,12 +361,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div id="next-col">
         <div class="next-row">
           <div class="next-sublabel">次の次</div>
-          <canvas id="canvas-next2" width="64" height="64"></canvas>
+          <canvas id="canvas-next2" width="80" height="80"></canvas>
         </div>
         <div style="font-size:8px;color:var(--brown-light);margin:1px 0;">↓</div>
         <div class="next-row">
           <div class="next-sublabel em">次</div>
-          <canvas id="canvas-next1" width="76" height="76"></canvas>
+          <canvas id="canvas-next1" width="96" height="96"></canvas>
         </div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
@@ -378,7 +378,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <!-- 保留 -->
       <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
         <div class="hold-label">保留</div>
-        <canvas id="canvas-hold" width="76" height="76"></canvas>
+        <canvas id="canvas-hold" width="96" height="96"></canvas>
         <div id="hold-hint">タップで交換</div>
       </div>
     </div>
@@ -1233,6 +1233,11 @@ function svgToCanvas(dataUrl){
 
 const CS=40,COLS=7,ROWS=8,UI_R=0;
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
+// 土地形状定義（将来の変形土地対応）
+// null = 配置不可マス、0 = 通常マス
+// 現在は全マス配置可能な長方形
+const LAND_MAP=Array.from({length:ROWS},()=>Array(COLS).fill(0));
+// canPlace でLAND_MAPを参照するためグローバルに持つ
 const GENKAN_COLOR=0xD4A870;
 
 class PuzzleGame extends Phaser.Scene{
@@ -1289,6 +1294,11 @@ class PuzzleGame extends Phaser.Scene{
     this.upKey   =this.input.keyboard.addKey(K.UP);
     this.spaceKey=this.input.keyboard.addKey(K.SPACE);
     this.enterKey=this.input.keyboard.addKey(K.ENTER);
+    // ウィンドウがフォーカスを失ったときキーボード入力を無効化
+    // （スクショショートカット等でholdやundoが誤発動するのを防ぐ）
+    this.input.keyboard.disableGlobalCapture();
+    this.game.canvas.addEventListener('mousedown',()=>this.game.canvas.focus());
+    this.game.canvas.setAttribute('tabindex','0');
     this.xKey.on('down',()=>this.rotatePiece(1));
     this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(-1); });
     this.cKey.on('down',()=>this.doHold());
@@ -1314,6 +1324,8 @@ class PuzzleGame extends Phaser.Scene{
         this.rotatePiece(1);
         return;
       }
+      // 土地内長押しタイマー動作中はタップを無効（長押し移動と競合しないように）
+      if(this._placedLongPressActive)return;
       const canvas=this.game.canvas;
       const scaleX=CANVAS_W/canvas.offsetWidth;
       const scaleY=CANVAS_H/canvas.offsetHeight;
@@ -1355,30 +1367,58 @@ class PuzzleGame extends Phaser.Scene{
     const canvas=this.game.canvas;
     if(!canvas)return;
     let pressTimer=null;
-    let pressing=false;
-    const LONG_PRESS_MS=400;
+    let startX=0, startY=0;
+    const LONG_PRESS_MS=500;
+    const MOVE_THRESHOLD=8; // px以上動いたらキャンセル
 
     const onDown=(clientX,clientY)=>{
-      pressing=true;
+      // 現在パーツのドラッグ中は無効
+      if(this._isDragging&&this._isDragging())return;
+      startX=clientX; startY=clientY;
+      this._placedLongPressActive=true;
       pressTimer=setTimeout(()=>{
-        if(!pressing)return;
+        pressTimer=null;
+        this._placedLongPressActive=false;
         if(!this.undoStack.length)return;
-        // undoして手元に戻してからドラッグ開始
         this.doUndo();
         if(this.currentDef&&this._triggerDragStart){
           this._triggerDragStart(clientX,clientY);
         }
       }, LONG_PRESS_MS);
     };
-    const onUp=()=>{pressing=false;clearTimeout(pressTimer);};
-    const onMove=()=>{pressing=false;clearTimeout(pressTimer);};
+    const onUp=()=>{
+      this._placedLongPressActive=false;
+      if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
+    };
+    const onMove=(cx,cy)=>{
+      if(!pressTimer)return;
+      const dx=cx-startX, dy=cy-startY;
+      if(Math.sqrt(dx*dx+dy*dy)>MOVE_THRESHOLD){
+        this._placedLongPressActive=false;
+        clearTimeout(pressTimer); pressTimer=null;
+      }
+    };
+    // 既存リスナーを削除してから再登録
+    if(canvas._madoriPlacedDown) canvas.removeEventListener('mousedown',canvas._madoriPlacedDown);
+    if(canvas._madoriPlacedUp)   canvas.removeEventListener('mouseup',  canvas._madoriPlacedUp);
+    if(canvas._madoriPlacedMove) canvas.removeEventListener('mousemove',canvas._madoriPlacedMove);
+    if(canvas._madoriPlacedTStart) canvas.removeEventListener('touchstart',canvas._madoriPlacedTStart);
+    if(canvas._madoriPlacedTEnd)   canvas.removeEventListener('touchend',  canvas._madoriPlacedTEnd);
+    if(canvas._madoriPlacedTMove)  canvas.removeEventListener('touchmove', canvas._madoriPlacedTMove);
 
-    canvas.addEventListener('mousedown',(e)=>{if(e.button===0)onDown(e.clientX,e.clientY);});
-    canvas.addEventListener('mouseup',onUp);
-    canvas.addEventListener('mousemove',onMove);
-    canvas.addEventListener('touchstart',(e)=>{const t=e.touches[0];onDown(t.clientX,t.clientY);},{passive:true});
-    canvas.addEventListener('touchend',onUp);
-    canvas.addEventListener('touchmove',onMove,{passive:true});
+    canvas._madoriPlacedDown =(e)=>{if(e.button===0)onDown(e.clientX,e.clientY);};
+    canvas._madoriPlacedUp   =()=>onUp();
+    canvas._madoriPlacedMove =(e)=>onMove(e.clientX,e.clientY);
+    canvas._madoriPlacedTStart=(e)=>{const t=e.touches[0];onDown(t.clientX,t.clientY);};
+    canvas._madoriPlacedTEnd  =()=>onUp();
+    canvas._madoriPlacedTMove =(e)=>{const t=e.touches[0];onMove(t.clientX,t.clientY);};
+
+    canvas.addEventListener('mousedown', canvas._madoriPlacedDown);
+    canvas.addEventListener('mouseup',   canvas._madoriPlacedUp);
+    canvas.addEventListener('mousemove', canvas._madoriPlacedMove);
+    canvas.addEventListener('touchstart',canvas._madoriPlacedTStart,{passive:true});
+    canvas.addEventListener('touchend',  canvas._madoriPlacedTEnd);
+    canvas.addEventListener('touchmove', canvas._madoriPlacedTMove,{passive:true});
   }
 
   // プレビューGraphicsが空かどうか判定
@@ -1398,24 +1438,26 @@ class PuzzleGame extends Phaser.Scene{
     const startDrag=(clientX,clientY)=>{
       if(!this.currentDef||dragging)return;
       dragging=true;
-      ghost.width=120; ghost.height=120;
-      const ctx=ghost.getContext('2d');
-      ctx.clearRect(0,0,120,120);
       const shape=this.getShape(this.currentDef,this.rotation);
       const sw=shape[0].length, sh=shape.length;
-      const cellSize=40;
+      const scale=window._gameScaleRatio||1;
+      const cellSize=Math.round(CS*scale);
       const pw=sw*cellSize, ph=sh*cellSize;
-      const ox=Math.floor((120-pw)/2), oy=Math.floor((120-ph)/2);
-      this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
+      const margin=4;
+      const gw=pw+margin*2, gh=ph+margin*2;
+      ghost.width=gw; ghost.height=gh;
+      ghost.style.width=gw+'px'; ghost.style.height=gh+'px';
+      const ctx=ghost.getContext('2d');
+      ctx.clearRect(0,0,gw,gh);
+      this._drawDefOnCanvasFixed(ctx,this.currentDef,margin,margin,pw,ph,this.rotation);
       ghost.style.display='block';
       ghost.style.left=clientX+'px';
       ghost.style.top=clientY+'px';
-      // 枠内のcanvasを空にする
       const cc=document.getElementById('canvas-current');
       if(cc){cc.width=cc.width;}
     };
-    // 外部から呼べるよう公開
     this._triggerDragStart=(cx,cy)=>startDrag(cx,cy);
+    this._isDragging=()=>dragging;
 
     const moveDrag=(clientX,clientY)=>{
       if(!dragging)return;
@@ -1519,36 +1561,39 @@ class PuzzleGame extends Phaser.Scene{
       e.preventDefault();
       longPressTimer=setTimeout(()=>startDrag(e.clientX,e.clientY), LONG_PRESS_MS);
     });
-    document.addEventListener('mousemove',(e)=>{
-      if(dragging) moveDrag(e.clientX,e.clientY);
-    });
-    document.addEventListener('mouseup',(e)=>{
-      clearTimeout(longPressTimer);
-      if(dragging) endDrag(e.clientX,e.clientY);
-    });
+    // document レベルのリスナーは以前のものを必ず削除してから再登録
+    if(document._madoriMouseMove) document.removeEventListener('mousemove',document._madoriMouseMove);
+    if(document._madoriMouseUp)   document.removeEventListener('mouseup',  document._madoriMouseUp);
+    document._madoriMouseMove=(e)=>{ if(dragging) moveDrag(e.clientX,e.clientY); };
+    document._madoriMouseUp  =(e)=>{ clearTimeout(longPressTimer); if(dragging) endDrag(e.clientX,e.clientY); };
+    document.addEventListener('mousemove', document._madoriMouseMove);
+    document.addEventListener('mouseup',   document._madoriMouseUp);
     // 右クリック on wrap → 右回転
     wrap.addEventListener('contextmenu',(e)=>{
       e.preventDefault();
       this.rotatePiece(1);
     });
 
-    // タッチ長押しでドラッグ開始
+    // タッチ：即ドラッグ開始（長押し不要、ブラウザスクロールを防ぐ）
     wrap.addEventListener('touchstart',(e)=>{
+      e.preventDefault(); // ブラウザのスクロール・引っ張りを防ぐ
       const t=e.touches[0];
-      longPressTimer=setTimeout(()=>startDrag(t.clientX,t.clientY), LONG_PRESS_MS);
-    },{passive:true});
+      startDrag(t.clientX,t.clientY);
+    },{passive:false});
     wrap.addEventListener('touchmove',(e)=>{
+      e.preventDefault();
       const t=e.touches[0];
-      if(dragging){ e.preventDefault(); moveDrag(t.clientX,t.clientY); }
-      else clearTimeout(longPressTimer);
+      if(dragging) moveDrag(t.clientX,t.clientY);
     },{passive:false});
     wrap.addEventListener('touchend',(e)=>{
-      clearTimeout(longPressTimer);
+      e.preventDefault();
       if(dragging){
         const t=e.changedTouches[0];
         endDrag(t.clientX,t.clientY);
+      } else {
+        clearTimeout(longPressTimer);
       }
-    });
+    },{passive:false});
     wrap.addEventListener('touchcancel',cancelDrag);
   }
 
@@ -1765,7 +1810,9 @@ class PuzzleGame extends Phaser.Scene{
       for(let dc=0;dc<shape[0].length;dc++){
         if(!shape[dr][dc])continue;
         const nr=r+dr,nc=c+dc;
-        if(nr<0||nr>=ROWS||nc<0||nc>=COLS||this.grid[nr][nc])return false;
+        if(nr<0||nr>=ROWS||nc<0||nc>=COLS)return false;
+        if(LAND_MAP[nr][nc]===null)return false; // 配置不可マス
+        if(this.grid[nr][nc])return false;
       }
     return true;
   }
@@ -1791,6 +1838,13 @@ class PuzzleGame extends Phaser.Scene{
   drawBg(){
     const g=this.bgGfx; g.clear();
     g.fillStyle(0xf8f4ee,1); g.fillRect(0,0,COLS*CS,ROWS*CS);
+    // LAND_MAPのnullマスをグレーで塗りつぶし（配置不可エリア）
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(LAND_MAP[r][c]===null){
+        g.fillStyle(0xd8d0c8,1);
+        g.fillRect(c*CS,r*CS,CS,CS);
+      }
+    }
     g.lineStyle(1,0xd8cfc4,1);
     for(let r=0;r<=ROWS;r++)g.lineBetween(0,this.sy(r),COLS*CS,this.sy(r));
     for(let c=0;c<=COLS;c++)g.lineBetween(this.sx(c),0,this.sx(c),ROWS*CS);
@@ -1842,9 +1896,9 @@ class PuzzleGame extends Phaser.Scene{
 
     // ── 次/次次 canvas ──
     const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2', size:64},
-      {def:this.queue[0], canvasId:'canvas-next1', size:76},
-      {def:this.holdDef,  canvasId:'canvas-hold',  size:76},
+      {def:this.queue[1], canvasId:'canvas-next2', size:80},
+      {def:this.queue[0], canvasId:'canvas-next1', size:96},
+      {def:this.holdDef,  canvasId:'canvas-hold',  size:96},
     ];
     for(const {def,canvasId,size} of nextSlots){
       const cv=document.getElementById(canvasId);
@@ -1865,20 +1919,22 @@ class PuzzleGame extends Phaser.Scene{
       this._drawDefOnCanvas(ctx,def,size,size);
     }
 
-    // ── 現在パーツ canvas（土地のセルサイズ CS=40 に合わせて描画）──
+    // ── 現在パーツ canvas（土地と同じ見た目サイズで描画）──
     const cc=document.getElementById('canvas-current');
     if(cc&&this.currentDef){
-      cc.width=120; cc.height=120;
-      const ctx=cc.getContext('2d');
-      ctx.clearRect(0,0,120,120);
-      // 土地のCS=40pxに揃えて描画（パーツの実際のマス数 × 40px）
       const shape=this.getShape(this.currentDef,this.rotation);
       const sw=shape[0].length, sh=shape.length;
-      const cellSize=40; // 土地と同じセルサイズ
+      // scaleRatioが確定していればそれを使い、土地上と同じピクセルサイズで描く
+      const scale=window._gameScaleRatio||1;
+      const cellSize=Math.round(CS*scale);
       const pw=sw*cellSize, ph=sh*cellSize;
-      const ox=Math.floor((120-pw)/2), oy=Math.floor((120-ph)/2);
-      // 専用描画（cellSizeを固定で使う）
-      this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
+      const margin=4;
+      const cw=pw+margin*2, ch=ph+margin*2;
+      cc.width=cw; cc.height=ch;
+      cc.style.width=cw+'px'; cc.style.height=ch+'px';
+      const ctx=cc.getContext('2d');
+      ctx.clearRect(0,0,cw,ch);
+      this._drawDefOnCanvasFixed(ctx,this.currentDef,margin,margin,pw,ph,this.rotation);
     }
   }
 
@@ -2120,18 +2176,24 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  const topBarH=document.getElementById('game-top-bar')?.offsetHeight||120;
-  const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||80;
-  const availH=window.innerHeight-topBarH-botBarH-2;
-  const availW=window.innerWidth;
-  const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H, 1);
-  window._phaserGame=new Phaser.Game({
-    type:Phaser.AUTO,
-    width:CANVAS_W,height:CANVAS_H,
-    backgroundColor:'#f0ece6',
-    parent:'game-container',
-    scene:PuzzleGame,
-    scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
+  // レイアウト確定後に高さを計測してキャンバスサイズを決める
+  requestAnimationFrame(()=>{
+    const topBarH=document.getElementById('game-top-bar')?.offsetHeight||120;
+    const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||100;
+    const safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat')||'0')||0;
+    const availH=window.innerHeight-topBarH-botBarH;
+    const availW=window.innerWidth;
+    const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H);
+    window._phaserGame=new Phaser.Game({
+      type:Phaser.AUTO,
+      width:CANVAS_W,height:CANVAS_H,
+      backgroundColor:'#f0ece6',
+      parent:'game-container',
+      scene:PuzzleGame,
+      scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
+    });
+    // scaleRatioを保存してcanvas-currentの描画に使う
+    window._gameScaleRatio=scaleRatio;
   });
 }
 
