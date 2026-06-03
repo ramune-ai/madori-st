@@ -44,26 +44,26 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 /* ── ② ゲーム画面 ── */
 #screen-game{
-  display:none;flex-direction:column;align-items:stretch;
-  padding:0;position:relative;background:var(--cream);
-  overflow:hidden;width:100%;height:100vh;
+  display:flex;flex-direction:column;align-items:stretch;
+  padding:0;position:fixed;inset:0;background:var(--cream);
+  overflow:hidden;width:100%;height:100%;
+  visibility:hidden;pointer-events:none;z-index:0;
 }
-#screen-game.active{display:flex;}
+#screen-game.active{
+  visibility:visible;pointer-events:auto;z-index:10;
+}
 #game-container{
   flex:1;display:flex;justify-content:center;align-items:center;
   overflow:hidden;min-height:0;position:relative;
+  background:#f0ece6;
 }
-#game-container canvas{display:block;}
+#game-container canvas{display:block;background:#f0ece6;}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
   display:flex;flex-direction:column;flex-shrink:0;
   background:rgba(245,240,232,.98);
   position:relative;z-index:30;
-  visibility:hidden;height:0;overflow:hidden;
-}
-#game-top-bar.active{
-  visibility:visible;height:auto;overflow:visible;
 }
 /* 1段目：設置数 + ナビボタン */
 #game-top-row1{
@@ -137,12 +137,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   background:rgba(245,240,232,.97);
   z-index:50;padding:14px 16px 22px;
   align-items:center;justify-content:center;gap:16px;
-  /* ゲーム画面以外では非表示だがスペースは確保しない */
-  visibility:hidden;height:0;overflow:hidden;padding-top:0;padding-bottom:0;
-}
-#game-bottom-bar.active{
-  visibility:visible;height:auto;overflow:visible;
-  padding:14px 16px 22px;
 }
 /* 戻すボタン */
 .btn-undo{
@@ -543,15 +537,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  const bar=document.getElementById('game-bottom-bar');
-  const topBar=document.getElementById('game-top-bar');
-  if(id==='screen-game'){
-    bar.classList.add('active');
-    if(topBar) topBar.classList.add('active');
-  }else{
-    bar.classList.remove('active');
-    if(topBar) topBar.classList.remove('active');
-  }
 }
 // .screen の共通display指定をgame以外に限定
 document.querySelectorAll('.screen').forEach(s=>{
@@ -791,8 +776,7 @@ function gotoGame(){
   }
   if(!gameStarted){
     gameStarted=true;
-    // showScreen後にバーのoffsetHeightが確定するまで2フレーム待つ
-    requestAnimationFrame(()=>requestAnimationFrame(()=>startPhaserGame()));
+    requestAnimationFrame(()=>startPhaserGame());
   }
 }
 function onCompleteBtn(){
@@ -1401,20 +1385,17 @@ class PuzzleGame extends Phaser.Scene{
     const onDown=(clientX,clientY)=>{
       if(this._isDragging&&this._isDragging())return;
       startX=clientX; startY=clientY;
-      // すぐにフラグを立ててpointerupでの配置処理をブロック
       this._placedLongPressActive=true;
       if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
       pressTimer=setTimeout(()=>{
         pressTimer=null;
-        if(!this.undoStack.length){
-          this._placedLongPressActive=false;
-          return;
-        }
+        this._placedLongPressActive=false;
+        if(!this.undoStack.length)return;
         this.doUndo();
+        // doUndo後にcurrentDefが確定しているのでドラッグ開始
         if(this.currentDef&&this._triggerDragStart){
           this._triggerDragStart(clientX,clientY);
         }
-        this._placedLongPressActive=false;
       }, LONG_PRESS_MS);
     };
     const onUp=()=>{
@@ -2219,9 +2200,8 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  // game-top-bar/game-bottom-barは常時DOMに存在し（visibility制御）
-  // active付与後にoffsetHeightが確実に取れる。
-  // ただしレイアウト反映に1フレーム必要なため1rAF待つ。
+  // screen-gameは常時display:flexなのでoffsetHeightは常に正確
+  // rAF1フレームだけ待てばレイアウト確定する
   requestAnimationFrame(()=>{
     const topBarH=document.getElementById('game-top-bar')?.offsetHeight||0;
     const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||0;
