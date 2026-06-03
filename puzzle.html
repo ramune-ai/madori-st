@@ -44,20 +44,17 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 /* ── ② ゲーム画面 ── */
 #screen-game{
-  display:flex;flex-direction:column;align-items:stretch;
-  padding:0;position:fixed;inset:0;background:var(--cream);
-  overflow:hidden;width:100%;height:100%;
-  visibility:hidden;pointer-events:none;z-index:0;
+  display:none;flex-direction:column;align-items:stretch;
+  padding:0;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:var(--cream);overflow:hidden;
 }
-#screen-game.active{
-  visibility:visible;pointer-events:auto;z-index:10;
-}
+#screen-game.active{display:flex;}
 #game-container{
   flex:1;display:flex;justify-content:center;align-items:center;
   overflow:hidden;min-height:0;position:relative;
-  background:#f0ece6;
+  background:#f5f0e8;
 }
-#game-container canvas{display:block;background:#f0ece6;}
+#game-container canvas{display:block;background:#f5f0e8;}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -93,7 +90,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 }
 /* 次のパーツ縦並び（左） */
 #next-col{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
+  display:flex;flex-direction:row;align-items:center;gap:4px;
   padding:4px 7px;flex-shrink:0;
 }
 .next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
@@ -361,28 +358,28 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     </div>
     <!-- 2段目：次次/次 | 現在★ | 保留 -->
     <div id="game-top-row2">
-      <!-- 次のパーツ縦並び -->
+      <!-- 次のパーツ横並び（次の次→次） -->
       <div id="next-col">
         <div class="next-row">
           <div class="next-sublabel">次の次</div>
-          <canvas id="canvas-next2" width="80" height="80"></canvas>
+          <canvas id="canvas-next2" width="56" height="56"></canvas>
         </div>
-        <div style="font-size:8px;color:var(--brown-light);margin:1px 0;">↓</div>
+        <div style="font-size:10px;color:var(--brown-light);margin:0 3px;">→</div>
         <div class="next-row">
           <div class="next-sublabel em">次</div>
-          <canvas id="canvas-next1" width="96" height="96"></canvas>
+          <canvas id="canvas-next1" width="72" height="72"></canvas>
         </div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
-        <canvas id="canvas-current" width="120" height="120" style="display:block;width:120px;height:120px;"></canvas>
+        <canvas id="canvas-current" width="80" height="80" style="display:block;width:80px;height:80px;"></canvas>
         <div id="current-piece-hint" style="font-size:8px;color:var(--brown-light);">ドラッグ or 土地タップ</div>
       </div>
       <!-- 保留 -->
       <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
         <div class="hold-label">保留</div>
-        <canvas id="canvas-hold" width="96" height="96"></canvas>
+        <canvas id="canvas-hold" width="72" height="72"></canvas>
         <div id="hold-hint">タップで交換</div>
       </div>
     </div>
@@ -402,12 +399,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     </button>
     <!-- 中央：回転ユニット -->
     <div id="rotate-unit">
-      <button class="btn-rotate-new" onclick="if(gameScene)gameScene.rotatePiece(-1)" title="左回転（Z）">
+      <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" title="左回転（Z）">
         <span class="rot-icon">↺</span>
         <span class="rot-label">左回転</span>
       </button>
       <div id="rotate-divider"></div>
-      <button class="btn-rotate-new" onclick="if(gameScene)gameScene.rotatePiece(1)" title="右回転（X / 右クリック）">
+      <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="右回転（X / 右クリック）">
         <span class="rot-icon">↻</span>
         <span class="rot-label">右回転</span>
       </button>
@@ -537,6 +534,15 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  const bar=document.getElementById('game-bottom-bar');
+  const topBar=document.getElementById('game-top-bar');
+  if(id==='screen-game'){
+    bar.classList.add('active');
+    if(topBar) topBar.classList.add('active');
+  }else{
+    bar.classList.remove('active');
+    if(topBar) topBar.classList.remove('active');
+  }
 }
 // .screen の共通display指定をgame以外に限定
 document.querySelectorAll('.screen').forEach(s=>{
@@ -776,7 +782,7 @@ function gotoGame(){
   }
   if(!gameStarted){
     gameStarted=true;
-    requestAnimationFrame(()=>startPhaserGame());
+    setTimeout(()=>startPhaserGame(),50);
   }
 }
 function onCompleteBtn(){
@@ -1256,8 +1262,9 @@ class PuzzleGame extends Phaser.Scene{
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
     // ドラッグ状態リセット（リトライ時にゴーストが残らないよう）
-    this._placedLongPressActive=false;
-    this._triggerDragStart=null;
+    this._dragging=false;
+    this._justDropped=false;
+    this._previewActive=false;
     const ghost=document.getElementById('drag-ghost');
     if(ghost){ghost.style.display='none';}
     // document レベルのリスナーをリセット
@@ -1321,305 +1328,247 @@ class PuzzleGame extends Phaser.Scene{
     this.leftKey.on('up',stopRepeat); this.rightKey.on('up',stopRepeat);
     this.downKey.on('up',stopRepeat); this.upKey.on('up',stopRepeat);
     // タッチ・クリック操作（グリッド内）
-    this._pointerDownTime=0;
+    // pointerdownを記録してpointerupで判定（回転ボタン競合回避）
+    this._pdownTime=0;
+    this._pdownX=0; this._pdownY=0;
     this.input.on('pointerdown',(p)=>{
-      if(p.rightButtonDown()){
-        this.rotatePiece(1);
-        return;
-      }
-      if(this._placedLongPressActive)return;
-      if(this._isDragging&&this._isDragging())return;
-      // 長押しドラッグ開始の可能性があるため、downした時刻を記録
-      this._pointerDownTime=Date.now();
+      if(p.rightButtonDown()){ this.rotatePiece(1); return; }
+      if(this._dragging)return;
+      this._pdownTime=Date.now();
+      this._pdownX=p.x; this._pdownY=p.y;
     });
     this.input.on('pointerup',(p)=>{
       if(p.rightButtonDown())return;
-      if(this._placedLongPressActive)return;
-      if(this._isDragging&&this._isDragging())return;
-      // downからupまでの時間が短い（タップ）場合のみ配置処理
-      const elapsed=Date.now()-this._pointerDownTime;
-      if(elapsed>400)return; // 400ms以上はタップではなく長押しとみなし無視
-      const canvas=this.game.canvas;
-      const scaleX=CANVAS_W/canvas.offsetWidth;
-      const scaleY=CANVAS_H/canvas.offsetHeight;
-      const bx=p.x*scaleX, by=p.y*scaleY;
+      if(this._dragging)return;
+      if(this._justDropped)return;
+      const elapsed=Date.now()-this._pdownTime;
+      if(elapsed>400)return; // 長押し後は無視
       if(!this.currentDef)return;
-
+      // p.x/p.y = Phaserゲーム内座標 (0〜CANVAS_W/H)
+      const bx=p.x, by=p.y;
       const shape=this.getShape(this.currentDef,this.rotation);
       const pw=shape[0].length, ph=shape.length;
-      const tapC=Math.floor(bx/CS);
-      const tapR=Math.floor(by/CS);
+      const tapC=Math.floor(bx/CS), tapR=Math.floor(by/CS);
       const tc=Phaser.Math.Clamp(Math.round(bx/CS-pw/2),0,COLS-pw);
       const tr=Phaser.Math.Clamp(Math.round(by/CS-ph/2),0,ROWS-ph);
-
-      const hasPreview=this.previewImg||!this._isPreviewEmpty();
-      if(hasPreview){
-        // プレビュー表示中（ドラッグ後のみここに来る）
-        // タップした場所がプレビュー範囲内→配置確定、外→プレビュー位置を移動
+      if(this._previewActive){
         const inPiece=(tapC>=this.curC&&tapC<this.curC+pw&&tapR>=this.curR&&tapR<this.curR+ph);
-        if(inPiece){
-          this.placeAtCursor();
-        } else {
-          this.curC=tc; this.curR=tr;
-          this.updatePreview(this.curC,this.curR);
-        }
+        if(inPiece) this.placeAtCursor();
+        else { this.curC=tc; this.curR=tr; this.updatePreview(this.curC,this.curR); }
       }
-      // プレビューなし＆タップのみ → 何もしない（ドラッグしないとプレビューは出ない）
+      // プレビューなし→何もしない（ドラッグ後のみプレビュー）
     });
     if(this.game.canvas){
       this.game.canvas.addEventListener('contextmenu',e=>e.preventDefault());
     }
-    // _setupPieceDrag を先に呼び、その後 土地内長押しを設定
-    this._setupPieceDrag();
-    this._setupPlacedPieceDrag();
+    this._setupDrag();
   }
 
-  _setupPlacedPieceDrag(){
-    const canvas=this.game.canvas;
-    if(!canvas)return;
-    let pressTimer=null;
-    let startX=0, startY=0;
-    const LONG_PRESS_MS=500;
-    const MOVE_THRESHOLD=10;
+  _setupDrag(){
+    const wrap    = document.getElementById('current-piece-wrap');
+    const holdCol = document.getElementById('hold-col');
+    const canvas  = this.game.canvas;
+    if(!wrap||!canvas)return;
 
-    const onDown=(clientX,clientY)=>{
-      if(this._isDragging&&this._isDragging())return;
-      startX=clientX; startY=clientY;
-      this._placedLongPressActive=true;
-      if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
-      pressTimer=setTimeout(()=>{
-        pressTimer=null;
-        this._placedLongPressActive=false;
-        if(!this.undoStack.length)return;
-        this.doUndo();
-        // doUndo後にcurrentDefが確定しているのでドラッグ開始
-        if(this.currentDef&&this._triggerDragStart){
-          this._triggerDragStart(clientX,clientY);
-        }
-      }, LONG_PRESS_MS);
+    // ── 状態 ──
+    this._dragging     = false;
+    this._justDropped  = false;
+    this._previewActive= false;
+
+    // ── ユーティリティ ──
+    const toGame=(cx,cy)=>{
+      const r=canvas.getBoundingClientRect();
+      const bx=(cx-r.left)*(CANVAS_W/canvas.offsetWidth);
+      const by=(cy-r.top )*(CANVAS_H/canvas.offsetHeight);
+      return{bx,by,ok:bx>=0&&by>=0&&bx<=CANVAS_W&&by<=CANVAS_H};
     };
-    const onUp=()=>{
-      if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
-      this._placedLongPressActive=false;
+    const snapGrid=(bx,by)=>{
+      if(!this.currentDef)return null;
+      const sh=this.getShape(this.currentDef,this.rotation);
+      return{
+        c:Phaser.Math.Clamp(Math.round(bx/CS-sh[0].length/2),0,COLS-sh[0].length),
+        r:Phaser.Math.Clamp(Math.round(by/CS-sh.length/2),0,ROWS-sh.length)
+      };
     };
-    const onMove=(cx,cy)=>{
-      if(!pressTimer)return;
-      const dx=cx-startX, dy=cy-startY;
-      if(Math.sqrt(dx*dx+dy*dy)>MOVE_THRESHOLD){
-        clearTimeout(pressTimer);pressTimer=null;
-        this._placedLongPressActive=false;
-      }
+    const doPreview=(cx,cy)=>{
+      const g=toGame(cx,cy);
+      if(!g.ok||!this.currentDef)return;
+      const p=snapGrid(g.bx,g.by);
+      if(!p)return;
+      this.curC=p.c; this.curR=p.r;
+      this.updatePreview(p.c,p.r);
     };
-
-    // 既存リスナーを削除してから再登録（リトライ対応）
-    ['_mPD','_mPU','_mPM','_tPS','_tPE','_tPM'].forEach(k=>{
-      if(canvas[k]){
-        const evt={_mPD:'mousedown',_mPU:'mouseup',_mPM:'mousemove',_tPS:'touchstart',_tPE:'touchend',_tPM:'touchmove'}[k];
-        canvas.removeEventListener(evt,canvas[k]);
-      }
-    });
-    canvas._mPD=(e)=>{if(e.button===0)onDown(e.clientX,e.clientY);};
-    canvas._mPU=()=>onUp();
-    canvas._mPM=(e)=>onMove(e.clientX,e.clientY);
-    canvas._tPS=(e)=>{const t=e.touches[0];onDown(t.clientX,t.clientY);};
-    canvas._tPE=()=>onUp();
-    canvas._tPM=(e)=>{const t=e.touches[0];onMove(t.clientX,t.clientY);};
-    canvas.addEventListener('mousedown', canvas._mPD);
-    canvas.addEventListener('mouseup',   canvas._mPU);
-    canvas.addEventListener('mousemove', canvas._mPM);
-    canvas.addEventListener('touchstart',canvas._tPS,{passive:true});
-    canvas.addEventListener('touchend',  canvas._tPE);
-    canvas.addEventListener('touchmove', canvas._tPM,{passive:true});
-  }
-
-  // プレビューGraphicsが空かどうか判定
-  _isPreviewEmpty(){
-    return !this.previewImg && (!this.previewGfx || !this.previewGfx.commandBuffer || this.previewGfx.commandBuffer.length===0);
-  }
-
-  _setupPieceDrag(){
-    const wrap=document.getElementById('current-piece-wrap');
-    const ghost=document.getElementById('drag-ghost');
-    const holdCol=document.getElementById('hold-col');
-    if(!wrap||!ghost)return;
-    let dragging=false;
-    let longPressTimer=null;
-    const LONG_PRESS_MS=160;
-
-    const startDrag=(clientX,clientY)=>{
-      if(!this.currentDef||dragging)return;
-      dragging=true;
-      const W=120, H=120;
-      ghost.width=W; ghost.height=H;
-      ghost.style.width=W+'px'; ghost.style.height=H+'px';
-      const shape=this.getShape(this.currentDef,this.rotation);
-      const sw=shape[0].length, sh=shape.length;
-      const scale=window._gameScaleRatio||1;
-      const cellPx=Math.min(Math.round(CS*scale), Math.floor(W/sw), Math.floor(H/sh));
-      const pw=sw*cellPx, ph=sh*cellPx;
-      const ox=Math.floor((W-pw)/2), oy=Math.floor((H-ph)/2);
-      const ctx=ghost.getContext('2d');
-      ctx.clearRect(0,0,W,H);
-      this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
-      ghost.style.display='block';
-      ghost.style.left=clientX+'px';
-      ghost.style.top=clientY+'px';
+    const clearCC=()=>{
       const cc=document.getElementById('canvas-current');
-      if(cc){const c=cc.getContext('2d');c.clearRect(0,0,cc.width,cc.height);}
-    };
-    this._triggerDragStart=(cx,cy)=>startDrag(cx,cy);
-    this._isDragging=()=>dragging;
-
-    const moveDrag=(clientX,clientY)=>{
-      if(!dragging)return;
-      ghost.style.left=clientX+'px';
-      ghost.style.top=clientY+'px';
-
-      // 保留枠のハイライト
-      if(holdCol){
-        const hr=holdCol.getBoundingClientRect();
-        const overHold=clientX>=hr.left&&clientX<=hr.right&&clientY>=hr.top&&clientY<=hr.bottom;
-        holdCol.classList.toggle('drag-over',overHold);
-      }
-
-      // グリッド上のプレビューを更新
-      const canvas=this.game.canvas;
-      if(!canvas)return;
-      const rect=canvas.getBoundingClientRect();
-      const scaleX=CANVAS_W/canvas.offsetWidth;
-      const scaleY=CANVAS_H/canvas.offsetHeight;
-      const bx=(clientX-rect.left)*scaleX;
-      const by=(clientY-rect.top)*scaleY;
-      if(bx<0||by<0||bx>CANVAS_W||by>CANVAS_H){
-        // グリッド外ならプレビュー消す
-        this.stopPreviewTween();
-        if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-        this.previewGfx.clear();
-        return;
-      }
-      const shape=this.getShape(this.currentDef,this.rotation);
-      const tc=Phaser.Math.Clamp(Math.round(bx/CS-shape[0].length/2),0,COLS-shape[0].length);
-      const tr=Phaser.Math.Clamp(Math.round(by/CS-shape.length/2),0,ROWS-shape.length);
-      if(tc!==this.curC||tr!==this.curR){
-        this.curC=tc; this.curR=tr;
-        this.updatePreview(this.curC,this.curR);
-      }
+      if(cc)cc.getContext('2d').clearRect(0,0,cc.width,cc.height);
     };
 
-    const endDrag=(clientX,clientY)=>{
-      if(!dragging)return;
-      dragging=false;
-      ghost.style.display='none';
-      if(holdCol) holdCol.classList.remove('drag-over');
+    // ── ドラッグ開始 ──
+    const startDrag=(cx,cy)=>{
+      if(!this.currentDef||this._dragging)return;
+      this._dragging=true;
+      clearCC(); // 枠のパーツを消す
+      doPreview(cx,cy);
+    };
 
-      // 保留枠の上でリリース → hold操作
+    // ── ドラッグ移動 ──
+    const moveDrag=(cx,cy)=>{
+      if(!this._dragging)return;
+      // 保留枠ハイライト
       if(holdCol){
-        const hr=holdCol.getBoundingClientRect();
-        if(clientX>=hr.left&&clientX<=hr.right&&clientY>=hr.top&&clientY<=hr.bottom){
+        const h=holdCol.getBoundingClientRect();
+        holdCol.classList.toggle('drag-over',cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom);
+      }
+      const g=toGame(cx,cy);
+      if(g.ok){
+        // グリッド内：プレビュー更新・canvas-currentはクリアのまま
+        doPreview(cx,cy);
+        // canvas-currentが復元されていれば再度クリア
+        const cc=document.getElementById('canvas-current');
+        if(cc){const ctx=cc.getContext('2d');ctx.clearRect(0,0,cc.width,cc.height);}
+      } else {
+        // グリッド外：canvas-currentにパーツを表示（⑩）
+        if(this.currentDef){
+          const cc=document.getElementById('canvas-current');
+          if(cc){
+            const W=80,H=80;
+            cc.width=W; cc.height=H;
+            cc.style.width=W+'px'; cc.style.height=H+'px';
+            const ctx=cc.getContext('2d');
+            ctx.clearRect(0,0,W,H);
+            const shape=this.getShape(this.currentDef,this.rotation);
+            const sw=shape[0].length,sh=shape.length;
+            const scale=window._gameScaleRatio||1;
+            const cellPx=Math.min(Math.round(CS*scale),Math.floor(W/sw),Math.floor(H/sh));
+            const pw=sw*cellPx,ph=sh*cellPx;
+            const ox=Math.floor((W-pw)/2),oy=Math.floor((H-ph)/2);
+            this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
+          }
+        }
+      }
+    };
+
+    // ── ドラッグ終了 ──
+    const endDrag=(cx,cy)=>{
+      if(!this._dragging)return;
+      this._dragging=false;
+      if(holdCol)holdCol.classList.remove('drag-over');
+      // ① 保留枠にドロップ
+      if(holdCol){
+        const h=holdCol.getBoundingClientRect();
+        if(cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom){
           this.doHold();
-          // プレビュー消す（doHold内でdrawUI→updatePreviewが呼ばれるが初期プレビューは出さない）
-          this.stopPreviewTween();
-          if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-          this.previewGfx.clear();
+          this._clearPreview();
+          this.drawUI();
           return;
         }
       }
-
-      // グリッド外リリース → プレビューだけ消す（配置しない）
-      // グリッド内リリース → プレビューを残す（土地内クリックで配置する方式）
-      const canvas=this.game.canvas;
-      if(!canvas){ this.stopPreviewTween(); if(this.previewImg){this.previewImg.destroy();this.previewImg=null;} this.previewGfx.clear(); return; }
-      const rect=canvas.getBoundingClientRect();
-      const bx=(clientX-rect.left)*(CANVAS_W/canvas.offsetWidth);
-      const by=(clientY-rect.top)*(CANVAS_H/canvas.offsetHeight);
-      if(bx<0||by<0||bx>CANVAS_W||by>CANVAS_H){
-        // グリッド外→プレビュー消す
-        this.stopPreviewTween();
-        if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-        this.previewGfx.clear();
-        this.drawUI(); // canvas-current 復元
-        return;
-      }
-      // グリッド内リリース: Math.roundで最終位置を確定してプレビューを残す
-      {
-        const shape=this.getShape(this.currentDef,this.rotation);
-        const tc=Phaser.Math.Clamp(Math.round(bx/CS-shape[0].length/2),0,COLS-shape[0].length);
-        const tr=Phaser.Math.Clamp(Math.round(by/CS-shape.length/2),0,ROWS-shape.length);
-        this.curC=tc; this.curR=tr;
-        this.updatePreview(this.curC,this.curR);
+      // ② グリッド内にドロップ → プレビュー確定して次タップで配置
+      const g=toGame(cx,cy);
+      if(g.ok){
+        doPreview(cx,cy);
+        this._justDropped=true;
+        setTimeout(()=>{this._justDropped=false;},300);
+      } else {
+        // ③ グリッド外 → キャンセル
+        this._clearPreview();
+        this.drawUI();
       }
     };
 
     const cancelDrag=()=>{
-      dragging=false;
-      ghost.style.display='none';
-      if(holdCol) holdCol.classList.remove('drag-over');
-      clearTimeout(longPressTimer);
-      this.stopPreviewTween();
-      if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-      this.previewGfx.clear();
-      this.drawUI(); // canvas-current を復元
+      if(!this._dragging)return;
+      this._dragging=false;
+      if(holdCol)holdCol.classList.remove('drag-over');
+      this._clearPreview();
+      this.drawUI();
     };
 
-    // 土地内長押し→undoから来るドラッグ開始イベント
-    // wrap のリスナーはリトライ時に蓄積するため、古いものを必ず削除してから再登録
-    if(wrap._madoriStartDragOutside){ wrap.removeEventListener('startDragFromOutside',wrap._madoriStartDragOutside); }
-    if(wrap._madoriMouseDown){        wrap.removeEventListener('mousedown',wrap._madoriMouseDown); }
-    if(wrap._madoriContextMenu){      wrap.removeEventListener('contextmenu',wrap._madoriContextMenu); }
-    if(wrap._madoriTouchStart){       wrap.removeEventListener('touchstart',wrap._madoriTouchStart); }
-    if(wrap._madoriTouchMove){        wrap.removeEventListener('touchmove',wrap._madoriTouchMove); }
-    if(wrap._madoriTouchEnd){         wrap.removeEventListener('touchend',wrap._madoriTouchEnd); }
-    if(wrap._madoriTouchCancel){      wrap.removeEventListener('touchcancel',wrap._madoriTouchCancel); }
+    // ══════════════════════════════════════════
+    //  wrap（今のパーツ枠）リスナー
+    // ══════════════════════════════════════════
+    ['_wMD','_wCM','_wTS','_wTM','_wTE','_wTC'].forEach(k=>{
+      const ev={_wMD:'mousedown',_wCM:'contextmenu',_wTS:'touchstart',
+                _wTM:'touchmove',_wTE:'touchend',_wTC:'touchcancel'}[k];
+      if(wrap[k]){wrap.removeEventListener(ev,wrap[k]);delete wrap[k];}
+    });
+    wrap._wMD=(e)=>{ if(e.button!==0)return; e.preventDefault(); startDrag(e.clientX,e.clientY); };
+    wrap._wCM=(e)=>{ e.preventDefault(); this.rotatePiece(1); };
+    wrap._wTS=(e)=>{ e.preventDefault(); startDrag(e.touches[0].clientX,e.touches[0].clientY); };
+    wrap._wTM=(e)=>{ e.preventDefault(); moveDrag(e.touches[0].clientX,e.touches[0].clientY); };
+    wrap._wTE=(e)=>{ e.preventDefault();
+      if(this._dragging) endDrag(e.changedTouches[0].clientX,e.changedTouches[0].clientY); };
+    wrap._wTC=cancelDrag;
+    wrap.addEventListener('mousedown',  wrap._wMD);
+    wrap.addEventListener('contextmenu',wrap._wCM);
+    wrap.addEventListener('touchstart', wrap._wTS,{passive:false});
+    wrap.addEventListener('touchmove',  wrap._wTM,{passive:false});
+    wrap.addEventListener('touchend',   wrap._wTE,{passive:false});
+    wrap.addEventListener('touchcancel',wrap._wTC);
 
-    wrap._madoriStartDragOutside=(e)=>{ startDrag(e.detail.clientX, e.detail.clientY); };
-    wrap.addEventListener('startDragFromOutside', wrap._madoriStartDragOutside);
+    // ══════════════════════════════════════════
+    //  document レベル（マウスのみ：wrap外移動に追従）
+    // ══════════════════════════════════════════
+    if(document._dMM)document.removeEventListener('mousemove',document._dMM);
+    if(document._dMU)document.removeEventListener('mouseup',  document._dMU);
+    document._dMM=(e)=>{ if(this._dragging)moveDrag(e.clientX,e.clientY); };
+    document._dMU=(e)=>{ if(this._dragging)endDrag(e.clientX,e.clientY); };
+    document.addEventListener('mousemove',document._dMM);
+    document.addEventListener('mouseup',  document._dMU);
 
-    // マウス長押しでドラッグ開始
-    wrap._madoriMouseDown=(e)=>{
-      if(e.button!==0)return;
-      e.preventDefault();
-      longPressTimer=setTimeout(()=>startDrag(e.clientX,e.clientY), LONG_PRESS_MS);
+    // ══════════════════════════════════════════
+    //  canvas（土地）リスナー
+    //  ・mousemove/touchmove → ドラッグ中ならmoveDrag（高精度）
+    //  ・mousedown/touchstart → 500ms長押しでundo→ドラッグ
+    //  ・touchstart は passive:false にしてprevntDefault可能にする
+    // ══════════════════════════════════════════
+    ['_cLD','_cLU','_cLM','_cLTS','_cLTE','_cLTM'].forEach(k=>{
+      const ev={_cLD:'mousedown',_cLU:'mouseup',_cLM:'mousemove',
+                _cLTS:'touchstart',_cLTE:'touchend',_cLTM:'touchmove'}[k];
+      if(canvas[k]){canvas.removeEventListener(ev,canvas[k]);delete canvas[k];}
+    });
+
+    let _lt=null,_lx=0,_ly=0;
+    const _longStart=(cx,cy)=>{
+      if(this._dragging)return;
+      _lx=cx; _ly=cy;
+      if(_lt)clearTimeout(_lt);
+      _lt=setTimeout(()=>{
+        _lt=null;
+        if(this._dragging||!this.undoStack.length)return;
+        this.doUndo();
+        if(this.currentDef)startDrag(_lx,_ly);
+      },500);
     };
-    wrap.addEventListener('mousedown', wrap._madoriMouseDown);
+    const _longCancel=()=>{ if(_lt){clearTimeout(_lt);_lt=null;} };
+    const _longMove=(cx,cy)=>{
+      if(_lt&&(cx-_lx)**2+(cy-_ly)**2>100){ _longCancel(); }
+    };
 
-    // document レベルのリスナーは以前のものを必ず削除してから再登録
-    if(document._madoriMouseMove) document.removeEventListener('mousemove',document._madoriMouseMove);
-    if(document._madoriMouseUp)   document.removeEventListener('mouseup',  document._madoriMouseUp);
-    document._madoriMouseMove=(e)=>{ if(dragging) moveDrag(e.clientX,e.clientY); };
-    document._madoriMouseUp  =(e)=>{ clearTimeout(longPressTimer); if(dragging) endDrag(e.clientX,e.clientY); };
-    document.addEventListener('mousemove', document._madoriMouseMove);
-    document.addEventListener('mouseup',   document._madoriMouseUp);
-
-    // 右クリック on wrap → 右回転
-    wrap._madoriContextMenu=(e)=>{ e.preventDefault(); this.rotatePiece(1); };
-    wrap.addEventListener('contextmenu', wrap._madoriContextMenu);
-
-    // タッチ：即ドラッグ開始（長押し不要、ブラウザスクロールを防ぐ）
-    wrap._madoriTouchStart=(e)=>{
-      e.preventDefault();
+    canvas._cLD =(e)=>{ if(e.button===0)_longStart(e.clientX,e.clientY); };
+    canvas._cLU =(e)=>{ _longCancel(); };
+    canvas._cLM =(e)=>{
+      if(this._dragging) moveDrag(e.clientX,e.clientY);
+      else _longMove(e.clientX,e.clientY);
+    };
+    canvas._cLTS=(e)=>{
+      // passive:false にしてスクロール抑制
+      _longStart(e.touches[0].clientX,e.touches[0].clientY);
+    };
+    canvas._cLTE=(e)=>{ _longCancel(); };
+    canvas._cLTM=(e)=>{
       const t=e.touches[0];
-      startDrag(t.clientX,t.clientY);
+      if(this._dragging){ e.preventDefault(); moveDrag(t.clientX,t.clientY); }
+      else _longMove(t.clientX,t.clientY);
     };
-    wrap.addEventListener('touchstart', wrap._madoriTouchStart,{passive:false});
-    wrap._madoriTouchMove=(e)=>{
-      e.preventDefault();
-      const t=e.touches[0];
-      if(dragging) moveDrag(t.clientX,t.clientY);
-    };
-    wrap.addEventListener('touchmove', wrap._madoriTouchMove,{passive:false});
-    wrap._madoriTouchEnd=(e)=>{
-      e.preventDefault();
-      if(dragging){
-        const t=e.changedTouches[0];
-        endDrag(t.clientX,t.clientY);
-      } else {
-        clearTimeout(longPressTimer);
-      }
-    };
-    wrap.addEventListener('touchend', wrap._madoriTouchEnd,{passive:false});
-    wrap._madoriTouchCancel=cancelDrag;
-    wrap.addEventListener('touchcancel', wrap._madoriTouchCancel);
+    canvas.addEventListener('mousedown', canvas._cLD);
+    canvas.addEventListener('mouseup',   canvas._cLU);
+    canvas.addEventListener('mousemove', canvas._cLM);
+    canvas.addEventListener('touchstart',canvas._cLTS,{passive:false});
+    canvas.addEventListener('touchend',  canvas._cLTE);
+    canvas.addEventListener('touchmove', canvas._cLTM,{passive:false});
   }
+
 
   pickRandom(){
     let r=Math.random()*PARTS_WEIGHT_TOTAL;
@@ -1644,30 +1593,23 @@ class PuzzleGame extends Phaser.Scene{
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
-    this.stopPreviewTween();
-    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-    this.previewGfx.clear();
+    this._clearPreview();
     this.checkNoPlace();
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
     this.rotation=(this.rotation+dir+4)%4;
     const newShape=this.getShape(this.currentDef,this.rotation);
-    // プレビューが出ていた場合のみ curC/curR をクランプして更新
-    const hadPreview=this.previewImg||!this._isPreviewEmpty();
-    if(hadPreview){
-      this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
-      this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
+    this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
+    this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
+    if(this._previewActive){
       this.updatePreview(this.curC,this.curR);
     } else {
-      // プレビューなし：回転だけ記録、位置は動かさない
-      this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
-      this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
-      this.stopPreviewTween();
-      if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-      this.previewGfx.clear();
+      this._clearPreview();
     }
-    this.drawUI();
+    // ドラッグ中・プレビュー中はcanvas-currentを再描画しない
+    if(!this._dragging&&!this._previewActive) this.drawUI();
+    else this._updateTopBar(); // カウント等だけ更新
   }
   doHold(){
     if(!this.currentDef)return;
@@ -1676,9 +1618,7 @@ class PuzzleGame extends Phaser.Scene{
     this.rotation=0; this.holdUsed=false;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
-    this.stopPreviewTween();
-    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-    this.previewGfx.clear();
+    this._clearPreview();
     this.drawUI();
   }
   doUndo(){
@@ -1692,9 +1632,7 @@ class PuzzleGame extends Phaser.Scene{
     this._destroyAllBoardVisuals();
     this.rebuildBoardVisuals();
     this.drawBoard(); this.drawUI();
-    this.stopPreviewTween();
-    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-    this.previewGfx.clear();
+    this._clearPreview();
     // プレビューはドラッグ開始まで表示しない
     document.getElementById('btn-complete-overlay').classList.remove('visible');
     this.checkNoPlace();
@@ -1793,12 +1731,13 @@ class PuzzleGame extends Phaser.Scene{
     // holdの動作を正確にシミュレート:
     // holdDef あり → current ↔ holdDef の交換のみ。queueには届かない。
     // holdDef なし → holdを押すたびにqueueから引き出せる。
-    let shouldEnd=false;
-    if(this.holdDef){
-      shouldEnd=!curOk&&!holdOk;
-    } else {
-      shouldEnd=!curOk&&!queueOk;
-    }
+    // holdDefありの場合: holdを押してもqueueに届かない（current↔holdのみ）
+    // → currentもholdも置けなければ終了
+    // holdDefなしの場合: holdを押すとqueueから引き出せる
+    // → currentもqueueも置けなければ終了
+    const shouldEnd = this.holdDef
+      ? (!curOk && !holdOk)
+      : (!curOk && !queueOk);
 
     if(!shouldEnd)return;
 
@@ -1825,9 +1764,7 @@ class PuzzleGame extends Phaser.Scene{
     // 全て置けない → 終了
     this.fillEmptyAsStorage();
     document.getElementById('btn-complete-overlay').classList.add('visible');
-    this.stopPreviewTween();
-    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-    this.previewGfx.clear();
+    this._clearPreview();
   }
   canPlace(shape,c,r){
     for(let dr=0;dr<shape.length;dr++)
@@ -1920,9 +1857,9 @@ class PuzzleGame extends Phaser.Scene{
 
     // ── 次/次次 canvas ──
     const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2', size:80},
-      {def:this.queue[0], canvasId:'canvas-next1', size:96},
-      {def:this.holdDef,  canvasId:'canvas-hold',  size:96},
+      {def:this.queue[1], canvasId:'canvas-next2', size:56},
+      {def:this.queue[0], canvasId:'canvas-next1', size:72},
+      {def:this.holdDef,  canvasId:'canvas-hold',  size:72},
     ];
     for(const {def,canvasId,size} of nextSlots){
       const cv=document.getElementById(canvasId);
@@ -1943,22 +1880,24 @@ class PuzzleGame extends Phaser.Scene{
       this._drawDefOnCanvas(ctx,def,size,size);
     }
 
-    // ── 現在パーツ canvas（固定120×120、中央に描画）──
+    // ── 現在パーツ canvas（固定80×80） ──
     const cc=document.getElementById('canvas-current');
-    if(cc&&this.currentDef){
-      const W=120, H=120;
+    if(cc){
+      const W=80,H=80;
       cc.width=W; cc.height=H;
       cc.style.width=W+'px'; cc.style.height=H+'px';
-      const shape=this.getShape(this.currentDef,this.rotation);
-      const sw=shape[0].length, sh=shape.length;
-      // scaleRatioを使って土地と同じセルサイズで描画、120px内に収まる場合はそのサイズ
-      const scale=window._gameScaleRatio||1;
-      const cellPx=Math.min(Math.round(CS*scale), Math.floor(W/sw), Math.floor(H/sh));
-      const pw=sw*cellPx, ph=sh*cellPx;
-      const ox=Math.floor((W-pw)/2), oy=Math.floor((H-ph)/2);
       const ctx=cc.getContext('2d');
       ctx.clearRect(0,0,W,H);
-      this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
+      // ドラッグ中・プレビュー中は空欄のまま（パーツは土地上のプレビューで表示）
+      if(this.currentDef&&!this._dragging&&!this._previewActive){
+        const shape=this.getShape(this.currentDef,this.rotation);
+        const sw=shape[0].length,sh=shape.length;
+        const scale=window._gameScaleRatio||1;
+        const cellPx=Math.min(Math.round(CS*scale),Math.floor(W/sw),Math.floor(H/sh));
+        const pw=sw*cellPx,ph=sh*cellPx;
+        const ox=Math.floor((W-pw)/2),oy=Math.floor((H-ph)/2);
+        this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
+      }
     }
   }
 
@@ -2050,71 +1989,67 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.currentDef)return;
     const shape=this.getShape(this.currentDef,this.rotation);
     if(!this.canPlace(shape,this.curC,this.curR))return;
-    this.stopPreviewTween();
-    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
-    this.previewGfx.clear();
+    this._clearPreview();
     this.placePiece(this.currentDef,shape,this.curC,this.curR);
   }
+  _isPreviewEmpty(){ return !this._previewActive; }
   stopPreviewTween(){
     if(this._previewTween){this._previewTween.stop();this._previewTween=null;}
     this._clearPreviewLabels();
   }
-  updatePreview(c,r){
-    // 完成ボタン表示中はプレビューを出さない
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+  _clearPreview(){
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
     this._clearPreviewLabels();
     this.previewGfx.clear();
+    this._previewActive=false;
+    this._previewDefKey=null;
+  }
+  updatePreview(c,r){
+    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
     if(!this.currentDef)return;
+    // 毎回クリアして再描画（シンプル・確実）
+    this.stopPreviewTween();
+    if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
+    this._clearPreviewLabels();
+    this.previewGfx.clear();
+    this._previewDefKey=null;
     const shape=this.getShape(this.currentDef,this.rotation);
     const ok=this.canPlace(shape,c,r);
-    const g=this.previewGfx;
-    // 配置可否のみグリッド色で示す（赤/緑の薄いハイライト）
+    const pw=shape[0].length*CS, ph=shape.length*CS;
+    const px=this.sx(c), py=this.sy(r);
+    // グリッドハイライト
     for(let dr=0;dr<shape.length;dr++)for(let dc=0;dc<shape[0].length;dc++){
       if(!shape[dr][dc])continue;
       const nr=r+dr,nc=c+dc;
       if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
-      g.fillStyle(ok?0x88cc88:0xdd8888,ok?0.18:0.12);
-      g.fillRect(this.sx(nc)+1,this.sy(nr)+1,CS-2,CS-2);
+      this.previewGfx.fillStyle(ok?0x88cc88:0xdd8888,ok?0.18:0.12);
+      this.previewGfx.fillRect(this.sx(nc)+1,this.sy(nr)+1,CS-2,CS-2);
     }
-    // ok/NGどちらでも画像プレビューを表示（赤みなし・透明度のみで点滅）
-    {
-      const pw=shape[0].length*CS,ph=shape.length*CS;
-      const px=this.sx(c),py=this.sy(r);
-      let target=null;
-      if(this.currentDef.type==='washitsu'){
-        const g2=this.add.graphics().setDepth(4);
-        this.drawWashitsuOnGraphics(g2,px,py,pw,ph);
-        // 赤色オーバーレイなし
-        target=g2;
-      }else if(this.textures.exists(this.currentDef.type)){
-        const rot=this.rotation%4,dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
-        target=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
-          .setDisplaySize(dw-2,dh-2).setAngle(rot*90).setDepth(4);
-        // tintなし（赤色にしない）
-      }
-      if(target){
-        this.previewImg=target;
-        // 不透明⇔半透明の点滅（ok/NG共通・赤色なし）
-        this._previewTween=this.tweens.add({
-          targets:target,
-          alpha:{from:1.0,to:0.5},
-          duration:600,yoyo:true,repeat:-1,ease:'Sine.easeInOut'
-        });
-      }
-      // プレビュー中ラベルテキスト（全パーツ共通）
-      {
-        const pw2=shape[0].length*CS, ph2=shape.length*CS;
-        const px2=this.sx(c), py2=this.sy(r);
-        const lbl=this.add.text(px2+pw2/2, py2+ph2/2, this.currentDef.label||this.currentDef.name,{
-          fontSize:'10px',fill:'#3a3028',align:'center',fontFamily:'Meiryo,sans-serif',
-          stroke:'#ffffffcc',strokeThickness:2
-        }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.75);
-        if(!this._previewLabels) this._previewLabels=[];
-        this._previewLabels.push(lbl);
-      }
+    // プレビュー画像
+    if(this.currentDef.type==='washitsu'){
+      const g2=this.add.graphics().setDepth(4);
+      this.drawWashitsuOnGraphics(g2,px,py,pw,ph);
+      this.previewImg=g2;
+    }else if(this.textures.exists(this.currentDef.type)){
+      const rot=this.rotation%4,dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
+      this.previewImg=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
+        .setDisplaySize(dw,dh).setAngle(rot*90).setDepth(4);
     }
+    if(this.previewImg){
+      this._previewTween=this.tweens.add({
+        targets:this.previewImg,alpha:{from:0.9,to:0.5},
+        duration:500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'
+      });
+    }
+    // ラベル
+    const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,{
+      fontSize:'10px',fill:'#3a3028',align:'center',fontFamily:'Meiryo,sans-serif',
+      stroke:'#ffffffcc',strokeThickness:2
+    }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.75);
+    if(!this._previewLabels)this._previewLabels=[];
+    this._previewLabels.push(lbl);
+    this._previewActive=true;
   }
 
   _clearPreviewLabels(){
@@ -2200,24 +2135,44 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
-  // screen-gameは常時display:flexなのでoffsetHeightは常に正確
-  // rAF1フレームだけ待てばレイアウト確定する
-  requestAnimationFrame(()=>{
-    const topBarH=document.getElementById('game-top-bar')?.offsetHeight||0;
-    const botBarH=document.getElementById('game-bottom-bar')?.offsetHeight||0;
-    const availH=window.innerHeight-topBarH-botBarH;
-    const availW=window.innerWidth;
-    const scaleRatio=Math.min(availW/CANVAS_W, availH/CANVAS_H);
+  // screen-gameがdisplay:flexになった後、barのoffsetHeightを計測して起動
+  const launch=()=>{
+    const topBar=document.getElementById('game-top-bar');
+    const botBar=document.getElementById('game-bottom-bar');
+    const tH=topBar?.offsetHeight||0;
+    const bH=botBar?.offsetHeight||0;
+    if(tH===0||bH===0){
+      // まだレイアウト未確定 → ResizeObserverで待つ
+      let done=false;
+      const ro=new ResizeObserver(()=>{
+        const t2=topBar?.offsetHeight||0, b2=botBar?.offsetHeight||0;
+        if(t2>0&&b2>0&&!done){done=true;ro.disconnect();go(t2,b2);}
+      });
+      if(topBar)ro.observe(topBar);
+      if(botBar)ro.observe(botBar);
+      setTimeout(()=>{if(!done){done=true;ro.disconnect();go(topBar?.offsetHeight||0,botBar?.offsetHeight||0);}},600);
+      return;
+    }
+    go(tH,bH);
+  };
+  const go=(tH,bH)=>{
+    // game-containerのCSSピクセル高さを直接計測（flexで確定済み）
+    const container=document.getElementById('game-container');
+    const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
+    const cW=container?.clientWidth||window.innerWidth;
+    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H, 1.0); // 1.0を超えない（土地が拡大しすぎない）
     window._gameScaleRatio=scaleRatio;
+    console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3));
     window._phaserGame=new Phaser.Game({
       type:Phaser.AUTO,
       width:CANVAS_W,height:CANVAS_H,
-      backgroundColor:'#f0ece6',
+      backgroundColor:'#f5f0e8',
       parent:'game-container',
       scene:PuzzleGame,
       scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
     });
-  });
+  };
+  requestAnimationFrame(()=>requestAnimationFrame(launch));
 }
 
 // 起動時プロフィール表示
