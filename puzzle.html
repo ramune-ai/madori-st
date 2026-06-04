@@ -1349,7 +1349,7 @@ class PuzzleGame extends Phaser.Scene{
     // images/フォルダのPNGを優先、なければSVG_TEXにフォールバック
     const loadTexture=(k,svgDataUrl)=>{
       return new Promise(resolve=>{
-        const imgPath='images/'+k+'.png';
+        const imgPath='image/'+k+'.png';
         const img=new Image();
         img.onload=()=>{
           const dpr=window.devicePixelRatio||1;
