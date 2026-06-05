@@ -1786,13 +1786,14 @@ class PuzzleGame extends Phaser.Scene{
     }
     // ラベルテキスト追加（中央配置・サイズをパーツに合わせる）
     const labelText=cell.fixed?'玄関':(cell.label||'');
-    const labelFs=cell.fixed?13:Math.min(11,Math.floor(pw*0.28),Math.floor(ph*0.32));
+    const labelFs=cell.fixed?14:Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
     const lbl=this.add.text(px+pw/2, py+ph/2, labelText,{
       fontSize:labelFs+'px',
-      fill:cell.fixed?'#604010':'#3a3028',
+      fill:cell.fixed?'#604010':'#2a1a0a',
       align:'center',fontFamily:'Meiryo,sans-serif',
-      stroke:'#ffffffcc',strokeThickness:2,
-      wordWrap:{width:pw-4}
+      fontStyle:'bold',
+      stroke:'#ffffff',strokeThickness:3,
+      wordWrap:{width:pw-8}
     }).setOrigin(0.5,0.5).setDepth(5);
     this.boardLabels[pid]=lbl;
   }
@@ -2219,7 +2220,7 @@ function startPhaserGame(){
     const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
-    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H, 0.85); // 画面の85%まで
+    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H, 1.0); // 画面にフィット（1.0上限）
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
