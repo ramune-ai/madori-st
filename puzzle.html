@@ -1400,9 +1400,9 @@ class PuzzleGame extends Phaser.Scene{
           if(this.textures.exists(k))this.textures.remove(k);
           this.textures.addCanvas(k,cv);
           if(k==='washitsu'||k==='youshitsu'){
-            // デバッグ：画面上に表示
-            const dbg=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:12px;z-index:9999;padding:4px'});
-            dbg.innerHTML+='<br>'+k+' loaded: '+sw+'x'+sh+' -> '+w+'x'+h;
+            const dbg=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:11px;z-index:9999;padding:4px'});
+            const texOk=this.textures.exists(k);
+            dbg.innerHTML+='<br>'+k+' loaded:'+sw+'x'+sh+'->'+w+'x'+h+' tex:'+texOk;
           }
           resolve();
         };
@@ -1428,6 +1428,9 @@ class PuzzleGame extends Phaser.Scene{
       this.boardImgs={};
       this.boardLabels={};
       this.rebuildBoardVisuals();
+      // デバッグ：テクスチャ状態確認
+      const dbg2=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:11px;z-index:9999;padding:4px'});
+      dbg2.innerHTML+='<br>rebuild: ws='+this.textures.exists('washitsu')+' ys='+this.textures.exists('youshitsu');
       this.drawBoard();
       this.nextPiece();
       this.drawUI();
