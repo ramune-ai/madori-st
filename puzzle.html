@@ -1304,7 +1304,7 @@ function svgToCanvas(dataUrl){
   });
 }
 
-const CS=50,COLS=7,ROWS=8,UI_R=0;
+const CS=60,COLS=7,ROWS=8,UI_R=0;
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 // 土地形状定義（将来の変形土地対応）
 // null = 配置不可マス、0 = 通常マス
@@ -1503,8 +1503,7 @@ class PuzzleGame extends Phaser.Scene{
     const drawCC=()=>{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
-      const W=120,H=120;
-      cc.width=W; cc.height=H; cc.style.width=W+'px'; cc.style.height=H+'px';
+      const W=cc.width||120, H=cc.height||120;
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
       const scale=window._gameScaleRatio||1;
@@ -2220,7 +2219,7 @@ function startPhaserGame(){
     const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
-    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H); // 画面にフィット
+    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H, 0.85); // 画面の85%まで
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
