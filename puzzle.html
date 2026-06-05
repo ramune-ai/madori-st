@@ -1357,54 +1357,14 @@ class PuzzleGame extends Phaser.Scene{
         const imgPath='image/'+k+'.png';
         const img=new Image();
         img.onload=()=>{
-          const sw=img.naturalWidth, sh=img.naturalHeight;
-          // パーツ比率に合わせてcanvasサイズを決定
-          const ratio=PART_RATIO[k]||[1,1];
-          const unit=Math.max(sw/ratio[0], sh/ratio[1]);
-          const tw=Math.round(unit*ratio[0]), th=Math.round(unit*ratio[1]);
-          const w=tw, h=th;
-          const tmp=document.createElement('canvas');
-          tmp.width=w; tmp.height=h;
-          const ctx2=tmp.getContext('2d');
-          // 中央に配置してリサイズ
-          const ox=Math.round((w-sw)/2), oy=Math.round((h-sh)/2);
-          ctx2.drawImage(img,ox,oy,sw,sh);
-          const id=ctx2.getImageData(0,0,w,h), d=id.data;
-          const getC=(x,y)=>[d[(y*w+x)*4],d[(y*w+x)*4+1],d[(y*w+x)*4+2]];
-          const corners=[getC(0,0),getC(w-1,0),getC(0,h-1),getC(w-1,h-1)];
-          const bg=corners.reduce((a,c)=>[a[0]+c[0],a[1]+c[1],a[2]+c[2]],[0,0,0]).map(v=>v/4);
-          const visited=new Uint8Array(w*h);
-          const queue=[];
-          // 黒背景（Firefly背景削除後）または四隅色のどちらでも透過
-          const isBlackBg=bg[0]<30&&bg[1]<30&&bg[2]<30;
-          const threshold=isBlackBg?40:35;
-          const isNearBg=(r,g,b)=>{
-            if(isBlackBg) return r<40&&g<40&&b<40;
-            return Math.sqrt((r-bg[0])**2+(g-bg[1])**2+(b-bg[2])**2)<threshold;
-          };
-          for(let x=0;x<w;x++){queue.push(x,0);queue.push(x,h-1);}
-          for(let y=1;y<h-1;y++){queue.push(0,y);queue.push(w-1,y);}
-          let qi=0;
-          while(qi<queue.length){
-            const x=queue[qi++],y=queue[qi++];
-            if(x<0||x>=w||y<0||y>=h||visited[y*w+x])continue;
-            const i=(y*w+x)*4;
-            if(!isNearBg(d[i],d[i+1],d[i+2]))continue;
-            visited[y*w+x]=1; d[i+3]=0;
-            queue.push(x+1,y,x-1,y,x,y+1,x,y-1);
-          }
-          ctx2.putImageData(id,0,0);
-          // dataURL経由でPhaserに登録（アルファチャンネル保持）
-          const dataUrl=tmp.toDataURL('image/png');
+          // シンプルにdataURL経由でPhaserに登録
+          const c=document.createElement('canvas');
+          c.width=img.naturalWidth; c.height=img.naturalHeight;
+          c.getContext('2d').drawImage(img,0,0);
+          const dataUrl=c.toDataURL('image/png');
           if(this.textures.exists(k))this.textures.remove(k);
           this.textures.addBase64(k,dataUrl);
-          this.textures.once('addtexture-'+k,()=>{
-            if(k==='washitsu'||k==='youshitsu'){
-              const dbg=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:11px;z-index:9999;padding:4px'});
-              dbg.innerHTML+='<br>'+k+' addBase64 done';
-            }
-            resolve();
-          });
+          this.textures.once('addtexture-'+k,()=>resolve());
         };
         img.onerror=()=>{
           svgToCanvas(svgDataUrl).then(cv=>{
@@ -1428,9 +1388,6 @@ class PuzzleGame extends Phaser.Scene{
       this.boardImgs={};
       this.boardLabels={};
       this.rebuildBoardVisuals();
-      // デバッグ：テクスチャ状態確認
-      const dbg2=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:11px;z-index:9999;padding:4px'});
-      dbg2.innerHTML+='<br>rebuild: ws='+this.textures.exists('washitsu')+' ys='+this.textures.exists('youshitsu');
       this.drawBoard();
       this.nextPiece();
       this.drawUI();
