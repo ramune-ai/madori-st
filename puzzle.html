@@ -1394,17 +1394,17 @@ class PuzzleGame extends Phaser.Scene{
             queue.push(x+1,y,x-1,y,x,y+1,x,y-1);
           }
           ctx2.putImageData(id,0,0);
-          const cv=document.createElement('canvas');
-          cv.width=w; cv.height=h;
-          cv.getContext('2d').drawImage(tmp,0,0);
+          // dataURL経由でPhaserに登録（アルファチャンネル保持）
+          const dataUrl=tmp.toDataURL('image/png');
           if(this.textures.exists(k))this.textures.remove(k);
-          this.textures.addCanvas(k,cv);
-          if(k==='washitsu'||k==='youshitsu'){
-            const dbg=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:11px;z-index:9999;padding:4px'});
-            const texOk=this.textures.exists(k);
-            dbg.innerHTML+='<br>'+k+' loaded:'+sw+'x'+sh+'->'+w+'x'+h+' tex:'+texOk;
-          }
-          resolve();
+          this.textures.addBase64(k,dataUrl);
+          this.textures.once('addtexture-'+k,()=>{
+            if(k==='washitsu'||k==='youshitsu'){
+              const dbg=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:11px;z-index:9999;padding:4px'});
+              dbg.innerHTML+='<br>'+k+' addBase64 done';
+            }
+            resolve();
+          });
         };
         img.onerror=()=>{
           svgToCanvas(svgDataUrl).then(cv=>{
