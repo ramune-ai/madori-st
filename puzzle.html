@@ -1357,10 +1357,20 @@ class PuzzleGame extends Phaser.Scene{
         const imgPath='image/'+k+'.png';
         const img=new Image();
         img.onload=()=>{
-          // canvas経由せず直接Phaserに登録（画質劣化を防ぐ）
+          // ObjectURL経由でPhaserのImageLoaderに登録（画質劣化なし）
           if(this.textures.exists(k))this.textures.remove(k);
-          this.textures.addImage(k,img);
-          resolve();
+          fetch(imgPath)
+            .then(r=>r.blob())
+            .then(blob=>{
+              const url=URL.createObjectURL(blob);
+              this.load.image(k,url);
+              this.load.once('filecomplete-image-'+k,()=>{
+                URL.revokeObjectURL(url);
+                resolve();
+              });
+              this.load.start();
+            })
+            .catch(()=>resolve());
         };
         img.onerror=()=>{
           svgToCanvas(svgDataUrl).then(cv=>{
