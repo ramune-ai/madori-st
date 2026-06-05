@@ -133,7 +133,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   display:flex;flex-shrink:0;
   background:rgba(245,240,232,.97);
   z-index:50;
-  padding:14px 16px max(22px, calc(env(safe-area-inset-bottom) + 8px));
+  padding:14px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
   align-items:center;justify-content:center;gap:16px;
 }
 /* 戻すボタン */
@@ -1706,7 +1706,7 @@ class PuzzleGame extends Phaser.Scene{
 
     // ── 状態管理変数（リスナー定義より前に宣言：TDZ回避）──
     // タッチ
-    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null,_suppressNextTapPlace=false;
+    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null,_suppressNextTapPlace=false,_touchStartTime=0;
     const DRAG_THRESHOLD=12; // タッチ：これ以上動いたら「ドラッグ」
     // マウス
     let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null;
@@ -1871,6 +1871,7 @@ class PuzzleGame extends Phaser.Scene{
       if(this._dragging)return;
       const t=e.touches[0];
       _touchStartX=t.clientX; _touchStartY=t.clientY;
+      _touchStartTime=Date.now();
       _touchMoved=false;
       _clearLongPress();
 
@@ -1916,8 +1917,11 @@ class PuzzleGame extends Phaser.Scene{
         endDrag(t.clientX,t.clientY,false);
         return;
       }
-      // _touchMoved が false ＝ タップ → endDrag内で設置
-      endDrag(t.clientX,t.clientY,!_touchMoved);
+      // タップ判定：動いていない かつ 押下時間が短い（350ms未満）場合のみ即設置
+      // 長く押してから離した場合は「位置決め」とみなしプレビューを残す
+      const heldMs=Date.now()-_touchStartTime;
+      const isTap = !_touchMoved && heldMs<350;
+      endDrag(t.clientX,t.clientY,isTap);
     };
 
     canvas._cLTC=()=>{ _clearLongPress(); cancelDrag(); };
@@ -1994,6 +1998,9 @@ class PuzzleGame extends Phaser.Scene{
     this.currentDef=state.currentDef; this.rotation=state.rotation;
     this.queue=state.queue.slice(); this.holdDef=state.holdDef;
     this.holdUsed=state.holdUsed; this.partCount=state.partCount;
+    // 収納（終了時自動生成）の描画を破棄 → 元の状態に戻す
+    if(this._storageGfx){this._storageGfx.destroy();this._storageGfx=null;}
+    if(this._storageTexts){this._storageTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});this._storageTexts=[];}
     // 全ビジュアルを破棄して再構築
     this._destroyAllBoardVisuals();
     this.rebuildBoardVisuals();
@@ -2155,18 +2162,33 @@ class PuzzleGame extends Phaser.Scene{
 
   drawBg(){
     const g=this.bgGfx; g.clear();
-    g.fillStyle(0xf8f4ee,1); g.fillRect(0,0,COLS*CS,ROWS*CS);
-    // LAND_MAPのnullマスをグレーで塗りつぶし（配置不可エリア）
+    const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
+    // 有効な土地マスだけ床色で塗る（欠け部分は塗らない＝背景のまま）
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(LAND_MAP[r][c]===null){
-        g.fillStyle(0xd8d0c8,1);
+      if(isLand(r,c)){
+        g.fillStyle(0xf8f4ee,1);
         g.fillRect(c*CS,r*CS,CS,CS);
       }
     }
+    // 内側の薄いグリッド線（土地マスのみ）
     g.lineStyle(1,0xd8cfc4,1);
-    for(let r=0;r<=ROWS;r++)g.lineBetween(0,this.sy(r),COLS*CS,this.sy(r));
-    for(let c=0;c<=COLS;c++)g.lineBetween(this.sx(c),0,this.sx(c),ROWS*CS);
-    g.lineStyle(3,0x8a7060,1); g.strokeRect(0,0,COLS*CS,ROWS*CS);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(!isLand(r,c))continue;
+      const px=c*CS, py=r*CS;
+      // 右隣・下隣が土地なら内側線
+      if(isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS);
+      if(isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS);
+    }
+    // 土地の外周＝隣が土地外の辺に太枠を描く
+    g.lineStyle(3,0x8a7060,1);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(!isLand(r,c))continue;
+      const px=c*CS, py=r*CS;
+      if(!isLand(r-1,c)) g.lineBetween(px,py,px+CS,py);       // 上辺
+      if(!isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS); // 下辺
+      if(!isLand(r,c-1)) g.lineBetween(px,py,px,py+CS);       // 左辺
+      if(!isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS); // 右辺
+    }
   }
   drawBoard(){
     const g=this.gridGfx; g.clear();
@@ -2412,7 +2434,7 @@ class PuzzleGame extends Phaser.Scene{
     const visited=Array.from({length:ROWS},()=>Array(COLS).fill(false));
 
     for(let r0=0;r0<ROWS;r0++)for(let c0=0;c0<COLS;c0++){
-      if(this.grid[r0][c0]||visited[r0][c0])continue;
+      if(LAND_MAP[r0][c0]===null||this.grid[r0][c0]||visited[r0][c0])continue;
       // BFSで連結した空きマスを収集
       const cells=[];
       const queue=[[r0,c0]];
@@ -2422,7 +2444,7 @@ class PuzzleGame extends Phaser.Scene{
         cells.push([r,c]);
         for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){
           const nr=r+dr,nc=c+dc;
-          if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!this.grid[nr][nc]&&!visited[nr][nc]){
+          if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&LAND_MAP[nr][nc]!==null&&!this.grid[nr][nc]&&!visited[nr][nc]){
             visited[nr][nc]=true;
             queue.push([nr,nc]);
           }
