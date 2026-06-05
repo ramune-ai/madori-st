@@ -1422,6 +1422,12 @@ class PuzzleGame extends Phaser.Scene{
     Promise.all(entries.map(([k,v])=>loadTexture(k,v))).then(()=>{
       if(this._sessionId!==sessionId)return;
       this.placeGenkan();
+      // 既存ビジュアルを破棄して再構築（テクスチャロード後に確実に反映）
+      Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
+      Object.values(this.boardLabels).forEach(o=>{if(o&&o.destroy)o.destroy();});
+      this.boardImgs={};
+      this.boardLabels={};
+      this.rebuildBoardVisuals();
       this.drawBoard();
       this.nextPiece();
       this.drawUI();
