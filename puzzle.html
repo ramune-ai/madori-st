@@ -2121,9 +2121,11 @@ class PuzzleGame extends Phaser.Scene{
       });
     }
     // ラベル
+    const previewFs=Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
     const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,{
-      fontSize:'10px',fill:'#3a3028',align:'center',fontFamily:'Meiryo,sans-serif',
-      stroke:'#ffffffcc',strokeThickness:2
+      fontSize:previewFs+'px',fill:'#2a1a0a',align:'center',fontFamily:'Meiryo,sans-serif',
+      fontStyle:'bold',stroke:'#ffffff',strokeThickness:3,
+      wordWrap:{width:pw-8}
     }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.75);
     if(!this._previewLabels)this._previewLabels=[];
     this._previewLabels.push(lbl);
