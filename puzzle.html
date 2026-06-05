@@ -1572,7 +1572,7 @@ class PuzzleGame extends Phaser.Scene{
       if(this._previewActive){
         const inPiece=(tapC>=this.curC&&tapC<this.curC+pw&&tapR>=this.curR&&tapR<this.curR+ph);
         if(inPiece) this.placeAtCursor();
-        else { this.curC=tc; this.curR=tr; this.updatePreview(this.curC,this.curR); }
+        else { this.curC=tc; this.curR=tr; this._anchorC=tc; this._anchorR=tr; this.updatePreview(this.curC,this.curR); }
       }
     });
     if(this.game.canvas){
@@ -1603,7 +1603,10 @@ class PuzzleGame extends Phaser.Scene{
       const sh=this.getShape(this.currentDef,this.rotation);
       const c=Phaser.Math.Clamp(Math.round(g.bx/CS-sh[0].length/2),0,COLS-sh[0].length);
       const r=Phaser.Math.Clamp(Math.round(g.by/CS-sh.length/2),0,ROWS-sh.length);
-      this.curC=c; this.curR=r; this.updatePreview(c,r);
+      this.curC=c; this.curR=r;
+      // ドラッグで位置が決まったら回転アンカーも更新
+      this._anchorC=c; this._anchorR=r;
+      this.updatePreview(c,r);
     };
     const drawCC=()=>{
       if(!this.currentDef)return;
@@ -1655,14 +1658,18 @@ class PuzzleGame extends Phaser.Scene{
         holdCol.classList.toggle('drag-over',cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom);
       }
       const g=toGame(cx,cy);
-      if(g.ok){ clearCC(); doPreview(cx,cy); }
-      else { drawCC(); }
+      if(g.ok){
+        clearCC();
+        doPreview(cx,cy);
+      }
+      // 土地外：何もしない（最後の土地内プレビューを保持・枠内にパーツを戻さない）
     };
 
     const endDrag=(cx,cy,wasTap)=>{
       if(!this._dragging)return;
       this._dragging=false;
       if(holdCol)holdCol.classList.remove('drag-over');
+      // 保留枠へのドロップ
       if(holdCol){
         const h=holdCol.getBoundingClientRect();
         if(cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom){
@@ -1670,18 +1677,30 @@ class PuzzleGame extends Phaser.Scene{
         }
       }
       const g=toGame(cx,cy);
-      if(g.ok){
-        doPreview(cx,cy);
-        if(wasTap && this._previewActive){
-          // ほぼ動かさず離した＝タップ → そのまま設置確定
-          this.placeAtCursor();
+      if(wasTap){
+        // タップ＝動かさず離した → 離した位置にプレビューを置いて即設置
+        if(g.ok){
+          doPreview(cx,cy);
+          if(this._previewActive) this.placeAtCursor();
         } else {
-          // ドラッグして離した → プレビューを残す（次のタップ/クリックで確定）
-          this._justDropped=true;
-          setTimeout(()=>{this._justDropped=false;},150);
+          this._clearPreview(); this.drawUI();
         }
       } else {
-        this._clearPreview(); this.drawUI();
+        // ドラッグして離した
+        if(g.ok){
+          // 土地内：すでに追従中のプレビュー位置をそのまま残す（再計算しない＝ずれ防止）
+          this.updatePreview(this.curC,this.curR);
+          this._justDropped=true;
+          setTimeout(()=>{this._justDropped=false;},150);
+        } else if(this._previewActive){
+          // 土地外で離したが、直前まで土地内にいた → 最後のプレビュー位置を残す（戻さない）
+          this.updatePreview(this.curC,this.curR);
+          this._justDropped=true;
+          setTimeout(()=>{this._justDropped=false;},150);
+        } else {
+          // 一度も土地内に入らず外で離した → キャンセル（パーツを枠に戻す）
+          this._clearPreview(); this.drawUI();
+        }
       }
     };
 
@@ -1846,6 +1865,8 @@ class PuzzleGame extends Phaser.Scene{
     this.rotation=0; this.holdUsed=false;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
+    // 回転アンカー（補正前の希望位置）を初期化
+    this._anchorC=this.curC; this._anchorR=this.curR;
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
     this._clearPreview();
@@ -1853,12 +1874,12 @@ class PuzzleGame extends Phaser.Scene{
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
-    // 回転（左上アンカー固定方式：はみ出したときだけ盤内に押し戻す）
     this.rotation=(this.rotation+dir+4)%4;
     const newShape=this.getShape(this.currentDef,this.rotation);
-    // 盤面からはみ出す分だけClampで補正（中心保持はしない＝往復でずれない）
-    this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
-    this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
+    // アンカー（補正前の希望位置）から毎回算出 → 端での押し戻しが累積しない
+    if(this._anchorC===undefined){this._anchorC=this.curC;this._anchorR=this.curR;}
+    this.curC=Phaser.Math.Clamp(this._anchorC,0,COLS-newShape[0].length);
+    this.curR=Phaser.Math.Clamp(this._anchorR,0,ROWS-newShape.length);
     if(this._previewActive){
       this.updatePreview(this.curC,this.curR);
     } else {
@@ -2202,6 +2223,7 @@ class PuzzleGame extends Phaser.Scene{
     const shape=this.getShape(this.currentDef,this.rotation);
     this.curC=Phaser.Math.Clamp(this.curC+dc,0,COLS-shape[0].length);
     this.curR=Phaser.Math.Clamp(this.curR+dr,0,ROWS-shape.length);
+    this._anchorC=this.curC; this._anchorR=this.curR;
     this.updatePreview(this.curC,this.curR);
   }
   placeAtCursor(){
