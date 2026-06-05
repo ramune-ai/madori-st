@@ -1304,7 +1304,7 @@ function svgToCanvas(dataUrl){
   });
 }
 
-const CS=40,COLS=7,ROWS=8,UI_R=0;
+const CS=60,COLS=7,ROWS=8,UI_R=0;
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 // 土地形状定義（将来の変形土地対応）
 // null = 配置不可マス、0 = 通常マス
@@ -2224,12 +2224,13 @@ function startPhaserGame(){
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
-      type:Phaser.AUTO,
+      type:Phaser.CANVAS,
       width:CANVAS_W,height:CANVAS_H,
       backgroundColor:'#f5f0e8',
       parent:'game-container',
       scene:PuzzleGame,
-      resolution:dpr,          // Retina対応：物理ピクセルでCanvasを確保
+      resolution:dpr,
+      render:{antialias:false,roundPixels:true},
       scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
     });
   };
