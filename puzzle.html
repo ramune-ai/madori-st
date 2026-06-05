@@ -87,7 +87,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-top-row2{
   display:flex;align-items:center;justify-content:center;
   padding:3px 8px 4px;gap:6px;
+  max-width:100%;
+  flex-wrap:nowrap;
+  overflow:hidden;
 }
+/* canvasは指定サイズだが、画面が狭ければ縮小（はみ出し防止）*/
+#game-top-row2 canvas{max-width:100%;height:auto;}
+#next-col,#current-piece-wrap,#hold-col{min-width:0;}
 /* 次のパーツ縦並び（左） */
 #next-col{
   display:flex;flex-direction:row;align-items:center;gap:4px;
@@ -1700,11 +1706,10 @@ class PuzzleGame extends Phaser.Scene{
     const drawCC=()=>{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
-      const W=cc.width||120, H=cc.height||120;
+      const W=cc.width||110, H=cc.height||110;
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
-      const scale=window._gameScaleRatio||1;
-      const cp=Math.min(Math.round(CS*scale),Math.floor(W/sw),Math.floor(H/sr));
+      const cp=this._unifiedCellPx(W); // 共通セルpxで統一
       const ox=Math.floor((W-sw*cp)/2),oy=Math.floor((H-sr*cp)/2);
       const ctx=cc.getContext('2d'); ctx.clearRect(0,0,W,H);
       this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*cp,sr*cp,this.rotation);
@@ -2173,7 +2178,14 @@ class PuzzleGame extends Phaser.Scene{
   drawBg(){
     const g=this.bgGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
-    // 有効な土地マスだけ床色で塗る（欠け部分は塗らない＝背景のまま）
+    // 欠け部分（土地外）をはっきりグレーで塗る → 範囲が一目で分かる
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(!isLand(r,c)){
+        g.fillStyle(0xcfc7bd,1);
+        g.fillRect(c*CS,r*CS,CS,CS);
+      }
+    }
+    // 有効な土地マスを床色で塗る
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(isLand(r,c)){
         g.fillStyle(0xf8f4ee,1);
@@ -2185,19 +2197,18 @@ class PuzzleGame extends Phaser.Scene{
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      // 右隣・下隣が土地なら内側線
       if(isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS);
       if(isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS);
     }
     // 土地の外周＝隣が土地外の辺に太枠を描く
-    g.lineStyle(3,0x8a7060,1);
+    g.lineStyle(4,0x8a7060,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.lineBetween(px,py,px+CS,py);       // 上辺
-      if(!isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS); // 下辺
-      if(!isLand(r,c-1)) g.lineBetween(px,py,px,py+CS);       // 左辺
-      if(!isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS); // 右辺
+      if(!isLand(r-1,c)) g.lineBetween(px,py,px+CS,py);
+      if(!isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS);
+      if(!isLand(r,c-1)) g.lineBetween(px,py,px,py+CS);
+      if(!isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS);
     }
   }
   drawBoard(){
@@ -2245,46 +2256,49 @@ class PuzzleGame extends Phaser.Scene{
       });
     }
 
-    // ── 次/次次 canvas ──
+    // ── 次/次次/保留 canvas（各枠内で1マスpx統一＝パーツ相対サイズ正確）──
     const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2', size:70},
-      {def:this.queue[0], canvasId:'canvas-next1', size:90},
-      {def:this.holdDef,  canvasId:'canvas-hold',  size:90},
+      {def:this.queue[1], canvasId:'canvas-next2', box:78},
+      {def:this.queue[0], canvasId:'canvas-next1', box:96},
+      {def:this.holdDef,  canvasId:'canvas-hold',  box:96},
     ];
-    for(const {def,canvasId,size} of nextSlots){
+    for(const {def,canvasId,box} of nextSlots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
-      cv.width=size; cv.height=size;
+      cv.width=box; cv.height=box;
+      cv.style.width=box+'px'; cv.style.height=box+'px';
       const ctx=cv.getContext('2d');
-      ctx.clearRect(0,0,size,size);
+      ctx.clearRect(0,0,box,box);
       if(!def){
-        // holdが空のとき「なし」表示
         if(canvasId==='canvas-hold'){
           ctx.fillStyle='rgba(90,74,58,.18)';
-          ctx.font='9px Meiryo,sans-serif';
+          ctx.font='11px Meiryo,sans-serif';
           ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText('なし',size/2,size/2);
+          ctx.fillText('なし',box/2,box/2);
         }
         continue;
       }
-      this._drawDefOnCanvas(ctx,def,size,size);
+      const unitPx=this._unifiedCellPx(box);
+      const sh=this.getShape(def,0);
+      const sw=sh[0].length, sr=sh.length;
+      const pw=sw*unitPx, ph=sr*unitPx;
+      const ox=Math.floor((box-pw)/2), oy=Math.floor((box-ph)/2);
+      this._drawDefOnCanvasFixed(ctx,def,ox,oy,pw,ph,0);
     }
 
-    // ── 現在パーツ canvas（固定80×80） ──
+    // ── 現在パーツ canvas（枠内で1マスpx統一）──
     const cc=document.getElementById('canvas-current');
     if(cc){
-      const W=80,H=80;
+      const W=120,H=120;
       cc.width=W; cc.height=H;
       cc.style.width=W+'px'; cc.style.height=H+'px';
       const ctx=cc.getContext('2d');
       ctx.clearRect(0,0,W,H);
-      // ドラッグ中・プレビュー中は空欄のまま（パーツは土地上のプレビューで表示）
       if(this.currentDef&&!this._dragging&&!this._previewActive){
         const shape=this.getShape(this.currentDef,this.rotation);
         const sw=shape[0].length,sh=shape.length;
-        const scale=window._gameScaleRatio||1;
-        const cellPx=Math.min(Math.round(CS*scale),Math.floor(W/sw),Math.floor(H/sh));
-        const pw=sw*cellPx,ph=sh*cellPx;
+        const unitPx=this._unifiedCellPx(W);
+        const pw=sw*unitPx,ph=sh*unitPx;
         const ox=Math.floor((W-pw)/2),oy=Math.floor((H-ph)/2);
         this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
       }
@@ -2381,6 +2395,18 @@ class PuzzleGame extends Phaser.Scene{
     this._previewActive=false;
     this._previewDefKey=null;
   }
+  // 全パーツ共通の「1マス=何px」を計算（最大パーツが枠に収まる倍率）
+  // これにより今のパーツ枠・次・保留すべてで1マスの大きさが揃う
+  _unifiedCellPx(boxSize){
+    // 全パーツの最大幅・最大高（マス数）を求める
+    let maxDim=1;
+    for(const d of PARTS_DEF){
+      maxDim=Math.max(maxDim, d.w, d.h);
+    }
+    // 最大パーツが boxSize に収まる1マスpx（少し余白を残す）
+    return Math.floor((boxSize-4)/maxDim);
+  }
+
   updatePreview(c,r){
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
     if(!this.currentDef)return;
