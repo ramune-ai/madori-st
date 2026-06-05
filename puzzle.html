@@ -2220,7 +2220,7 @@ function startPhaserGame(){
     const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
-    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H, 1.0); // 1.0を超えない（土地が拡大しすぎない）
+    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H); // 画面にフィット
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
