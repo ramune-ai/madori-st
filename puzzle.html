@@ -432,7 +432,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
-        <canvas id="canvas-current" width="120" height="120" style="display:block;width:120px;height:120px;"></canvas>
+        <canvas id="canvas-current" width="100" height="100" style="display:block;width:100px;height:100px;"></canvas>
         <div id="current-piece-hint" style="font-size:8px;color:var(--brown-light);">ドラッグ or 土地タップ</div>
       </div>
       <!-- 保留 -->
@@ -1706,14 +1706,14 @@ class PuzzleGame extends Phaser.Scene{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
       const cp=this._unifiedCellPx();
-      const PAD=8;
+      const PAD=10;
+      const BOX=3*cp+PAD; // 固定枠サイズ（drawUIと統一）
+      cc.width=BOX; cc.height=BOX;
+      cc.style.width=BOX+'px'; cc.style.height=BOX+'px';
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
-      const cw=sw*cp+PAD, ch=sr*cp+PAD;
-      cc.width=cw; cc.height=ch;
-      cc.style.width=cw+'px'; cc.style.height=ch+'px';
-      const ox=Math.floor((cw-sw*cp)/2),oy=Math.floor((ch-sr*cp)/2);
-      const ctx=cc.getContext('2d'); ctx.clearRect(0,0,cw,ch);
+      const ox=Math.floor((BOX-sw*cp)/2),oy=Math.floor((BOX-sr*cp)/2);
+      const ctx=cc.getContext('2d'); ctx.clearRect(0,0,BOX,BOX);
       this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*cp,sr*cp,this.rotation);
     };
     const clearCC=()=>{
@@ -1787,12 +1787,12 @@ class PuzzleGame extends Phaser.Scene{
           // 土地内：すでに追従中のプレビュー位置をそのまま残す（再計算しない＝ずれ防止）
           this.updatePreview(this.curC,this.curR);
           this._justDropped=true;
-          setTimeout(()=>{this._justDropped=false;},150);
+          setTimeout(()=>{this._justDropped=false;},200);
         } else if(this._previewActive){
           // 土地外で離したが、直前まで土地内にいた → 最後のプレビュー位置を残す（戻さない）
           this.updatePreview(this.curC,this.curR);
           this._justDropped=true;
-          setTimeout(()=>{this._justDropped=false;},150);
+          setTimeout(()=>{this._justDropped=false;},200);
         } else {
           // 一度も土地内に入らず外で離した → キャンセル（パーツを枠に戻す）
           this._clearPreview(); this.drawUI();
@@ -1837,7 +1837,11 @@ class PuzzleGame extends Phaser.Scene{
       if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
       if(_mLongTimer&&_mMoved){clearTimeout(_mLongTimer);_mLongTimer=null;}
     };
-    document._dMU=(e)=>{ if(this._dragging)endDrag(e.clientX,e.clientY,!_mMoved); };
+    document._dMU=(e)=>{
+      if(!this._dragging)return;
+      // PC：ドラッグして離しても設置しない。プレビューを残し、次のクリックで確定。
+      endDrag(e.clientX,e.clientY,false);
+    };
     document.addEventListener('mousemove',document._dMM);
     document.addEventListener('mouseup',  document._dMU);
 
@@ -2258,9 +2262,11 @@ class PuzzleGame extends Phaser.Scene{
       });
     }
 
-    // ── 次/次次/保留 canvas（全スロット共通の1マスpxで描画＝大きさ完全統一）──
+    // ── 次/次次/保留 canvas（枠は固定サイズ・中身は共通1マスpx）──
     const unitPx=this._unifiedCellPx();
-    const PAD=8; // canvas内の余白
+    const PAD=10;
+    // 最大パーツ（3マス）が収まる固定枠サイズ。枠は常にこのサイズで動かない
+    const BOX=3*unitPx+PAD; // 30*3+10 = 100px
     const nextSlots=[
       {def:this.queue[1], canvasId:'canvas-next2'},
       {def:this.queue[0], canvasId:'canvas-next1'},
@@ -2269,51 +2275,39 @@ class PuzzleGame extends Phaser.Scene{
     for(const {def,canvasId} of nextSlots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
+      // 枠は常に固定サイズ
+      cv.width=BOX; cv.height=BOX;
+      cv.style.width=BOX+'px'; cv.style.height=BOX+'px';
+      const ctx=cv.getContext('2d');
+      ctx.clearRect(0,0,BOX,BOX);
       if(!def){
-        // 空（保留なし）：最小サイズで「なし」
-        const box=unitPx*2+PAD;
-        cv.width=box; cv.height=box;
-        cv.style.width=box+'px'; cv.style.height=box+'px';
-        const ctx=cv.getContext('2d');
-        ctx.clearRect(0,0,box,box);
         if(canvasId==='canvas-hold'){
           ctx.fillStyle='rgba(90,74,58,.18)';
-          ctx.font='11px Meiryo,sans-serif';
+          ctx.font='12px Meiryo,sans-serif';
           ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText('なし',box/2,box/2);
+          ctx.fillText('なし',BOX/2,BOX/2);
         }
         continue;
       }
-      // パーツの実寸（マス数）に合わせてcanvasサイズを決定
+      // パーツを共通1マスpxで中央に描画
       const sh=this.getShape(def,0);
       const sw=sh[0].length, sr=sh.length;
-      const cw=sw*unitPx+PAD, ch=sr*unitPx+PAD;
-      cv.width=cw; cv.height=ch;
-      cv.style.width=cw+'px'; cv.style.height=ch+'px';
-      const ctx=cv.getContext('2d');
-      ctx.clearRect(0,0,cw,ch);
-      const ox=Math.floor((cw-sw*unitPx)/2), oy=Math.floor((ch-sr*unitPx)/2);
+      const ox=Math.floor((BOX-sw*unitPx)/2), oy=Math.floor((BOX-sr*unitPx)/2);
       this._drawDefOnCanvasFixed(ctx,def,ox,oy,sw*unitPx,sr*unitPx,0);
     }
 
-    // ── 現在パーツ canvas（同じ1マスpx・パーツ実寸に合わせる）──
+    // ── 現在パーツ canvas（枠は固定・中身は共通1マスpxで中央描画）──
     const cc=document.getElementById('canvas-current');
     if(cc){
+      cc.width=BOX; cc.height=BOX;
+      cc.style.width=BOX+'px'; cc.style.height=BOX+'px';
+      const ctx=cc.getContext('2d');
+      ctx.clearRect(0,0,BOX,BOX);
       if(this.currentDef&&!this._dragging&&!this._previewActive){
         const shape=this.getShape(this.currentDef,this.rotation);
         const sw=shape[0].length,sh=shape.length;
-        const cw=sw*unitPx+PAD, ch=sh*unitPx+PAD;
-        cc.width=cw; cc.height=ch;
-        cc.style.width=cw+'px'; cc.style.height=ch+'px';
-        const ctx=cc.getContext('2d');
-        ctx.clearRect(0,0,cw,ch);
-        const ox=Math.floor((cw-sw*unitPx)/2),oy=Math.floor((ch-sh*unitPx)/2);
+        const ox=Math.floor((BOX-sw*unitPx)/2),oy=Math.floor((BOX-sh*unitPx)/2);
         this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*unitPx,sh*unitPx,this.rotation);
-      } else {
-        // ドラッグ中・プレビュー中は空欄（最小サイズ維持）
-        const box=unitPx*3+PAD;
-        if(cc.width!==box){cc.width=box;cc.height=box;cc.style.width=box+'px';cc.style.height=box+'px';}
-        cc.getContext('2d').clearRect(0,0,cc.width,cc.height);
       }
     }
   }
@@ -2411,7 +2405,7 @@ class PuzzleGame extends Phaser.Scene{
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
-    return 22; // 1マス=22px固定（次・今・保留・ドラッグ全て共通）
+    return 30; // 1マス=30px固定（次・今・保留・ドラッグ全て共通）
   }
 
   updatePreview(c,r){
