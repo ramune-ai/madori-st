@@ -2224,13 +2224,13 @@ function startPhaserGame(){
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
-      type:Phaser.CANVAS,
+      type:Phaser.AUTO,
       width:CANVAS_W,height:CANVAS_H,
       backgroundColor:'#f5f0e8',
       parent:'game-container',
       scene:PuzzleGame,
       resolution:dpr,
-      render:{antialias:false,roundPixels:true},
+      render:{antialias:true,roundPixels:false,powerPreference:'high-performance'},
       scale:{mode:Phaser.Scale.NONE,zoom:scaleRatio}
     });
   };
