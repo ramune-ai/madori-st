@@ -271,10 +271,63 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── モーダル ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,42,26,.6);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.active{display:flex;}
-.modal-box{background:var(--cream);border-radius:12px;padding:32px;width:90%;max-width:400px;max-height:70vh;overflow-y:auto;}
+.modal-box{background:var(--cream);border-radius:12px;padding:24px 20px 28px;width:92%;max-width:480px;max-height:80vh;overflow-y:auto;}
 .modal-title{font-family:'Noto Serif JP',serif;font-size:18px;color:var(--brown-dark);margin-bottom:20px;letter-spacing:.1em;}
 .modal-close{float:right;background:none;border:none;font-size:20px;color:var(--brown-light);cursor:pointer;margin-top:-4px;}
 .modal-empty{font-size:13px;color:var(--brown-light);text-align:center;padding:24px 0;line-height:2;}
+
+/* ── 称号一覧グリッド ── */
+.title-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  padding:4px 0;
+}
+@media(min-width:360px){.title-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:460px){.title-grid{grid-template-columns:repeat(4,1fr);}}
+.title-grid-card{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:10px 6px 8px;border-radius:10px;text-align:center;
+  background:#fff;border:1.5px solid rgba(90,74,58,.1);
+  transition:border-color .2s;
+}
+.title-grid-card.owned{
+  border-color:var(--accent);
+  background:linear-gradient(160deg,#fffdf7,#fdf5e4);
+}
+.title-grid-card.locked{
+  background:#f8f5f0;
+  border-color:rgba(90,74,58,.08);
+}
+.title-grid-badge{
+  font-size:28px;line-height:1;
+  transition:filter .2s;
+}
+.title-grid-card.locked .title-grid-badge{
+  filter:grayscale(1) brightness(1.1);
+  opacity:0.45;
+}
+.title-grid-name{
+  font-family:'Noto Serif JP',serif;
+  font-size:12px;font-weight:700;
+  color:var(--brown-dark);
+  letter-spacing:.04em;line-height:1.35;
+  word-break:break-all;
+}
+.title-grid-card.locked .title-grid-name{
+  color:var(--brown-light);
+  letter-spacing:.06em;
+  font-size:11px;
+}
+.title-grid-cond{
+  font-size:9px;color:var(--brown-light);
+  line-height:1.4;letter-spacing:.02em;
+}
+.title-grid-new-badge{
+  font-size:8px;font-weight:700;letter-spacing:.06em;
+  background:var(--accent);color:#fff;
+  padding:1px 5px;border-radius:3px;margin-top:1px;
+}
 
 /* ── 間取り背景 ── */
 .madori-bg{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .6s ease;}
@@ -978,17 +1031,74 @@ function renderSavesList(){
 // ────────────────────────────────────────
 // モーダル
 // ────────────────────────────────────────
+// ── 全称号マスターデータ（badge・condition付き） ──
+const ALL_TITLES_MASTER=[
+  {title:'掘り出し物件の達人', badge:'🏆', condition:'築5年以内・駅徒歩5分以内・家賃8万円以下'},
+  {title:'レトロ愛好家',       badge:'🏚️', condition:'築40年以上の物件を完成させる'},
+  {title:'駅前派',             badge:'🚉', condition:'駅徒歩3分以内'},
+  {title:'静寂の探求者',       badge:'🌲', condition:'駅徒歩30分以上'},
+  {title:'高級志向',           badge:'💎', condition:'家賃50万円以上'},
+  {title:'コスパ王',           badge:'👑', condition:'家賃6万円以下かつ駅徒歩10分以内'},
+  {title:'和洋折衷の使い手',   badge:'🏯', condition:'和室と洋室を両方配置する'},
+  {title:'収納マニア',         badge:'🗄️', condition:'WICを配置する'},
+  {title:'採光重視派',         badge:'🌤️', condition:'バルコニーを配置する'},
+  {title:'謎の間取りすと',     badge:'🔮', condition:'お風呂もトイレも置かずに完成'},
+  {title:'間取りすと見習い',   badge:'📐', condition:'はじめての物件を完成させる'},
+];
+
 function openModal(type){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
   if(type==='saves'){
     renderSavesList();
   }else{
-    const titles=JSON.parse(localStorage.getItem('madori-titles')||'[]');
+    const owned=new Set(JSON.parse(localStorage.getItem('madori-titles')||'[]'));
+    const newSet=new Set(window._newTitles||[]);
     title.textContent='称号一覧';
-    body.innerHTML=titles.length===0
-      ?'<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>'
-      :titles.map(t=>`<div style="padding:10px 0;border-bottom:1px solid rgba(90,74,58,.1);font-family:'Noto Serif JP',serif;color:var(--brown-dark)">${t}</div>`).join('');
+
+    if(ALL_TITLES_MASTER.length===0){
+      body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
+    } else {
+      const grid=document.createElement('div');
+      grid.className='title-grid';
+      // 獲得済み→未獲得の順で並べる
+      const sorted=[
+        ...ALL_TITLES_MASTER.filter(m=>owned.has(m.title)),
+        ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
+      ];
+      sorted.forEach(m=>{
+        const isOwned=owned.has(m.title);
+        const isNew=newSet.has(m.title);
+        const card=document.createElement('div');
+        card.className='title-grid-card '+(isOwned?'owned':'locked');
+
+        const badgeEl=document.createElement('div');
+        badgeEl.className='title-grid-badge';
+        badgeEl.textContent=m.badge;
+
+        const nameEl=document.createElement('div');
+        nameEl.className='title-grid-name';
+        nameEl.textContent=isOwned ? m.title : '？？？？';
+
+        const condEl=document.createElement('div');
+        condEl.className='title-grid-cond';
+        condEl.textContent=m.condition;
+
+        card.appendChild(badgeEl);
+        card.appendChild(nameEl);
+        card.appendChild(condEl);
+
+        if(isNew){
+          const nb=document.createElement('div');
+          nb.className='title-grid-new-badge';
+          nb.textContent='NEW！';
+          card.appendChild(nb);
+        }
+        grid.appendChild(card);
+      });
+      body.innerHTML='';
+      body.appendChild(grid);
+    }
   }
   document.getElementById('modal-overlay').classList.add('active');
 }
