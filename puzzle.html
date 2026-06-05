@@ -1399,6 +1399,11 @@ class PuzzleGame extends Phaser.Scene{
           cv.getContext('2d').drawImage(tmp,0,0);
           if(this.textures.exists(k))this.textures.remove(k);
           this.textures.addCanvas(k,cv);
+          if(k==='washitsu'||k==='youshitsu'){
+            // デバッグ：画面上に表示
+            const dbg=document.getElementById('_dbg')||Object.assign(document.body.appendChild(document.createElement('div')),{id:'_dbg',style:'position:fixed;top:0;left:0;background:red;color:white;font-size:12px;z-index:9999;padding:4px'});
+            dbg.innerHTML+='<br>'+k+' loaded: '+sw+'x'+sh+' -> '+w+'x'+h;
+          }
           resolve();
         };
         img.onerror=()=>{
