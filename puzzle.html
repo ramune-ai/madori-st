@@ -91,13 +91,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   flex-wrap:nowrap;
   overflow:hidden;
 }
-/* canvasは指定サイズだが、画面が狭ければ縮小（はみ出し防止）*/
 #game-top-row2 canvas{max-width:100%;height:auto;}
-#next-col,#current-piece-wrap,#hold-col{min-width:0;}
+#next-col,#current-piece-wrap,#hold-col{min-width:0;flex-shrink:1;}
 /* 次のパーツ縦並び（左） */
 #next-col{
   display:flex;flex-direction:row;align-items:center;gap:4px;
-  padding:4px 7px;flex-shrink:0;
+  padding:4px 7px;
 }
 .next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
 .next-sublabel{font-size:8px;color:var(--brown-light);letter-spacing:.06em;}
@@ -107,7 +106,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #current-piece-wrap{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   background:rgba(200,160,96,.08);border:2px solid var(--accent);border-radius:10px;
-  padding:4px 6px;flex-shrink:0;cursor:grab;user-select:none;
+  padding:4px 6px;cursor:grab;user-select:none;
   -webkit-tap-highlight-color:transparent;
   touch-action:none;
   position:relative;
@@ -126,8 +125,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #hold-col{
   display:flex;flex-direction:column;align-items:center;gap:2px;
   background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
-  padding:4px 7px;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  min-width:58px;transition:background .15s,border-color .15s;
+  padding:4px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  min-width:48px;transition:background .15s,border-color .15s;
 }
 #hold-col.drag-over{background:rgba(200,160,96,.3);border-color:var(--brown-dark);}
 #hold-col:active{background:rgba(200,160,96,.18);}
@@ -1706,12 +1705,15 @@ class PuzzleGame extends Phaser.Scene{
     const drawCC=()=>{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
-      const W=cc.width||110, H=cc.height||110;
+      const cp=this._unifiedCellPx();
+      const PAD=8;
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
-      const cp=this._unifiedCellPx(W); // 共通セルpxで統一
-      const ox=Math.floor((W-sw*cp)/2),oy=Math.floor((H-sr*cp)/2);
-      const ctx=cc.getContext('2d'); ctx.clearRect(0,0,W,H);
+      const cw=sw*cp+PAD, ch=sr*cp+PAD;
+      cc.width=cw; cc.height=ch;
+      cc.style.width=cw+'px'; cc.style.height=ch+'px';
+      const ox=Math.floor((cw-sw*cp)/2),oy=Math.floor((ch-sr*cp)/2);
+      const ctx=cc.getContext('2d'); ctx.clearRect(0,0,cw,ch);
       this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*cp,sr*cp,this.rotation);
     };
     const clearCC=()=>{
@@ -2256,20 +2258,24 @@ class PuzzleGame extends Phaser.Scene{
       });
     }
 
-    // ── 次/次次/保留 canvas（各枠内で1マスpx統一＝パーツ相対サイズ正確）──
+    // ── 次/次次/保留 canvas（全スロット共通の1マスpxで描画＝大きさ完全統一）──
+    const unitPx=this._unifiedCellPx();
+    const PAD=8; // canvas内の余白
     const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2', box:78},
-      {def:this.queue[0], canvasId:'canvas-next1', box:96},
-      {def:this.holdDef,  canvasId:'canvas-hold',  box:96},
+      {def:this.queue[1], canvasId:'canvas-next2'},
+      {def:this.queue[0], canvasId:'canvas-next1'},
+      {def:this.holdDef,  canvasId:'canvas-hold'},
     ];
-    for(const {def,canvasId,box} of nextSlots){
+    for(const {def,canvasId} of nextSlots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
-      cv.width=box; cv.height=box;
-      cv.style.width=box+'px'; cv.style.height=box+'px';
-      const ctx=cv.getContext('2d');
-      ctx.clearRect(0,0,box,box);
       if(!def){
+        // 空（保留なし）：最小サイズで「なし」
+        const box=unitPx*2+PAD;
+        cv.width=box; cv.height=box;
+        cv.style.width=box+'px'; cv.style.height=box+'px';
+        const ctx=cv.getContext('2d');
+        ctx.clearRect(0,0,box,box);
         if(canvasId==='canvas-hold'){
           ctx.fillStyle='rgba(90,74,58,.18)';
           ctx.font='11px Meiryo,sans-serif';
@@ -2278,29 +2284,36 @@ class PuzzleGame extends Phaser.Scene{
         }
         continue;
       }
-      const unitPx=this._unifiedCellPx(box);
+      // パーツの実寸（マス数）に合わせてcanvasサイズを決定
       const sh=this.getShape(def,0);
       const sw=sh[0].length, sr=sh.length;
-      const pw=sw*unitPx, ph=sr*unitPx;
-      const ox=Math.floor((box-pw)/2), oy=Math.floor((box-ph)/2);
-      this._drawDefOnCanvasFixed(ctx,def,ox,oy,pw,ph,0);
+      const cw=sw*unitPx+PAD, ch=sr*unitPx+PAD;
+      cv.width=cw; cv.height=ch;
+      cv.style.width=cw+'px'; cv.style.height=ch+'px';
+      const ctx=cv.getContext('2d');
+      ctx.clearRect(0,0,cw,ch);
+      const ox=Math.floor((cw-sw*unitPx)/2), oy=Math.floor((ch-sr*unitPx)/2);
+      this._drawDefOnCanvasFixed(ctx,def,ox,oy,sw*unitPx,sr*unitPx,0);
     }
 
-    // ── 現在パーツ canvas（枠内で1マスpx統一）──
+    // ── 現在パーツ canvas（同じ1マスpx・パーツ実寸に合わせる）──
     const cc=document.getElementById('canvas-current');
     if(cc){
-      const W=120,H=120;
-      cc.width=W; cc.height=H;
-      cc.style.width=W+'px'; cc.style.height=H+'px';
-      const ctx=cc.getContext('2d');
-      ctx.clearRect(0,0,W,H);
       if(this.currentDef&&!this._dragging&&!this._previewActive){
         const shape=this.getShape(this.currentDef,this.rotation);
         const sw=shape[0].length,sh=shape.length;
-        const unitPx=this._unifiedCellPx(W);
-        const pw=sw*unitPx,ph=sh*unitPx;
-        const ox=Math.floor((W-pw)/2),oy=Math.floor((H-ph)/2);
-        this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,pw,ph,this.rotation);
+        const cw=sw*unitPx+PAD, ch=sh*unitPx+PAD;
+        cc.width=cw; cc.height=ch;
+        cc.style.width=cw+'px'; cc.style.height=ch+'px';
+        const ctx=cc.getContext('2d');
+        ctx.clearRect(0,0,cw,ch);
+        const ox=Math.floor((cw-sw*unitPx)/2),oy=Math.floor((ch-sh*unitPx)/2);
+        this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*unitPx,sh*unitPx,this.rotation);
+      } else {
+        // ドラッグ中・プレビュー中は空欄（最小サイズ維持）
+        const box=unitPx*3+PAD;
+        if(cc.width!==box){cc.width=box;cc.height=box;cc.style.width=box+'px';cc.style.height=box+'px';}
+        cc.getContext('2d').clearRect(0,0,cc.width,cc.height);
       }
     }
   }
@@ -2395,16 +2408,10 @@ class PuzzleGame extends Phaser.Scene{
     this._previewActive=false;
     this._previewDefKey=null;
   }
-  // 全パーツ共通の「1マス=何px」を計算（最大パーツが枠に収まる倍率）
-  // これにより今のパーツ枠・次・保留すべてで1マスの大きさが揃う
-  _unifiedCellPx(boxSize){
-    // 全パーツの最大幅・最大高（マス数）を求める
-    let maxDim=1;
-    for(const d of PARTS_DEF){
-      maxDim=Math.max(maxDim, d.w, d.h);
-    }
-    // 最大パーツが boxSize に収まる1マスpx（少し余白を残す）
-    return Math.floor((boxSize-4)/maxDim);
+  // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
+  // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
+  _unifiedCellPx(){
+    return 22; // 1マス=22px固定（次・今・保留・ドラッグ全て共通）
   }
 
   updatePreview(c,r){
