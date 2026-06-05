@@ -1622,6 +1622,17 @@ class PuzzleGame extends Phaser.Scene{
       cc.getContext('2d').clearRect(0,0,cc.width,cc.height);
     };
 
+    // ── 状態管理変数（リスナー定義より前に宣言：TDZ回避）──
+    // タッチ
+    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null;
+    const DRAG_THRESHOLD=12; // タッチ：これ以上動いたら「ドラッグ」
+    // マウス
+    let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null;
+    const MOUSE_DRAG_THRESHOLD=5;
+    const _clearLongPress=()=>{
+      if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
+    };
+
     // ── startDrag / moveDrag / endDrag ──
     const startDrag=(cx,cy)=>{
       if(!this.currentDef||this._dragging)return;
@@ -1722,20 +1733,8 @@ class PuzzleGame extends Phaser.Scene{
       if(canvas[k]){canvas.removeEventListener(ev,canvas[k]);delete canvas[k];}
     });
 
-    // タッチ状態管理
-    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null;
-    // 移動量の閾値（px）：これ以上動いたら「ドラッグ」、未満なら「タップ」
-    const DRAG_THRESHOLD=12;
-
-    const _clearLongPress=()=>{
-      if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
-    };
-
     // マウス操作（土地）
-    // mousedown → startDrag（5px以上動いたらdrag確定、そのままでもmouseupで設置）
-    let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null;
-    const MOUSE_DRAG_THRESHOLD=5;
-
+    // mousedown → パーツあれば即startDrag、なければ長押しundo
     canvas._cLD=(e)=>{
       if(e.button!==0)return;
       _msx=e.clientX; _msy=e.clientY; _mMoved=false;
@@ -1757,12 +1756,6 @@ class PuzzleGame extends Phaser.Scene{
     canvas._cLU=(e)=>{
       if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;}
       // mouseupでendDragはdocument._dMUが担当
-    };
-    canvas._cLM=(e)=>{
-      if(this._dragging){ moveDrag(e.clientX,e.clientY); return; }
-      const dx=e.clientX-_msx, dy=e.clientY-_msy;
-      if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
-      if(_mLongTimer&&_mMoved){clearTimeout(_mLongTimer);_mLongTimer=null;}
     };
 
     // ── タッチ操作（土地）──
@@ -1864,8 +1857,17 @@ class PuzzleGame extends Phaser.Scene{
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
+    // 回転前のパーツ中心（グリッド座標）を記録
+    const oldShape=this.getShape(this.currentDef,this.rotation);
+    const centerC=this.curC+oldShape[0].length/2;
+    const centerR=this.curR+oldShape.length/2;
+    // 回転
     this.rotation=(this.rotation+dir+4)%4;
     const newShape=this.getShape(this.currentDef,this.rotation);
+    // 中心を保ったまま新しい左上座標を算出
+    this.curC=Math.round(centerC-newShape[0].length/2);
+    this.curR=Math.round(centerR-newShape.length/2);
+    // 盤面内にClamp
     this.curC=Phaser.Math.Clamp(this.curC,0,COLS-newShape[0].length);
     this.curR=Phaser.Math.Clamp(this.curR,0,ROWS-newShape.length);
     if(this._previewActive){
