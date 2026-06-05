@@ -1699,7 +1699,13 @@ class PuzzleGame extends Phaser.Scene{
     // ── document（マウス専用：wrap外追従用）──
     if(document._dMM)document.removeEventListener('mousemove',document._dMM);
     if(document._dMU)document.removeEventListener('mouseup',  document._dMU);
-    document._dMM=(e)=>{ if(this._dragging)moveDrag(e.clientX,e.clientY); };
+    document._dMM=(e)=>{
+      if(this._dragging){ moveDrag(e.clientX,e.clientY); return; }
+      // 長押しキャンセル判定（パーツなし時）
+      const dx=e.clientX-_msx, dy=e.clientY-_msy;
+      if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
+      if(_mLongTimer&&_mMoved){clearTimeout(_mLongTimer);_mLongTimer=null;}
+    };
     document._dMU=(e)=>{ if(this._dragging)endDrag(e.clientX,e.clientY); };
     document.addEventListener('mousemove',document._dMM);
     document.addEventListener('mouseup',  document._dMU);
@@ -1710,8 +1716,8 @@ class PuzzleGame extends Phaser.Scene{
     //   段階B: 指を離したらその場所に設置
     // 長押しによるundo起動は canvas を直接ロングタップ（指を動かさない場合のみ）
 
-    ['_cLD','_cLU','_cLM','_cLTS','_cLTE','_cLTM','_cLTC'].forEach(k=>{
-      const ev={_cLD:'mousedown',_cLU:'mouseup',_cLM:'mousemove',
+    ['_cLD','_cLU','_cLTS','_cLTE','_cLTM','_cLTC'].forEach(k=>{
+      const ev={_cLD:'mousedown',_cLU:'mouseup',
                 _cLTS:'touchstart',_cLTE:'touchend',_cLTM:'touchmove',_cLTC:'touchcancel'}[k];
       if(canvas[k]){canvas.removeEventListener(ev,canvas[k]);delete canvas[k];}
     });
@@ -1725,25 +1731,38 @@ class PuzzleGame extends Phaser.Scene{
       if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
     };
 
-    // マウス操作（土地クリック：長押しundo）
-    let _mLongTimer=null,_msx=0,_msy=0;
+    // マウス操作（土地）
+    // mousedown → startDrag（5px以上動いたらdrag確定、そのままでもmouseupで設置）
+    let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null;
+    const MOUSE_DRAG_THRESHOLD=5;
+
     canvas._cLD=(e)=>{
       if(e.button!==0)return;
-      _msx=e.clientX; _msy=e.clientY;
+      _msx=e.clientX; _msy=e.clientY; _mMoved=false;
+      if(this.currentDef){
+        // パーツあり：即ドラッグ開始
+        startDrag(e.clientX,e.clientY);
+        return;
+      }
+      // パーツなし：長押し500msでundo
       if(_mLongTimer)clearTimeout(_mLongTimer);
       _mLongTimer=setTimeout(()=>{
         _mLongTimer=null;
-        if(this._dragging||!this.undoStack.length)return;
-        this.doUndo();
-        if(this.currentDef)startDrag(_msx,_msy);
+        if(!_mMoved&&!this.currentDef&&this.undoStack.length){
+          this.doUndo();
+          if(this.currentDef)startDrag(_msx,_msy);
+        }
       },500);
     };
-    canvas._cLU=(e)=>{ if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;} };
+    canvas._cLU=(e)=>{
+      if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;}
+      // mouseupでendDragはdocument._dMUが担当
+    };
     canvas._cLM=(e)=>{
       if(this._dragging){ moveDrag(e.clientX,e.clientY); return; }
-      if(_mLongTimer&&(e.clientX-_msx)**2+(e.clientY-_msy)**2>400){
-        clearTimeout(_mLongTimer);_mLongTimer=null;
-      }
+      const dx=e.clientX-_msx, dy=e.clientY-_msy;
+      if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
+      if(_mLongTimer&&_mMoved){clearTimeout(_mLongTimer);_mLongTimer=null;}
     };
 
     // ── タッチ操作（土地）──
@@ -1809,7 +1828,7 @@ class PuzzleGame extends Phaser.Scene{
 
     canvas.addEventListener('mousedown', canvas._cLD);
     canvas.addEventListener('mouseup',   canvas._cLU);
-    canvas.addEventListener('mousemove', canvas._cLM);
+    // mousemove は document レベルで処理（Phaserのcanvasイベントと競合を避ける）
     canvas.addEventListener('touchstart', canvas._cLTS,{passive:false});
     canvas.addEventListener('touchend',   canvas._cLTE,{passive:false});
     canvas.addEventListener('touchmove',  canvas._cLTM,{passive:false});
@@ -1933,18 +1952,22 @@ class PuzzleGame extends Phaser.Scene{
       g.fillStyle(cell.color,1); g.fillRect(px+1,py+1,pw-2,ph-2);
       this.boardImgs[pid]=g;
     }
-    // ラベルテキスト
-    const labelText=cell.fixed?'玄関':(cell.label||'');
-    const labelFs=cell.fixed?14:Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
-    const lbl=this.add.text(px+pw/2, py+ph/2, labelText,{
-      fontSize:labelFs+'px',
-      fill:cell.fixed?'#604010':'#2a1a0a',
-      align:'center',fontFamily:'Meiryo,sans-serif',
-      fontStyle:'bold',
-      stroke:'#ffffff',strokeThickness:3,
-      wordWrap:{width:pw-8}
-    }).setOrigin(0.5,0.5).setDepth(5);
-    this.boardLabels[pid]=lbl;
+    // ラベルテキスト（テクスチャがある場合は非表示）
+    const labelText = cellType && this.textures.exists(cellType)
+      ? ''
+      : (cell.fixed ? '玄関' : (cell.label || ''));
+    if(labelText){
+      const labelFs=cell.fixed?14:Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
+      const lbl=this.add.text(px+pw/2, py+ph/2, labelText,{
+        fontSize:labelFs+'px',
+        fill:cell.fixed?'#604010':'#2a1a0a',
+        align:'center',fontFamily:'Meiryo,sans-serif',
+        fontStyle:'bold',
+        stroke:'#ffffff',strokeThickness:3,
+        wordWrap:{width:pw-8}
+      }).setOrigin(0.5,0.5).setDepth(5);
+      this.boardLabels[pid]=lbl;
+    }
   }
 
   placeGenkan(){
