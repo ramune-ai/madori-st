@@ -363,24 +363,24 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div id="next-col">
         <div class="next-row">
           <div class="next-sublabel">次の次</div>
-          <canvas id="canvas-next2" width="56" height="56"></canvas>
+          <canvas id="canvas-next2" width="70" height="70"></canvas>
         </div>
         <div style="font-size:10px;color:var(--brown-light);margin:0 3px;">→</div>
         <div class="next-row">
           <div class="next-sublabel em">次</div>
-          <canvas id="canvas-next1" width="72" height="72"></canvas>
+          <canvas id="canvas-next1" width="90" height="90"></canvas>
         </div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
-        <canvas id="canvas-current" width="80" height="80" style="display:block;width:80px;height:80px;"></canvas>
+        <canvas id="canvas-current" width="120" height="120" style="display:block;width:120px;height:120px;"></canvas>
         <div id="current-piece-hint" style="font-size:8px;color:var(--brown-light);">ドラッグ or 土地タップ</div>
       </div>
       <!-- 保留 -->
       <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
         <div class="hold-label">保留</div>
-        <canvas id="canvas-hold" width="72" height="72"></canvas>
+        <canvas id="canvas-hold" width="90" height="90"></canvas>
         <div id="hold-hint">タップで交換</div>
       </div>
     </div>
@@ -1304,7 +1304,7 @@ function svgToCanvas(dataUrl){
   });
 }
 
-const CS=60,COLS=7,ROWS=8,UI_R=0;
+const CS=50,COLS=7,ROWS=8,UI_R=0;
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 // 土地形状定義（将来の変形土地対応）
 // null = 配置不可マス、0 = 通常マス
@@ -1503,7 +1503,7 @@ class PuzzleGame extends Phaser.Scene{
     const drawCC=()=>{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
-      const W=80,H=80;
+      const W=120,H=120;
       cc.width=W; cc.height=H; cc.style.width=W+'px'; cc.style.height=H+'px';
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
@@ -1954,9 +1954,9 @@ class PuzzleGame extends Phaser.Scene{
 
     // ── 次/次次 canvas ──
     const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2', size:56},
-      {def:this.queue[0], canvasId:'canvas-next1', size:72},
-      {def:this.holdDef,  canvasId:'canvas-hold',  size:72},
+      {def:this.queue[1], canvasId:'canvas-next2', size:70},
+      {def:this.queue[0], canvasId:'canvas-next1', size:90},
+      {def:this.holdDef,  canvasId:'canvas-hold',  size:90},
     ];
     for(const {def,canvasId,size} of nextSlots){
       const cv=document.getElementById(canvasId);
