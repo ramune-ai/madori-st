@@ -1414,11 +1414,86 @@ function svgToCanvas(dataUrl){
 
 const CS=60,COLS=7,ROWS=8,UI_R=0;
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
-// 土地形状定義（将来の変形土地対応）
+// 土地形状定義
 // null = 配置不可マス、0 = 通常マス
-// 現在は全マス配置可能な長方形
-const LAND_MAP=Array.from({length:ROWS},()=>Array(COLS).fill(0));
-// canPlace でLAND_MAPを参照するためグローバルに持つ
+// COLS=7, ROWS=8 のグリッド内で形を定義（外側はnull扱い）
+// ヘルパー：行文字列（'.'=配置不可, '#'=配置可）から7x8マップを生成
+function makeLand(rows){
+  // rowsは8要素の文字列配列、各7文字（'#'=置ける, '.'=置けない）
+  const map=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+  for(let r=0;r<ROWS;r++){
+    const line=rows[r]||'';
+    for(let c=0;c<COLS;c++){
+      map[r][c]=(line[c]==='#')?0:null;
+    }
+  }
+  return map;
+}
+// 土地プリセット（全て7x8グリッド内）
+const LAND_PRESETS=[
+  // ① 標準（長方形 7x8 全面）
+  makeLand([
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+  ]),
+  // ② L字（左下が欠ける）
+  makeLand([
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+    '####...',
+    '####...',
+    '####...',
+    '####...',
+  ]),
+  // ③ L字（右下が欠ける）
+  makeLand([
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+    '...####',
+    '...####',
+    '...####',
+    '...####',
+  ]),
+  // ④ L字（左上が欠ける）
+  makeLand([
+    '####...',
+    '####...',
+    '####...',
+    '####...',
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+  ]),
+  // ⑤ L字（右上が欠ける）
+  makeLand([
+    '...####',
+    '...####',
+    '...####',
+    '...####',
+    '#######',
+    '#######',
+    '#######',
+    '#######',
+  ]),
+];
+// 現在の土地（ゲーム開始時にランダム選択）
+let LAND_MAP=LAND_PRESETS[0].map(row=>row.slice());
+function pickRandomLand(){
+  const idx=Math.floor(Math.random()*LAND_PRESETS.length);
+  LAND_MAP=LAND_PRESETS[idx].map(row=>row.slice());
+  return idx;
+}
 const GENKAN_COLOR=0xD4A870;
 
 class PuzzleGame extends Phaser.Scene{
@@ -1429,6 +1504,7 @@ class PuzzleGame extends Phaser.Scene{
     gameScene=this;
     this._sessionId=(this._sessionId||0)+1;
     const sessionId=this._sessionId;
+    pickRandomLand(); // 土地形状をランダム選択
     this._storageGfx=null;
     this._storageTexts=[];
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
@@ -1596,7 +1672,10 @@ class PuzzleGame extends Phaser.Scene{
       const r=canvas.getBoundingClientRect();
       const bx=(cx-r.left)*(CANVAS_W/canvas.offsetWidth);
       const by=(cy-r.top )*(CANVAS_H/canvas.offsetHeight);
-      return{bx,by,ok:bx>=0&&by>=0&&bx<=CANVAS_W&&by<=CANVAS_H};
+      // 土地のすぐ外側まではドラッグ有効とみなす（端でプレビューが消えないようマージンCS分）
+      const M=CS;
+      const ok = bx>=-M && by>=-M && bx<=CANVAS_W+M && by<=CANVAS_H+M;
+      return{bx,by,ok};
     };
     const doPreview=(cx,cy)=>{
       const g=toGame(cx,cy); if(!g.ok||!this.currentDef)return;
@@ -1627,7 +1706,7 @@ class PuzzleGame extends Phaser.Scene{
 
     // ── 状態管理変数（リスナー定義より前に宣言：TDZ回避）──
     // タッチ
-    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null;
+    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null,_suppressNextTapPlace=false;
     const DRAG_THRESHOLD=12; // タッチ：これ以上動いたら「ドラッグ」
     // マウス
     let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null;
@@ -1805,7 +1884,10 @@ class PuzzleGame extends Phaser.Scene{
           _longPressTimer=null;
           if(!_touchMoved){
             this.doUndo();
-            if(this.currentDef)startDrag(_touchStartX,_touchStartY);
+            if(this.currentDef){
+              startDrag(_touchStartX,_touchStartY);
+              _suppressNextTapPlace=true; // 長押しundo直後の指離しでは設置しない
+            }
           }
         },500);
       }
@@ -1828,6 +1910,12 @@ class PuzzleGame extends Phaser.Scene{
       _clearLongPress();
       if(!this._dragging)return;
       const t=e.changedTouches[0];
+      if(_suppressNextTapPlace){
+        // 長押しundo直後 → 設置せずプレビューを残す
+        _suppressNextTapPlace=false;
+        endDrag(t.clientX,t.clientY,false);
+        return;
+      }
       // _touchMoved が false ＝ タップ → endDrag内で設置
       endDrag(t.clientX,t.clientY,!_touchMoved);
     };
@@ -1983,12 +2071,27 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   placeGenkan(){
-    const gx=Phaser.Math.Between(1,COLS-3);
     const pid='genkan';
+    // 2×2が全て配置可能（LAND_MAP!==null かつ空き）な位置を下の行から探す
+    const candidates=[];
+    for(let r=ROWS-2;r>=0;r--){
+      for(let c=0;c<=COLS-2;c++){
+        let ok=true;
+        for(let dr=0;dr<2&&ok;dr++)for(let dc=0;dc<2;dc++){
+          if(LAND_MAP[r+dr][c+dc]===null||this.grid[r+dr][c+dc]){ok=false;break;}
+        }
+        if(ok)candidates.push({r,c});
+      }
+      // 下端の行に候補があればそこから選ぶ（玄関は下に置きたい）
+      if(candidates.length)break;
+    }
+    if(!candidates.length)return; // 置けないなら玄関なし（保険）
+    const pick=candidates[Math.floor(Math.random()*candidates.length)];
+    const gr=pick.r, gx=pick.c;
     for(let dr=0;dr<2;dr++)for(let dc=0;dc<2;dc++)
-      this.grid[ROWS-2+dr][gx+dc]={color:GENKAN_COLOR,fixed:true,type:'genkan',pid,
-        mnR:ROWS-2,mxR:ROWS-1,mnC:gx,mxC:gx+1,label:'玄関',rotation:0};
-    this._createCellVisual(this.grid[ROWS-2][gx]);
+      this.grid[gr+dr][gx+dc]={color:GENKAN_COLOR,fixed:true,type:'genkan',pid,
+        mnR:gr,mxR:gr+1,mnC:gx,mxC:gx+1,label:'玄関',rotation:0};
+    this._createCellVisual(this.grid[gr][gx]);
   }
 
   checkNoPlace(){
