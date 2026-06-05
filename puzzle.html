@@ -1040,9 +1040,9 @@ const ALL_TITLES_MASTER=[
   {title:'高級志向',           badge:'💎', condition:'家賃50万円以上'},
   {title:'コスパ王',           badge:'👑', condition:'家賃6万円以下かつ駅徒歩10分以内'},
   {title:'和洋折衷の使い手',   badge:'🏯', condition:'和室と洋室を両方配置する'},
-  {title:'収納マニア',         badge:'🗄️', condition:'WICを配置する'},
   {title:'採光重視派',         badge:'🌤️', condition:'バルコニーを配置する'},
   {title:'謎の間取りすと',     badge:'🔮', condition:'お風呂もトイレも置かずに完成'},
+  {title:'玄関マニア',         badge:'🚪', condition:'玄関を配置する'},
   {title:'間取りすと見習い',   badge:'📐', condition:'はじめての物件を完成させる'},
 ];
 
@@ -1195,8 +1195,8 @@ function generateTitles(age,walk,rent,roomTypes){
   if(rent>=50) earned.push({title:'高級志向',comment:'上質な暮らしを追求した間取りです。'});
   if(rent<=6&&walk<=10) earned.push({title:'コスパ王',comment:'リーズナブルな家賃で駅近を確保。'});
   if(has('washitsu')&&has('youshitsu')) earned.push({title:'和洋折衷の使い手',comment:'和室と洋室を組み合わせたセンス溢れる間取り。'});
-  if(has('wic')) earned.push({title:'収納マニア',comment:'WICを完備！整理整頓が行き届いた暮らし。'});
   if(has('balcony')) earned.push({title:'採光重視派',comment:'バルコニーで光と風を取り込む間取りです。'});
+  if(has('genkan'))  earned.push({title:'玄関マニア',comment:'玄関を設けた、おもてなしの心あふれる間取り。'});
   if(!has('bath')&&!has('toilet')) earned.push({title:'謎の間取りすと',comment:'お風呂もトイレもない…独自の美学の間取りすとです。'});
   if(earned.length===0) earned.push({title:'間取りすと見習い',comment:'はじめての一歩！経験を積んで素敵な間取りを目指そう。'});
   return earned;
@@ -1308,20 +1308,19 @@ const SVG_TEX={
   bath:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjYzhlOGY0Ii8+CjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTg4OGE4IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNCIgeT0iNiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjY4IiBmaWxsPSIjZThmNmZmIiByeD0iOCIvPgo8cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iNDQiIGhlaWdodD0iNjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQ4NzhhMCIgc3Ryb2tlLXdpZHRoPSIyIiByeD0iOCIvPgo8Y2lyY2xlIGN4PSIyNiIgY3k9IjY3IiByPSIzLjUiIGZpbGw9IiM4YWI4ZDAiLz4KPGNpcmNsZSBjeD0iMjYiIGN5PSI2NyIgcj0iMiIgZmlsbD0iIzY4OThiMCIvPgo8bGluZSB4MT0iNjMiIHkxPSIxNCIgeDI9IjYzIiB5Mj0iMzAiIHN0cm9rZT0iIzQ4NzhhMCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8ZWxsaXBzZSBjeD0iNjMiIGN5PSIxMiIgcng9IjEwIiByeT0iNSIgZmlsbD0iIzY4OThiMCIvPgo8Y2lyY2xlIGN4PSI2MyIgY3k9IjYwIiByPSIxMCIgZmlsbD0iI2U4ZjRkOCIvPgo8Y2lyY2xlIGN4PSI2MyIgY3k9IjYwIiByPSIxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjODhhODY4IiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4=",
   kitchen:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAxMjAgODAiPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZmMGUwIi8+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwODA0MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNkOGQ4ZDgiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgeDI9IjEyMCIgeTI9IjQwIiBzdHJva2U9IiM5MDkwOTAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2QwZDBkMCIgcng9IjIiLz4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxMSIgcj0iNy41IiBmaWxsPSIjYjhiMGEwIiBzdHJva2U9IiM3MDcwNzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTEiIHI9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzcwNzA3MCIgc3Ryb2tlLXdpZHRoPSIwLjkiLz4KPGNpcmNsZSBjeD0iNyIgY3k9IjMyIiByPSI3IiBmaWxsPSIjYjhiMGEwIiBzdHJva2U9IiM3MDcwNzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CjxjaXJjbGUgY3g9IjIzIiBjeT0iMzIiIHI9IjciIGZpbGw9IiNiOGIwYTAiIHN0cm9rZT0iIzcwNzA3MCIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KPHJlY3QgeD0iNjEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2M4YzhjOCIgcng9IjIiLz4KPHJlY3QgeD0iNjMiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2IwYjhiYyIgcng9IjQiLz4KPHJlY3QgeD0iOTEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2ZmZjBlMCIgcng9IjIiLz4KPHJlY3QgeD0iOTQiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIzMCIgZmlsbD0iI2ZmZmZmZiIgcng9IjIiLz4KPHJlY3QgeD0iMCIgeT0iNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYwZTAiLz4KPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjExOCIgaGVpZ2h0PSI3OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTg5NDNhIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
   balcony:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYwOTAiLz48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNkNGIwMjAiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIwIiB5MT0iMjAiIHgyPSIxMjAiIHkyPSIyMCIgc3Ryb2tlPSIjZTBjMDMwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNSIvPjxsaW5lIHgxPSIyNCIgeTE9IjAiIHgyPSIyNCIgeTI9IjQwIiBzdHJva2U9IiNlMGMwMzAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC41Ii8+PGxpbmUgeDE9IjQ4IiB5MT0iMCIgeDI9IjQ4IiB5Mj0iNDAiIHN0cm9rZT0iI2UwYzAzMCIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjUiLz48bGluZSB4MT0iNzIiIHkxPSIwIiB4Mj0iNzIiIHkyPSI0MCIgc3Ryb2tlPSIjZTBjMDMwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNSIvPjxsaW5lIHgxPSI5NiIgeTE9IjAiIHgyPSI5NiIgeTI9IjQwIiBzdHJva2U9IiNlMGMwMzAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+",
-  storage:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZWVkY2M4Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA3ODQ4IiBzdHJva2Utd2lkdGg9IjIiLz4KPGxpbmUgeDE9IjIwIiB5MT0iMCIgeDI9IjIwIiB5Mj0iODAiIHN0cm9rZT0iI2EwNzg0OCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSI0LDMiLz4KPHJlY3QgeD0iMyIgeT0iMjYiIHdpZHRoPSIzNCIgaGVpZ2h0PSI1IiBmaWxsPSIjYzBhMDgwIiByeD0iMiIvPgo8L3N2Zz4=",
-  wic:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZWVkY2M4Ii8+CjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA3ODQ4IiBzdHJva2Utd2lkdGg9IjIiLz4KPGxpbmUgeDE9IjQwIiB5MT0iMCIgeDI9IjQwIiB5Mj0iODAiIHN0cm9rZT0iI2EwNzg0OCIgc3Ryb2tlLXdpZHRoPSIxIiBzdHJva2UtZGFzaGFycmF5PSI0LDMiLz4KPHJlY3QgeD0iNiIgeT0iMjYiIHdpZHRoPSI2OCIgaGVpZ2h0PSI1IiBmaWxsPSIjYzBhMDgwIiByeD0iMiIvPgo8dGV4dCB4PSI0MCIgeT0iNTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4MDYwNDAiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIj5XSUM8L3RleHQ+Cjwvc3ZnPg==",
   genkan:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRDRBODcwIi8+CjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSI3NCIgaGVpZ2h0PSI3NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTg2ODMwIiBzdHJva2Utd2lkdGg9IjMiLz4KPGxpbmUgeDE9IjMiIHkxPSI0MCIgeDI9Ijc3IiB5Mj0iNDAiIHN0cm9rZT0iIzk4NjgzMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHRleHQgeD0iNDAiIHk9IjI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEzIiBmaWxsPSIjNjA0MDEwIiBmb250LWZhbWlseT0iTWVpcnlvLHNhbnMtc2VyaWYiPuebruWuqTwvdGV4dD4KPC9zdmc+",
   washitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI0M4RDhBMCIvPjwvc3ZnPg=="
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',type:'youshitsu',  weight:20},
-  {name:'和室8畳',w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',type:'washitsu',  weight:15},
-  {name:'廊下',   w:1,h:2,color:0xE8E0D4,label:'廊下',     type:'roka',      weight:17},
-  {name:'キッチン',w:3,h:2,color:0xFFB870,label:'キッチン', type:'kitchen',   weight:13},
-  {name:'トイレ', w:1,h:2,color:0xD4EEF8,label:'トイレ',   type:'toilet',    weight:11},
-  {name:'お風呂', w:2,h:2,color:0xB8DFF0,label:'お風呂',   type:'bath',      weight:11},
-  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',type:'balcony',weight:13},
+  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:20},
+  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:15},
+  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:15},
+  {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:13},
+  {name:'トイレ',    w:1,h:2,color:0xD4EEF8,label:'トイレ',      type:'toilet',   weight:11},
+  {name:'お風呂',    w:2,h:2,color:0xB8DFF0,label:'お風呂',      type:'bath',     weight:11},
+  {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',  type:'balcony',  weight:11},
+  {name:'玄関',      w:2,h:2,color:0xD4A870,label:'玄関',        type:'genkan',   weight:10},
 ];
 const PARTS_WEIGHT_TOTAL=PARTS_DEF.reduce((s,d)=>s+d.weight,0);
 
@@ -1461,7 +1460,7 @@ class PuzzleGame extends Phaser.Scene{
     // images/フォルダのPNGを優先、なければSVG_TEXにフォールバック
     // パーツのアスペクト比定義（グリッド単位 w:h）
     const PART_RATIO={youshitsu:[3,3],washitsu:[3,3],kitchen:[3,2],
-      bath:[2,2],roka:[1,2],toilet:[1,2],balcony:[3,1],storage:[1,2],wic:[2,2],genkan:[2,2]};
+      bath:[2,2],roka:[1,2],toilet:[1,2],balcony:[3,1],genkan:[2,2]};
     const loadTexture=(k,svgDataUrl)=>{
       return new Promise(resolve=>{
         const imgPath='image/'+k+'.png';
@@ -1712,8 +1711,10 @@ class PuzzleGame extends Phaser.Scene{
       if(canvas[k]){canvas.removeEventListener(ev,canvas[k]);delete canvas[k];}
     });
 
-    // タッチ開始座標・長押しタイマー
-    let _touchStartX=0,_touchStartY=0,_longPressTimer=null,_touchMoved=false;
+    // タッチ状態管理
+    let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null;
+    // 移動量の閾値（px）：これ以上動いたら「ドラッグ」、未満なら「タップ」
+    const DRAG_THRESHOLD=12;
 
     const _clearLongPress=()=>{
       if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
@@ -1735,14 +1736,16 @@ class PuzzleGame extends Phaser.Scene{
     canvas._cLU=(e)=>{ if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;} };
     canvas._cLM=(e)=>{
       if(this._dragging){ moveDrag(e.clientX,e.clientY); return; }
-      if(_mLongTimer){
-        if((e.clientX-_msx)**2+(e.clientY-_msy)**2>400){
-          clearTimeout(_mLongTimer);_mLongTimer=null;
-        }
+      if(_mLongTimer&&(e.clientX-_msx)**2+(e.clientY-_msy)**2>400){
+        clearTimeout(_mLongTimer);_mLongTimer=null;
       }
     };
 
-    // ── タッチ操作（土地）：即座にドラッグ開始 ──
+    // ── タッチ操作（土地）──
+    // touchstart: 即プレビュー表示（ドラッグ開始）
+    // touchmove:  プレビュー追従
+    // touchend:   ・ほぼ動かなかった（タップ）→ その場所に設置確定
+    //             ・動かした（ドラッグ）       → プレビューを残す（タップで確定待ち）
     canvas._cLTS=(e)=>{
       e.preventDefault();
       if(this._dragging)return;
@@ -1751,12 +1754,11 @@ class PuzzleGame extends Phaser.Scene{
       _touchMoved=false;
       _clearLongPress();
 
-      // パーツがある場合：即座にドラッグ開始（プレビュー表示）
       if(this.currentDef){
         startDrag(t.clientX,t.clientY);
         return;
       }
-      // パーツなし（undoで取り戻せる場合）：長押し500msでundo
+      // パーツなし：長押しでundo
       if(this.undoStack&&this.undoStack.length){
         _longPressTimer=setTimeout(()=>{
           _longPressTimer=null;
@@ -1772,18 +1774,28 @@ class PuzzleGame extends Phaser.Scene{
       const t=e.touches[0];
       if(this._dragging){
         e.preventDefault();
+        const dx=t.clientX-_touchStartX, dy=t.clientY-_touchStartY;
+        if(dx*dx+dy*dy>DRAG_THRESHOLD*DRAG_THRESHOLD) _touchMoved=true;
         moveDrag(t.clientX,t.clientY);
         return;
       }
-      // 長押し待機中：8px以上動いたらキャンセル（元の20pxより厳しく→より敏感に）
       const dx=t.clientX-_touchStartX, dy=t.clientY-_touchStartY;
       if(dx*dx+dy*dy>64){ _touchMoved=true; _clearLongPress(); }
     };
 
     canvas._cLTE=(e)=>{
       _clearLongPress();
-      if(this._dragging){
-        const t=e.changedTouches[0];
+      if(!this._dragging)return;
+      const t=e.changedTouches[0];
+      if(!_touchMoved){
+        // タップ（ほぼ動かなかった）→ プレビュー位置に即設置
+        this._dragging=false;
+        if(holdCol)holdCol.classList.remove('drag-over');
+        doPreview(t.clientX,t.clientY);
+        if(this._previewActive) this.placeAtCursor();
+        this.drawUI();
+      } else {
+        // ドラッグ後 → プレビューを残す（次のタップで設置）
         endDrag(t.clientX,t.clientY);
       }
     };
