@@ -1267,7 +1267,9 @@ function svgToCanvas(dataUrl){
           // フラッドフィルで外周から連続する背景色を透過に
           const visited=new Uint8Array(w*h);
           const queue=[];
+          const isBlackBg=bg[0]<30&&bg[1]<30&&bg[2]<30;
           const isNearBg=(r,g,b)=>{
+            if(isBlackBg) return r<40&&g<40&&b<40;
             const dr=r-bg[0],dg=g-bg[1],db=b-bg[2];
             return Math.sqrt(dr*dr+dg*dg+db*db)<30;
           };
@@ -1347,15 +1349,54 @@ class PuzzleGame extends Phaser.Scene{
     this.drawBg();
     // テクスチャをロードしてから玄関・ゲーム開始
     // images/フォルダのPNGを優先、なければSVG_TEXにフォールバック
+    // パーツのアスペクト比定義（グリッド単位 w:h）
+    const PART_RATIO={youshitsu:[3,3],washitsu:[3,3],kitchen:[3,2],
+      bath:[2,2],roka:[1,2],toilet:[1,2],balcony:[3,1],storage:[1,2],wic:[2,2],genkan:[2,2]};
     const loadTexture=(k,svgDataUrl)=>{
       return new Promise(resolve=>{
         const imgPath='image/'+k+'.png';
         const img=new Image();
         img.onload=()=>{
+          const sw=img.naturalWidth, sh=img.naturalHeight;
+          // パーツ比率に合わせてcanvasサイズを決定
+          const ratio=PART_RATIO[k]||[1,1];
+          const unit=Math.max(sw/ratio[0], sh/ratio[1]);
+          const tw=Math.round(unit*ratio[0]), th=Math.round(unit*ratio[1]);
+          const w=tw, h=th;
+          const tmp=document.createElement('canvas');
+          tmp.width=w; tmp.height=h;
+          const ctx2=tmp.getContext('2d');
+          // 中央に配置してリサイズ
+          const ox=Math.round((w-sw)/2), oy=Math.round((h-sh)/2);
+          ctx2.drawImage(img,ox,oy,sw,sh);
+          const id=ctx2.getImageData(0,0,w,h), d=id.data;
+          const getC=(x,y)=>[d[(y*w+x)*4],d[(y*w+x)*4+1],d[(y*w+x)*4+2]];
+          const corners=[getC(0,0),getC(w-1,0),getC(0,h-1),getC(w-1,h-1)];
+          const bg=corners.reduce((a,c)=>[a[0]+c[0],a[1]+c[1],a[2]+c[2]],[0,0,0]).map(v=>v/4);
+          const visited=new Uint8Array(w*h);
+          const queue=[];
+          // 黒背景（Firefly背景削除後）または四隅色のどちらでも透過
+          const isBlackBg=bg[0]<30&&bg[1]<30&&bg[2]<30;
+          const threshold=isBlackBg?40:35;
+          const isNearBg=(r,g,b)=>{
+            if(isBlackBg) return r<40&&g<40&&b<40;
+            return Math.sqrt((r-bg[0])**2+(g-bg[1])**2+(b-bg[2])**2)<threshold;
+          };
+          for(let x=0;x<w;x++){queue.push(x,0);queue.push(x,h-1);}
+          for(let y=1;y<h-1;y++){queue.push(0,y);queue.push(w-1,y);}
+          let qi=0;
+          while(qi<queue.length){
+            const x=queue[qi++],y=queue[qi++];
+            if(x<0||x>=w||y<0||y>=h||visited[y*w+x])continue;
+            const i=(y*w+x)*4;
+            if(!isNearBg(d[i],d[i+1],d[i+2]))continue;
+            visited[y*w+x]=1; d[i+3]=0;
+            queue.push(x+1,y,x-1,y,x,y+1,x,y-1);
+          }
+          ctx2.putImageData(id,0,0);
           const cv=document.createElement('canvas');
-          cv.width=img.naturalWidth; cv.height=img.naturalHeight;
-          const ctx=cv.getContext('2d');
-          ctx.drawImage(img,0,0);
+          cv.width=w; cv.height=h;
+          cv.getContext('2d').drawImage(tmp,0,0);
           if(this.textures.exists(k))this.textures.remove(k);
           this.textures.addCanvas(k,cv);
           resolve();
