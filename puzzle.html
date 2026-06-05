@@ -1563,9 +1563,8 @@ class PuzzleGame extends Phaser.Scene{
       if(this._dragging)return;
       if(this._justDropped)return;
       const elapsed=Date.now()-this._pdownTime;
-      if(elapsed>350)return; // 長押し後は無視（350msに短縮して誤確定を減らす）
+      if(elapsed>400)return;
       if(!this.currentDef)return;
-      // p.x/p.y = Phaserゲーム内座標 (0〜CANVAS_W/H)
       const bx=p.x, by=p.y;
       const shape=this.getShape(this.currentDef,this.rotation);
       const pw=shape[0].length, ph=shape.length;
@@ -1577,7 +1576,6 @@ class PuzzleGame extends Phaser.Scene{
         if(inPiece) this.placeAtCursor();
         else { this.curC=tc; this.curR=tr; this.updatePreview(this.curC,this.curR); }
       }
-      // プレビューなし→何もしない（ドラッグ後のみプレビュー）
     });
     if(this.game.canvas){
       this.game.canvas.addEventListener('contextmenu',e=>e.preventDefault());
@@ -1591,8 +1589,8 @@ class PuzzleGame extends Phaser.Scene{
     const canvas  = this.game.canvas;
     if(!wrap||!canvas)return;
 
-    this._dragging    = false;
-    this._justDropped = false;
+    this._dragging      = false;
+    this._justDropped   = false;
     this._previewActive = false;
 
     // ── ユーティリティ ──
@@ -1609,7 +1607,6 @@ class PuzzleGame extends Phaser.Scene{
       const r=Phaser.Math.Clamp(Math.round(g.by/CS-sh.length/2),0,ROWS-sh.length);
       this.curC=c; this.curR=r; this.updatePreview(c,r);
     };
-    // canvas-currentにパーツを描画（ドラッグ中グリッド外で使用）
     const drawCC=()=>{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
@@ -1631,45 +1628,38 @@ class PuzzleGame extends Phaser.Scene{
     const startDrag=(cx,cy)=>{
       if(!this.currentDef||this._dragging)return;
       this._dragging=true;
+      this._justDropped=false; // 前回ドロップフラグを即解除
       const g=toGame(cx,cy);
       if(g.ok){ clearCC(); doPreview(cx,cy); }
-      // グリッド外からのドラッグ開始はcanvas-currentを維持
     };
 
     const moveDrag=(cx,cy)=>{
       if(!this._dragging)return;
-      // 保留枠ハイライト
       if(holdCol){
         const h=holdCol.getBoundingClientRect();
         holdCol.classList.toggle('drag-over',cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom);
       }
       const g=toGame(cx,cy);
-      if(g.ok){
-        // グリッド内→プレビュー更新、canvas-currentはクリアのまま
-        clearCC(); doPreview(cx,cy);
-      } else {
-        // グリッド外→canvas-currentにパーツを表示
-        drawCC();
-      }
+      if(g.ok){ clearCC(); doPreview(cx,cy); }
+      else { drawCC(); }
     };
 
     const endDrag=(cx,cy)=>{
       if(!this._dragging)return;
       this._dragging=false;
       if(holdCol)holdCol.classList.remove('drag-over');
-      // 保留枠チェック（最優先）
       if(holdCol){
         const h=holdCol.getBoundingClientRect();
         if(cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom){
           this.doHold(); this._clearPreview(); this.drawUI(); return;
         }
       }
-      // グリッド内→プレビュー残す
       const g=toGame(cx,cy);
       if(g.ok){
         doPreview(cx,cy);
+        // justDropped を短縮（長すぎると次操作を妨げる）
         this._justDropped=true;
-        setTimeout(()=>{this._justDropped=false;},500);
+        setTimeout(()=>{this._justDropped=false;},150);
       } else {
         this._clearPreview(); this.drawUI();
       }
@@ -1710,72 +1700,103 @@ class PuzzleGame extends Phaser.Scene{
     document.addEventListener('mousemove',document._dMM);
     document.addEventListener('mouseup',  document._dMU);
 
-    // ── canvas（土地）リスナー ──
-    ['_cLD','_cLU','_cLM','_cLTS','_cLTE','_cLTM'].forEach(k=>{
+    // ── canvas（土地）タッチリスナー ──
+    // 【改善】土地内タッチ操作を2段階に分ける:
+    //   段階A: タッチ開始→即座にドラッグ開始（プレビュー表示）
+    //   段階B: 指を離したらその場所に設置
+    // 長押しによるundo起動は canvas を直接ロングタップ（指を動かさない場合のみ）
+
+    ['_cLD','_cLU','_cLM','_cLTS','_cLTE','_cLTM','_cLTC'].forEach(k=>{
       const ev={_cLD:'mousedown',_cLU:'mouseup',_cLM:'mousemove',
-                _cLTS:'touchstart',_cLTE:'touchend',_cLTM:'touchmove'}[k];
+                _cLTS:'touchstart',_cLTE:'touchend',_cLTM:'touchmove',_cLTC:'touchcancel'}[k];
       if(canvas[k]){canvas.removeEventListener(ev,canvas[k]);delete canvas[k];}
     });
 
-    let _lt=null,_lx=0,_ly=0;
-    const _lstart=(cx,cy)=>{
-      if(this._dragging)return;
-      _lx=cx;_ly=cy;
-      if(_lt)clearTimeout(_lt);
-      _lt=setTimeout(()=>{
-        _lt=null;
+    // タッチ開始座標・長押しタイマー
+    let _touchStartX=0,_touchStartY=0,_longPressTimer=null,_touchMoved=false;
+
+    const _clearLongPress=()=>{
+      if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
+    };
+
+    // マウス操作（土地クリック：長押しundo）
+    let _mLongTimer=null,_msx=0,_msy=0;
+    canvas._cLD=(e)=>{
+      if(e.button!==0)return;
+      _msx=e.clientX; _msy=e.clientY;
+      if(_mLongTimer)clearTimeout(_mLongTimer);
+      _mLongTimer=setTimeout(()=>{
+        _mLongTimer=null;
         if(this._dragging||!this.undoStack.length)return;
         this.doUndo();
-        if(this.currentDef)startDrag(_lx,_ly);
+        if(this.currentDef)startDrag(_msx,_msy);
       },500);
     };
-    const _lcancel=()=>{if(_lt){clearTimeout(_lt);_lt=null;}};
-
-    // マウス操作
-    canvas._cLD=(e)=>{ if(e.button===0)_lstart(e.clientX,e.clientY); };
-    canvas._cLU=(e)=>{ _lcancel(); }; // endDragはdocument.mouseupが担当
+    canvas._cLU=(e)=>{ if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;} };
     canvas._cLM=(e)=>{
-      if(this._dragging){
-        moveDrag(e.clientX,e.clientY);
-      } else if(_lt){
-        // 長押し待機中に20px超え動いたらキャンセル
-        if((e.clientX-_lx)**2+(e.clientY-_ly)**2>400)_lcancel();
+      if(this._dragging){ moveDrag(e.clientX,e.clientY); return; }
+      if(_mLongTimer){
+        if((e.clientX-_msx)**2+(e.clientY-_msy)**2>400){
+          clearTimeout(_mLongTimer);_mLongTimer=null;
+        }
       }
     };
 
-    // タッチ操作
-    // ⑤ポイント：touchmoveで_draggingがtrueになっていたらmoveDrag呼ぶ
-    //    長押し500ms確定→startDrag(_dragging=true)→その後のtouchmoveでmoveDrag
+    // ── タッチ操作（土地）：即座にドラッグ開始 ──
     canvas._cLTS=(e)=>{
+      e.preventDefault();
       if(this._dragging)return;
-      e.preventDefault(); // スクロール抑制
-      _lstart(e.touches[0].clientX,e.touches[0].clientY);
+      const t=e.touches[0];
+      _touchStartX=t.clientX; _touchStartY=t.clientY;
+      _touchMoved=false;
+      _clearLongPress();
+
+      // パーツがある場合：即座にドラッグ開始（プレビュー表示）
+      if(this.currentDef){
+        startDrag(t.clientX,t.clientY);
+        return;
+      }
+      // パーツなし（undoで取り戻せる場合）：長押し500msでundo
+      if(this.undoStack&&this.undoStack.length){
+        _longPressTimer=setTimeout(()=>{
+          _longPressTimer=null;
+          if(!_touchMoved){
+            this.doUndo();
+            if(this.currentDef)startDrag(_touchStartX,_touchStartY);
+          }
+        },500);
+      }
     };
+
+    canvas._cLTM=(e)=>{
+      const t=e.touches[0];
+      if(this._dragging){
+        e.preventDefault();
+        moveDrag(t.clientX,t.clientY);
+        return;
+      }
+      // 長押し待機中：8px以上動いたらキャンセル（元の20pxより厳しく→より敏感に）
+      const dx=t.clientX-_touchStartX, dy=t.clientY-_touchStartY;
+      if(dx*dx+dy*dy>64){ _touchMoved=true; _clearLongPress(); }
+    };
+
     canvas._cLTE=(e)=>{
-      _lcancel();
-      // ⑧ touchendでendDrag（土地内ドラッグ→保留枠へのドロップ対応）
+      _clearLongPress();
       if(this._dragging){
         const t=e.changedTouches[0];
         endDrag(t.clientX,t.clientY);
       }
     };
-    canvas._cLTM=(e)=>{
-      const t=e.touches[0];
-      if(this._dragging){
-        // ⑤ 長押し確定後にそのまま指を動かすとプレビューが追従
-        e.preventDefault();
-        moveDrag(t.clientX,t.clientY);
-      } else if(_lt){
-        // 長押し待機中：20px超えたらキャンセル（それ以下は継続）
-        if((t.clientX-_lx)**2+(t.clientY-_ly)**2>400)_lcancel();
-      }
-    };
+
+    canvas._cLTC=()=>{ _clearLongPress(); cancelDrag(); };
+
     canvas.addEventListener('mousedown', canvas._cLD);
     canvas.addEventListener('mouseup',   canvas._cLU);
     canvas.addEventListener('mousemove', canvas._cLM);
-    canvas.addEventListener('touchstart',canvas._cLTS,{passive:false});
-    canvas.addEventListener('touchend',  canvas._cLTE,{passive:false});
-    canvas.addEventListener('touchmove', canvas._cLTM,{passive:false});
+    canvas.addEventListener('touchstart', canvas._cLTS,{passive:false});
+    canvas.addEventListener('touchend',   canvas._cLTE,{passive:false});
+    canvas.addEventListener('touchmove',  canvas._cLTM,{passive:false});
+    canvas.addEventListener('touchcancel',canvas._cLTC,{passive:false});
   }
 
 
