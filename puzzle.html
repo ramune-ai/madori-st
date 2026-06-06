@@ -655,6 +655,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div class="roulette-item-value" id="rou-val-2">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
+      <div class="reroll-pop">再抽選で高級確定！</div>
     </div>
   </div>
   <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoTitles()">物 件 完 成 →</button>
@@ -1014,9 +1015,9 @@ function isRare(idx,val){return isRareGacha(idx,val);}
 
 // 再抽選確定プール（築浅5以下・駅近5以下）
 const REROLL_POOLS={
-  0:[0,1,2,3,4,5],   // 築浅確定
-  1:[1,2,3,4,5],     // 駅近確定
-  2:null,            // 家賃はPOP保留なので通常プール
+  0:[0,1,2,3,4,5],        // 築浅確定（レア）
+  1:[1,2,3,4,5],          // 駅近確定（レア）
+  2:[80,90,100],          // 高級確定（家賃レア80以上）
 };
 // 再抽選済みフラグ（per slot）
 const rerollDone=[false,false,false];
@@ -1355,55 +1356,89 @@ function openModal(type){
   if(type==='saves'){
     renderSavesList();
   }else{
-    const owned=new Set(JSON.parse(localStorage.getItem('madori-titles')||'[]'));
-    const newSet=new Set(window._newTitles||[]);
-    title.textContent='称号一覧';
-
-    if(ALL_TITLES_MASTER.length===0){
-      body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
-    } else {
-      const grid=document.createElement('div');
-      grid.className='title-grid';
-      // 獲得済み→未獲得の順で並べる
-      const sorted=[
-        ...ALL_TITLES_MASTER.filter(m=>owned.has(m.title)),
-        ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
-      ];
-      sorted.forEach(m=>{
-        const isOwned=owned.has(m.title);
-        const isNew=newSet.has(m.title);
-        const card=document.createElement('div');
-        card.className='title-grid-card '+(isOwned?'owned':'locked');
-
-        const badgeEl=document.createElement('div');
-        badgeEl.className='title-grid-badge';
-        badgeEl.textContent=m.badge;
-
-        const nameEl=document.createElement('div');
-        nameEl.className='title-grid-name';
-        nameEl.textContent=isOwned ? m.title : '？？？？';
-
-        const condEl=document.createElement('div');
-        condEl.className='title-grid-cond';
-        condEl.textContent=m.condition;
-
-        card.appendChild(badgeEl);
-        card.appendChild(nameEl);
-        card.appendChild(condEl);
-
-        if(isNew){
-          const nb=document.createElement('div');
-          nb.className='title-grid-new-badge';
-          nb.textContent='NEW！';
-          card.appendChild(nb);
-        }
-        grid.appendChild(card);
-      });
-      body.innerHTML='';
-      body.appendChild(grid);
-    }
+    window._titlePage=0;
+    renderTitlesPage();
   }
   document.getElementById('modal-overlay').classList.add('active');
+}
+// 称号一覧（ページ制）
+const TITLES_PER_PAGE=8;
+function renderTitlesPage(){
+  const title=document.getElementById('modal-title');
+  const body=document.getElementById('modal-body');
+  const owned=new Set(JSON.parse(localStorage.getItem('madori-titles')||'[]'));
+  const newSet=new Set(window._newTitles||[]);
+  title.textContent='称号一覧';
+  if(ALL_TITLES_MASTER.length===0){
+    body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
+    return;
+  }
+  const sorted=[
+    ...ALL_TITLES_MASTER.filter(m=>owned.has(m.title)),
+    ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
+  ];
+  const totalPages=Math.ceil(sorted.length/TITLES_PER_PAGE);
+  let page=window._titlePage||0;
+  if(page<0)page=0; if(page>=totalPages)page=totalPages-1;
+  window._titlePage=page;
+  const ownedCount=ALL_TITLES_MASTER.filter(m=>owned.has(m.title)).length;
+  const start=page*TITLES_PER_PAGE;
+  const pageItems=sorted.slice(start,start+TITLES_PER_PAGE);
+
+  body.innerHTML='';
+  // 進捗表示
+  const prog=document.createElement('div');
+  prog.style.cssText='font-size:11px;color:var(--brown-light);letter-spacing:.06em;margin-bottom:10px;text-align:center;';
+  prog.textContent=`獲得 ${ownedCount} / ${ALL_TITLES_MASTER.length}`;
+  body.appendChild(prog);
+
+  const grid=document.createElement('div');
+  grid.className='title-grid';
+  pageItems.forEach(m=>{
+    const isOwned=owned.has(m.title);
+    const isNew=newSet.has(m.title);
+    const card=document.createElement('div');
+    card.className='title-grid-card '+(isOwned?'owned':'locked');
+    const badgeEl=document.createElement('div');
+    badgeEl.className='title-grid-badge';
+    badgeEl.textContent=m.badge;
+    const nameEl=document.createElement('div');
+    nameEl.className='title-grid-name';
+    nameEl.textContent=isOwned ? m.title : '？？？？';
+    const condEl=document.createElement('div');
+    condEl.className='title-grid-cond';
+    condEl.textContent=m.condition;
+    card.appendChild(badgeEl);
+    card.appendChild(nameEl);
+    card.appendChild(condEl);
+    if(isNew){
+      const nb=document.createElement('div');
+      nb.className='title-grid-new-badge';
+      nb.textContent='NEW！';
+      card.appendChild(nb);
+    }
+    grid.appendChild(card);
+  });
+  body.appendChild(grid);
+
+  // ページ送り
+  if(totalPages>1){
+    const pager=document.createElement('div');
+    pager.style.cssText='display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;';
+    const prev=document.createElement('button');
+    prev.textContent='‹ 前へ';
+    prev.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:8px 16px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page===0?'opacity:.35;pointer-events:none;':'');
+    prev.onclick=()=>{window._titlePage=page-1;renderTitlesPage();};
+    const ind=document.createElement('div');
+    ind.style.cssText='font-size:13px;color:var(--brown);letter-spacing:.08em;font-weight:700;min-width:56px;text-align:center;';
+    ind.textContent=`${page+1} / ${totalPages}`;
+    const next=document.createElement('button');
+    next.textContent='次へ ›';
+    next.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:8px 16px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page>=totalPages-1?'opacity:.35;pointer-events:none;':'');
+    next.onclick=()=>{window._titlePage=page+1;renderTitlesPage();};
+    pager.appendChild(prev); pager.appendChild(ind); pager.appendChild(next);
+    body.appendChild(pager);
+  }
 }
 function closeModal(e){
   if(!e||e.target===document.getElementById('modal-overlay'))
@@ -1473,12 +1508,16 @@ function lockRoulette(idx){
     for(let i=0;i<3;i++){
       const rb=document.getElementById('reroll-btn-'+i);
       if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
-      // 初回確定後POP表示：再抽選で改善できる値のときだけ表示
-      // idx=0(築年数) val>5、idx=1(駅徒歩) val>5 のときPOP表示（idx=2は対象外）
-      if(i<2 && !rerollDone[i]){
+      // 初回確定後POP表示：再抽選でレア確定を狙えるときだけ表示
+      // レア値・逆レア値のときは表示しない（全3項目：築年数・駅徒歩・家賃）
+      if(!rerollDone[i]){
         const pop=document.querySelector('#rou-'+i+' .reroll-pop');
-        if(pop && rouletteValues[i]!==null && rouletteValues[i]>5){
+        const v=rouletteValues[i];
+        const showPop = v!==null && !isRareGacha(i,v) && !isInverseRare(i,v);
+        if(pop && showPop){
           pop.classList.add('visible');
+        } else if(pop){
+          pop.classList.remove('visible');
         }
       }
     }
@@ -1682,28 +1721,40 @@ async function saveAndShare(){
   if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
   const cv=await buildPropertyCard();
   window._cardCanvas=cv;
+  const r=window._lastResult||{};
+  const tags=(r.titles||[]).map(titleToHashtag);
+  const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' #間取りすと';
+  const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
+  // モバイル端末か判定（タッチ＋細い画面）
+  const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
+
+  // ダウンロード処理（確実に動く）
+  const doDownload=()=>{
+    cv.toBlob((blob)=>{
+      if(!blob){ showGameToast('画像の作成に失敗しました'); return; }
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='物件_'+nm+'.png'; a.style.display='none';
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
+      showGameToast('画像を保存しました📥（ダウンロードフォルダ）');
+    },'image/png');
+  };
+
+  if(!isMobile){
+    // PC：共有シートは不安定なので確実にダウンロード
+    doDownload();
+    return;
+  }
+  // モバイル：共有シート（画像つき）。失敗時はダウンロード
   cv.toBlob(async(blob)=>{
-    if(!blob)return;
-    const r=window._lastResult||{};
-    const tags=(r.titles||[]).map(titleToHashtag);
-    const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' #間取りすと';
-    const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
+    if(!blob){ doDownload(); return; }
     const file=new File([blob],'madori.png',{type:'image/png'});
-    // ファイル共有が使える環境（主にスマホ）では共有シート
-    let shared=false;
     if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
-      try{ await navigator.share({files:[file], text}); shared=true; }
-      catch(e){ if(e&&e.name==='AbortError'){return;} shared=false; }
+      try{ await navigator.share({files:[file], text}); return; }
+      catch(e){ if(e&&e.name==='AbortError')return; }
     }
-    if(shared)return;
-    // フォールバック：ダウンロード（PC等）
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download='物件_'+nm+'.png';
-    a.style.display='none';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
-    showGameToast('画像を保存しました📥（ダウンロードフォルダ）');
+    doDownload();
   },'image/png');
 }
 
