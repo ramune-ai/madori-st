@@ -46,6 +46,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #screen-game{
   display:none;flex-direction:column;align-items:stretch;
   padding:0;position:fixed;top:0;left:0;right:0;bottom:0;
+  height:100dvh;max-height:100dvh;
   background:var(--cream);overflow:hidden;
 }
 #screen-game.active{display:flex;}
@@ -1718,6 +1719,25 @@ class PuzzleGame extends Phaser.Scene{
       cc.getContext('2d').clearRect(0,0,cc.width,cc.height);
     };
 
+    // ── ドラッグゴースト（指/カーソルに追従するパーツ画像。土地外でも見える）──
+    const ghostEl=document.getElementById('drag-ghost');
+    const showGhost=(cx,cy)=>{
+      if(!ghostEl||!this.currentDef)return;
+      const cp=this._unifiedCellPx();
+      const sh=this.getShape(this.currentDef,this.rotation);
+      const sw=sh[0].length, sr=sh.length;
+      const gw=sw*cp, gh=sr*cp;
+      ghostEl.width=gw; ghostEl.height=gh;
+      ghostEl.style.width=gw+'px'; ghostEl.style.height=gh+'px';
+      const ctx=ghostEl.getContext('2d');
+      ctx.clearRect(0,0,gw,gh);
+      this._drawDefOnCanvasFixed(ctx,this.currentDef,0,0,gw,gh,this.rotation);
+      ghostEl.style.left=cx+'px';
+      ghostEl.style.top=cy+'px';
+      ghostEl.style.display='block';
+    };
+    const hideGhost=()=>{ if(ghostEl)ghostEl.style.display='none'; };
+
     // ── 状態管理変数（リスナー定義より前に宣言：TDZ回避）──
     // タッチ
     let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null,_suppressNextTapPlace=false,_touchStartTime=0;
@@ -1754,16 +1774,24 @@ class PuzzleGame extends Phaser.Scene{
         holdCol.classList.toggle('drag-over',cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom);
       }
       const g=toGame(cx,cy);
-      if(g.ok){
+      // 指/カーソルが土地グリッドの実描画範囲内か（マージンなしで厳密に）
+      const r=canvas.getBoundingClientRect();
+      const insideGrid = cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom;
+      if(insideGrid&&g.ok){
+        // 土地の上：プレビュー表示、ゴーストは消す
+        hideGhost();
         clearCC();
         doPreview(cx,cy);
+      } else {
+        // 土地の外（枠と土地の間・保留枠の上など）：ゴーストをカーソルに追従表示
+        showGhost(cx,cy);
       }
-      // 土地外：何もしない（最後の土地内プレビューを保持・枠内にパーツを戻さない）
     };
 
     const endDrag=(cx,cy,wasTap)=>{
       if(!this._dragging)return;
       this._dragging=false;
+      hideGhost();
       if(holdCol)holdCol.classList.remove('drag-over');
       // 保留枠へのドロップ
       if(holdCol){
@@ -1810,6 +1838,7 @@ class PuzzleGame extends Phaser.Scene{
     const cancelDrag=()=>{
       if(!this._dragging)return;
       this._dragging=false;
+      hideGhost();
       if(holdCol)holdCol.classList.remove('drag-over');
       this._clearPreview(); this.drawUI();
     };
@@ -2460,10 +2489,17 @@ class PuzzleGame extends Phaser.Scene{
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
-    return 34; // 今のパーツ・保留の1マスpx（大きめ＝見やすい）
+    // 画面が狭いほど小さく（横切れ防止）。広いPCは大きめ。
+    const w=window.innerWidth||400;
+    if(w<420)return 28;
+    if(w<600)return 32;
+    return 34;
   }
   _unifiedCellPxSmall(){
-    return 22; // 次・次の次の1マスpx（小さめ＝省スペース）
+    const w=window.innerWidth||400;
+    if(w<420)return 18;
+    if(w<600)return 20;
+    return 22;
   }
 
   // パーツが土地内（LAND_MAP!==null）に完全に収まるかチェック（グレー侵入も他パーツ重なりも見る）
