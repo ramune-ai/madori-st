@@ -2483,13 +2483,13 @@ class PuzzleGame extends Phaser.Scene{
     const w=window.innerWidth||400;
     if(w<420)return 34;
     if(w<600)return 38;
-    return 38;
+    return 30;
   }
   _unifiedCellPxSmall(){
     const w=window.innerWidth||400;
     if(w<420)return 17;
     if(w<600)return 19;
-    return 20;
+    return 16;
   }
 
   // パーツが土地内（LAND_MAP!==null）に完全に収まるかチェック（グレー侵入も他パーツ重なりも見る）
@@ -2658,8 +2658,9 @@ function startPhaserGame(){
     const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
-    // 盤がコンテナいっぱいにならないよう余白係数(0.9)を掛ける → 上下左右にゆとり
-    const MARGIN=0.82;
+    // 盤の余白係数：スマホは余白多め（盤小さめ）、PCは余白少なめ（盤大きめ）
+    const isMobile=(window.innerWidth||400)<600;
+    const MARGIN=isMobile?0.86:0.98;
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, 1.0);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
