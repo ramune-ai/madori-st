@@ -213,7 +213,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item{
   position:absolute;inset:0;
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
-  padding:18px 24px;cursor:pointer;
+  padding:16px 24px 28px;cursor:pointer;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   transition:border-color .2s,outline-color .2s;
   overflow:visible;opacity:.45;pointer-events:none;
@@ -222,7 +222,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.04em;color:var(--brown-dark);margin-bottom:6px;font-weight:600;text-align:center;}
+.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);margin-bottom:6px;font-weight:600;text-align:center;}
 .roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
@@ -817,31 +817,57 @@ function showGameToast(msg){
   if(_gameToastTimer)clearTimeout(_gameToastTimer);
   _gameToastTimer=setTimeout(()=>{el.classList.remove('show');},2400);
 }
-// 紙吹雪演出（最高レア時）
+// 紙吹雪演出（最高レア時）：扇状に上へ打ち上げて落下
 function fireConfetti(idx){
   const colors=['#ff5a5a','#ffb43b','#ffe600','#5ac878','#5a8cff','#9b5aff','#ff5ad1'];
   const slot=document.getElementById('rou-'+(idx!=null?idx:0));
   let originX=window.innerWidth/2, originY=window.innerHeight/2;
   if(slot){ const r=slot.getBoundingClientRect(); originX=r.left+r.width/2; originY=r.top+r.height/2; }
-  const N=70;
+  const N=90;
+  const G=0.45;          // 重力（px/frame^2）
+  const pieces=[];
   for(let i=0;i<N;i++){
     const p=document.createElement('div');
     p.className='confetti-piece';
-    const c=colors[i%colors.length];
-    p.style.background=c;
-    const startX=originX+(Math.random()-0.5)*220;
-    const startY=originY+(Math.random()-0.5)*60;
-    p.style.left=startX+'px';
-    p.style.top=startY+'px';
-    p.style.width=(6+Math.random()*8)+'px';
-    p.style.height=(6+Math.random()*8)+'px';
+    p.style.background=colors[i%colors.length];
+    const sz=6+Math.random()*8;
+    p.style.width=sz+'px'; p.style.height=sz+'px';
     if(Math.random()<0.5)p.style.borderRadius='50%';
-    const dur=1.6+Math.random()*1.4;
-    const delay=Math.random()*0.3;
-    p.style.animation=`confettiFall ${dur}s ease-out ${delay}s forwards`;
+    p.style.left='0px'; p.style.top='0px';
     document.body.appendChild(p);
-    setTimeout(()=>{if(p.parentNode)p.parentNode.removeChild(p);},(dur+delay)*1000+200);
+    // 扇状：上向き中心(-90°)に±55°ばらつき、初速を強めに
+    const angle=(-90 + (Math.random()-0.5)*110) * Math.PI/180;
+    const speed=11 + Math.random()*9;
+    pieces.push({
+      el:p,
+      x:originX+(Math.random()-0.5)*30,
+      y:originY+(Math.random()-0.5)*20,
+      vx:Math.cos(angle)*speed,
+      vy:Math.sin(angle)*speed,   // 負＝上向き
+      rot:Math.random()*360,
+      vr:(Math.random()-0.5)*24,
+      life:0,
+      maxLife:90+Math.random()*40
+    });
   }
+  function step(){
+    let alive=false;
+    for(const pc of pieces){
+      if(pc.life>pc.maxLife){ if(pc.el.parentNode){pc.el.parentNode.removeChild(pc.el);} continue; }
+      alive=true;
+      pc.life++;
+      pc.vy+=G;
+      pc.x+=pc.vx;
+      pc.y+=pc.vy;
+      pc.vx*=0.99;
+      pc.rot+=pc.vr;
+      const op=pc.life>pc.maxLife*0.7 ? Math.max(0,1-(pc.life-pc.maxLife*0.7)/(pc.maxLife*0.3)) : 1;
+      pc.el.style.transform=`translate(${pc.x}px,${pc.y}px) rotateZ(${pc.rot}deg)`;
+      pc.el.style.opacity=op;
+    }
+    if(alive)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 // Promise<boolean> を返す確認ダイアログ（OKでtrue）
 function showGameConfirm(msg,okLabel,cancelLabel){
@@ -1124,7 +1150,7 @@ function doRerollSlot(idx){
   const pop=document.querySelector('#rou-'+idx+' .reroll-pop');
   if(pop) pop.classList.remove('visible');
   document.getElementById('btn-rou-next').classList.remove('visible');
-  item.classList.remove('locked','rare','active-slot');
+  item.classList.remove('locked','rare','niche','super-rare','active-slot');
   item.classList.add('active-slot');
   valEl.classList.add('spinning');
   rouletteValues[idx]=null;
