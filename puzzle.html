@@ -412,12 +412,17 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── 称号一覧グリッド ── */
 .title-grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(4,1fr);
+  grid-auto-rows:150px;
   gap:10px;
   padding:4px 0;
+  min-height:310px; /* 常に2行ぶんを確保（ページ間で高さを統一） */
+  align-content:start;
 }
-@media(min-width:360px){.title-grid{grid-template-columns:repeat(3,1fr);}}
-@media(min-width:460px){.title-grid{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:520px){
+  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:140px;min-height:580px;}
+  .title-grid-card{height:140px;}
+}
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
   #game-top-row2{padding:2px 6px 3px;gap:4px;}
@@ -435,10 +440,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
-  display:flex;flex-direction:column;align-items:center;gap:5px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
   padding:10px 6px 8px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
   transition:border-color .2s;
+  height:150px;overflow:hidden;
 }
 .title-grid-card.owned{
   border-color:var(--accent);
@@ -1388,7 +1394,7 @@ function renderTitlesPage(){
   body.innerHTML='';
   // 進捗表示
   const prog=document.createElement('div');
-  prog.style.cssText='font-size:11px;color:var(--brown-light);letter-spacing:.06em;margin-bottom:10px;text-align:center;';
+  prog.style.cssText='font-size:15px;color:var(--brown);letter-spacing:.08em;margin-bottom:12px;text-align:center;font-weight:700;font-family:"Noto Serif JP",serif;';
   prog.textContent=`獲得 ${ownedCount} / ${ALL_TITLES_MASTER.length}`;
   body.appendChild(prog);
 
@@ -1419,6 +1425,13 @@ function renderTitlesPage(){
     }
     grid.appendChild(card);
   });
+  // ページに満たない分を空セルで埋めてカードサイズを全ページ共通に
+  const emptyCount=TITLES_PER_PAGE-pageItems.length;
+  for(let e=0;e<emptyCount;e++){
+    const ph=document.createElement('div');
+    ph.style.cssText='visibility:hidden;';
+    grid.appendChild(ph);
+  }
   body.appendChild(grid);
 
   // ページ送り
@@ -1742,8 +1755,15 @@ async function saveAndShare(){
   };
 
   if(!isMobile){
-    // PC：共有シートは不安定なので確実にダウンロード
+    // PC：共有シートが不安定なので、確実にダウンロード＋投稿文をコピー
     doDownload();
+    // 投稿用テキストをクリップボードにコピー（貼り付けるだけで使える）
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      try{
+        await navigator.clipboard.writeText(text);
+        setTimeout(()=>showGameToast('画像を保存＆投稿文をコピーしました📋'),1600);
+      }catch(e){}
+    }
     return;
   }
   // モバイル：共有シート（画像つき）。失敗時はダウンロード
@@ -2455,18 +2475,27 @@ class PuzzleGame extends Phaser.Scene{
       }
       const g=toGame(cx,cy);
       if(wasTap){
-        // タップ＝動かさず離した → タップ位置を土地内にスナップして即設置
+        // タップ＝動かさず離した → 2段階（1回目プレビュー、2回目同じ位置で確定）
         if(g.ok){
           const shape=this.getShape(this.currentDef,this.rotation);
           let tc=Phaser.Math.Clamp(Math.round(g.bx/CS-shape[0].length/2),0,COLS-shape[0].length);
           let tr=Phaser.Math.Clamp(Math.round(g.by/CS-shape.length/2),0,ROWS-shape.length);
           const snapped=this._snapIntoLand(shape,tc,tr);
-          this.curC=snapped.c; this.curR=snapped.r;
-          this._anchorC=snapped.c; this._anchorR=snapped.r;
-          this.updatePreview(this.curC,this.curR,true);
-          if(this._previewActive) this.placeAtCursor();
+          tc=snapped.c; tr=snapped.r;
+          if(this._tapPreviewShown && this.curC===tc && this.curR===tr){
+            // 同じ位置を2回目タップ → 確定
+            this.updatePreview(tc,tr,true);
+            if(this._previewActive) this.placeAtCursor();
+            this._tapPreviewShown=false;
+          } else {
+            // 1回目タップ or 別位置タップ → プレビュー表示（確定しない）
+            this.curC=tc; this.curR=tr;
+            this._anchorC=tc; this._anchorR=tr;
+            this.updatePreview(tc,tr,true);
+            this._tapPreviewShown=true;
+          }
         } else {
-          this._clearPreview(); this.drawUI();
+          this._clearPreview(); this.drawUI(); this._tapPreviewShown=false;
         }
       } else {
         // ドラッグして離した → どこで離しても必ず最寄りの土地内へスナップ
@@ -2481,6 +2510,7 @@ class PuzzleGame extends Phaser.Scene{
         this.curC=snapped.c; this.curR=snapped.r;
         this._anchorC=snapped.c; this._anchorR=snapped.r;
         this.updatePreview(this.curC,this.curR,true);
+        this._tapPreviewShown=true; // ドラッグ後はプレビュー状態。次のタップで確定可能
         this._justDropped=true;
         setTimeout(()=>{this._justDropped=false;},200);
       }
@@ -2719,6 +2749,7 @@ class PuzzleGame extends Phaser.Scene{
     // 回転アンカー（補正前の希望位置）を初期化
     this._anchorC=this.curC; this._anchorR=this.curR;
     this._mPreviewShown=false; // マウス2段階確定フラグをリセット
+    this._tapPreviewShown=false; // タッチ2段階確定フラグをリセット
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
     this._clearPreview();
@@ -2757,6 +2788,7 @@ class PuzzleGame extends Phaser.Scene{
     this._dragging=false;
     this._previewActive=false;
     this._mPreviewShown=false;
+    this._tapPreviewShown=false;
     const ghost=document.getElementById('drag-ghost');
     if(ghost)ghost.style.display='none';
     const state=this.undoStack.pop();
