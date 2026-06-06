@@ -1972,6 +1972,9 @@ function _roundRect(ctx,x,y,w,h,r){
 // ────────────────────────────────────────
 // SVGテクスチャ
 // ────────────────────────────────────────
+// 画像アセットのバージョン。image/配下のPNGを差し替えたら数字を上げると
+// GitHub Pages / ブラウザの古いキャッシュ（旧404含む）を確実に回避できる。
+const ASSET_VER='1';
 const SVG_TEX={
   youshitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjY2ZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIwIiAgd2lkdGg9IjQ2IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NmUiLz4KPHJlY3QgeD0iNDYiIHk9IjAiICB3aWR0aD0iMzgiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2MiIvPgo8cmVjdCB4PSI4NCIgeT0iMCIgIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2VhNDcwIi8+CjxyZWN0IHg9IjAiICB5PSI4IiAgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGEwNmEiLz4KPHJlY3QgeD0iMzAiIHk9IjgiICB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2M0OWE2MCIvPgo8cmVjdCB4PSI4MCIgeT0iOCIgIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNDZjIi8+CjxyZWN0IHg9IjAiICB5PSIxNiIgd2lkdGg9IjM4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjODllNjQiLz4KPHJlY3QgeD0iMzgiIHk9IjE2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI4MiIgeT0iMTYiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzI5ODYwIi8+CjxyZWN0IHg9IjAiICB5PSIyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NiIvPgo8cmVjdCB4PSI2OCIgeT0iMjQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIzMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjIiLz4KPHJlY3QgeD0iMzYiIHk9IjMyIiB3aWR0aD0iNDYiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI4MiIgeT0iMzIiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMDZhIi8+CjxyZWN0IHg9IjAiICB5PSI0MCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMmE2NmUiLz4KPHJlY3QgeD0iNTIiIHk9IjQwIiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M2OWM2NiIvPgo8cmVjdCB4PSI4MiIgeT0iNDAiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhYTcyIi8+CjxyZWN0IHg9IjAiICB5PSI0OCIgd2lkdGg9IjI2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjAiLz4KPHJlY3QgeD0iMjYiIHk9IjQ4IiB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI2NiIgeT0iNDgiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSI1NiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NzAiLz4KPHJlY3QgeD0iNDQiIHk9IjU2IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI4MCIgeT0iNTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcyIi8+CjxyZWN0IHg9IjAiICB5PSI2NCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMzAiIHk9IjY0IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTY2ZSIvPgo8cmVjdCB4PSI2NiIgeT0iNjQiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY0Ii8+CjxyZWN0IHg9IjAiICB5PSI3MiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iNDgiIHk9IjcyIiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2MyOTg2MCIvPgo8cmVjdCB4PSI4NCIgeT0iNzIiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI4MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EwNmEiLz4KPHJlY3QgeD0iMjIiIHk9IjgwIiB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI3MiIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxyZWN0IHg9IjAiICB5PSI4OCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGE0NmMiLz4KPHJlY3QgeD0iNDAiIHk9Ijg4IiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI3MCIgeT0iODgiIHdpZHRoPSI1MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI5NiIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iMzAiIHk9Ijk2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2Q0YTg3MCIvPgo8cmVjdCB4PSI3NCIgeT0iOTYiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSIxMDQiIHdpZHRoPSI0NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY2Ii8+CjxyZWN0IHg9IjQ0IiB5PSIxMDQiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjgwIiB5PSIxMDQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzg5ZTY0Ii8+CjxyZWN0IHg9IjAiICB5PSIxMTIiIHdpZHRoPSIzMiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjMyIiB5PSIxMTIiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNjZlIi8+CjxyZWN0IHg9Ijc4IiB5PSIxMTIiIHdpZHRoPSI0MiIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxsaW5lIHgxPSIwIiB5MT0iOCIgICB4Mj0iMTIwIiB5Mj0iOCIgICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxNiIgIHgyPSIxMjAiIHkyPSIxNiIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjI0IiAgeDI9IjEyMCIgeTI9IjI0IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMzIiICB4Mj0iMTIwIiB5Mj0iMzIiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgIHgyPSIxMjAiIHkyPSI0MCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjQ4IiAgeDI9IjEyMCIgeTI9IjQ4IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iNTYiICB4Mj0iMTIwIiB5Mj0iNTYiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI2NCIgIHgyPSIxMjAiIHkyPSI2NCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjcyIiAgeDI9IjEyMCIgeTI9IjcyIiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iODAiICB4Mj0iMTIwIiB5Mj0iODAiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI4OCIgIHgyPSIxMjAiIHkyPSI4OCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9Ijk2IiAgeDI9IjEyMCIgeTI9Ijk2IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMTA0IiB4Mj0iMTIwIiB5Mj0iMTA0IiBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxMTIiIHgyPSIxMjAiIHkyPSIxMTIiIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2E1MDIwIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
   roka:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZThlMGQ0Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA5MDcwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+",
@@ -2214,31 +2217,13 @@ class PuzzleGame extends Phaser.Scene{
     this.previewImg=null;
     this.drawBg();
     // テクスチャをロードしてから玄関・ゲーム開始
-    // images/フォルダのPNGを優先、なければSVG_TEXにフォールバック
-    // パーツのアスペクト比定義（グリッド単位 w:h）
-    const PART_RATIO={youshitsu:[3,3],washitsu:[3,3],kitchen:[3,2],
-      bath:[2,2],roka:[1,2],toilet:[1,2],balcony:[3,1],genkan:[2,2]};
+    // image/ フォルダのPNGを優先、なければSVG_TEXにフォールバック
     const loadTexture=(k,svgDataUrl)=>{
       return new Promise(resolve=>{
-        const imgPath='image/'+k+'.png';
-        const img=new Image();
-        img.onload=()=>{
-          // ObjectURL経由でPhaserのImageLoaderに登録（画質劣化なし）
-          if(this.textures.exists(k))this.textures.remove(k);
-          fetch(imgPath)
-            .then(r=>r.blob())
-            .then(blob=>{
-              const url=URL.createObjectURL(blob);
-              this.load.image(k,url);
-              this.load.once('filecomplete-image-'+k,()=>{
-                URL.revokeObjectURL(url);
-                resolve();
-              });
-              this.load.start();
-            })
-            .catch(()=>resolve());
-        };
-        img.onerror=()=>{
+        const imgPath='image/'+k+'.png?v='+ASSET_VER;
+        // SVGフォールバック（PNGが無い/読めない時）
+        const useSvg=(reason)=>{
+          console.warn('[tex] '+k+' → SVGフォールバック（'+reason+'）: '+imgPath);
           svgToCanvas(svgDataUrl).then(cv=>{
             if(!cv){resolve();return;}
             if(this.textures.exists(k))this.textures.remove(k);
@@ -2246,6 +2231,25 @@ class PuzzleGame extends Phaser.Scene{
             resolve();
           });
         };
+        const img=new Image();
+        img.onload=()=>{
+          // ObjectURL経由でPhaserのImageLoaderに登録（画質劣化なし）
+          fetch(imgPath)
+            .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.blob(); })
+            .then(blob=>{
+              if(this.textures.exists(k))this.textures.remove(k);
+              const url=URL.createObjectURL(blob);
+              this.load.image(k,url);
+              this.load.once('filecomplete-image-'+k,()=>{
+                URL.revokeObjectURL(url);
+                console.log('[tex] '+k+' → PNG適用 ✔');
+                resolve();
+              });
+              this.load.start();
+            })
+            .catch(e=>useSvg('fetch失敗 '+((e&&e.message)||e)));
+        };
+        img.onerror=()=>useSvg('PNG読込失敗（404/名前違い等）');
         img.crossOrigin='anonymous';
         img.src=imgPath;
       });
