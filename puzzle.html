@@ -213,8 +213,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item{
   position:absolute;inset:0;
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
-  padding:16px 24px 26px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:18px 24px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   transition:border-color .2s,outline-color .2s;
   overflow:visible;opacity:.45;pointer-events:none;
   outline:3px solid transparent;outline-offset:2px;
@@ -222,7 +222,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.18em;color:var(--brown-dark);margin-bottom:8px;font-weight:600;text-align:center;}
+.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.04em;color:var(--brown-dark);margin-bottom:6px;font-weight:600;text-align:center;}
 .roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
@@ -243,6 +243,38 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.locked .tap-hint{display:none;}
 .roulette-item.locked::after{content:'✓ 確定';position:absolute;top:12px;right:14px;font-size:11px;color:var(--brown-light);letter-spacing:.1em;}
 .roulette-item.rare.locked::after{color:#c8860a;}
+/* ── 最高レア（虹色・超おめでたい）演出 ── */
+.roulette-item.super-rare .roulette-item-value{
+  background:linear-gradient(90deg,#ff3b3b,#ff9d00,#ffe600,#3bd16f,#3b8bff,#9b3bff,#ff3bd1,#ff3b3b);
+  background-size:300% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:rainbowFlow 2.2s linear infinite;
+  filter:drop-shadow(0 0 8px rgba(255,180,40,.6));
+  font-size:46px;
+}
+@keyframes rainbowFlow{0%{background-position:0% center}100%{background-position:300% center}}
+.roulette-item.super-rare{
+  border-color:#ffcf3b;
+  background:linear-gradient(135deg,#fff8e8,#fff0fa,#eef6ff,#fffbe8);
+  background-size:300% 300%;
+  animation:superGlow 3s ease infinite, superBorder 2.2s linear infinite;
+  box-shadow:0 0 24px 4px rgba(255,200,60,.4);
+}
+@keyframes superGlow{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+@keyframes superBorder{0%{box-shadow:0 0 24px 4px rgba(255,90,90,.35);}25%{box-shadow:0 0 24px 4px rgba(255,200,40,.4);}50%{box-shadow:0 0 24px 4px rgba(80,200,120,.4);}75%{box-shadow:0 0 24px 4px rgba(90,140,255,.4);}100%{box-shadow:0 0 24px 4px rgba(180,90,255,.35);}}
+.roulette-item.super-rare::before{
+  content:'✦ SUPER RARE ✦';
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  font-size:10px;font-weight:700;letter-spacing:.18em;color:#fff;
+  background:linear-gradient(90deg,#ff5a5a,#ffb43b,#5ac878,#5a8cff,#b45aff);
+  background-size:200% auto;animation:rainbowFlow 2.2s linear infinite;
+  padding:3px 12px;border-radius:20px;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(255,150,40,.4);
+}
+.roulette-item.super-rare.locked::after{color:#e0820a;}
+/* 紙吹雪 */
+.confetti-piece{position:fixed;width:10px;height:10px;z-index:600;pointer-events:none;will-change:transform,opacity;border-radius:2px;}
+@keyframes confettiFall{0%{transform:translateY(0) rotateZ(0deg);opacity:1;}100%{transform:translateY(110vh) rotateZ(720deg);opacity:0;}}
 /* ── 逆レア（ニッチ・珍しさ）演出：紫×シルバーのコレクター感 ── */
 .roulette-item.niche .roulette-item-value{
   background:linear-gradient(135deg,#7a5fa8,#b9a3d9,#8c6fb5,#b9a3d9);
@@ -414,17 +446,18 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .title-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
+  grid-auto-rows:148px;
   gap:10px;
   padding:4px 0;
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);gap:12px;}
-  .title-grid-badge{font-size:36px;}
-  .title-grid-name{font-size:18px;line-height:1.3;}
-  .title-grid-card.locked .title-grid-name{font-size:17px;}
-  .title-grid-cond{font-size:13px;line-height:1.4;}
-  .title-grid-card{padding:14px 10px;min-height:150px;}
+  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:140px;gap:12px;}
+  .title-grid-badge{font-size:34px;}
+  .title-grid-name{font-size:17px;line-height:1.25;}
+  .title-grid-card.locked .title-grid-name{font-size:16px;}
+  .title-grid-cond{font-size:12px;line-height:1.35;}
+  .title-grid-card{padding:10px 8px;min-height:0;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
@@ -444,10 +477,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 }
 .title-grid-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
-  padding:14px 10px;border-radius:10px;text-align:center;
+  padding:12px 10px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
   transition:border-color .2s;
-  min-height:140px;
+  height:100%;overflow:hidden;
 }
 .title-grid-card.owned{
   border-color:var(--accent);
@@ -642,7 +675,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   <div class="roulette-title">物件情報を引いてみよう</div>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-0" onclick="lockRoulette(0)">
-      <div class="roulette-item-label">築 年 数</div>
+      <div class="roulette-item-label">築年数</div>
       <div class="roulette-item-value" id="rou-val-0">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-0" onclick="event.stopPropagation();doRerollSlot(0)">🎲 再抽選</button>
@@ -651,7 +684,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   </div>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
-      <div class="roulette-item-label">駅 徒 歩</div>
+      <div class="roulette-item-label">駅徒歩</div>
       <div class="roulette-item-value" id="rou-val-1">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-1" onclick="event.stopPropagation();doRerollSlot(1)">🎲 再抽選</button>
@@ -660,7 +693,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   </div>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
-      <div class="roulette-item-label">家 賃</div>
+      <div class="roulette-item-label">家賃</div>
       <div class="roulette-item-value" id="rou-val-2">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
@@ -783,6 +816,32 @@ function showGameToast(msg){
   el.classList.add('show');
   if(_gameToastTimer)clearTimeout(_gameToastTimer);
   _gameToastTimer=setTimeout(()=>{el.classList.remove('show');},2400);
+}
+// 紙吹雪演出（最高レア時）
+function fireConfetti(idx){
+  const colors=['#ff5a5a','#ffb43b','#ffe600','#5ac878','#5a8cff','#9b5aff','#ff5ad1'];
+  const slot=document.getElementById('rou-'+(idx!=null?idx:0));
+  let originX=window.innerWidth/2, originY=window.innerHeight/2;
+  if(slot){ const r=slot.getBoundingClientRect(); originX=r.left+r.width/2; originY=r.top+r.height/2; }
+  const N=70;
+  for(let i=0;i<N;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    const c=colors[i%colors.length];
+    p.style.background=c;
+    const startX=originX+(Math.random()-0.5)*220;
+    const startY=originY+(Math.random()-0.5)*60;
+    p.style.left=startX+'px';
+    p.style.top=startY+'px';
+    p.style.width=(6+Math.random()*8)+'px';
+    p.style.height=(6+Math.random()*8)+'px';
+    if(Math.random()<0.5)p.style.borderRadius='50%';
+    const dur=1.6+Math.random()*1.4;
+    const delay=Math.random()*0.3;
+    p.style.animation=`confettiFall ${dur}s ease-out ${delay}s forwards`;
+    document.body.appendChild(p);
+    setTimeout(()=>{if(p.parentNode)p.parentNode.removeChild(p);},(dur+delay)*1000+200);
+  }
 }
 // Promise<boolean> を返す確認ダイアログ（OKでtrue）
 function showGameConfirm(msg,okLabel,cancelLabel){
@@ -991,6 +1050,13 @@ function isInverseRare(idx,val){
   if(idx===2) return val<=5;
   return false;
 }
+// 最高レア値（虹色・超おめでたい演出）：築年数0, 駅徒歩0, 家賃100
+function isSuperRare(idx,val){
+  if(idx===0) return val===0;
+  if(idx===1) return val===0;
+  if(idx===2) return val>=100;
+  return false;
+}
 // ブロック内の取りうる値リスト
 function blockValues(b){
   const arr=[];
@@ -1090,9 +1156,13 @@ function lockRerollSlot(idx){
   document.getElementById('rou-val-'+idx).textContent=val+rouletteUnits[idx];
   document.getElementById('rou-val-'+idx).classList.remove('spinning');
   document.getElementById('rou-'+idx).classList.remove('active-slot');
-  document.getElementById('rou-'+idx).classList.remove('rare','niche');
+  document.getElementById('rou-'+idx).classList.remove('rare','niche','super-rare');
   document.getElementById('rou-'+idx).classList.add('locked');
-  if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  if(isSuperRare(idx,val)){
+    document.getElementById('rou-'+idx).classList.add('rare','super-rare');
+    fireConfetti(idx);
+  }
+  else if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
   else if(isInverseRare(idx,val)) document.getElementById('rou-'+idx).classList.add('niche');
   // 再抽選後は自スロットのPOPを消す
   const pop2=document.querySelector('#rou-'+idx+' .reroll-pop');
@@ -1387,7 +1457,7 @@ function renderTitlesPage(){
     ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
   ];
   const isMobileW=window.innerWidth<=520;
-  const perPage=isMobileW?4:8; // スマホ4件(2×2)・PC8件(4×2)でスクロール不要
+  const perPage=isMobileW?6:8; // スマホ6件(2×3)・PC8件(4×2)
   const totalPages=Math.ceil(sorted.length/perPage);
   let page=window._titlePage||0;
   if(page<0)page=0; if(page>=totalPages)page=totalPages-1;
@@ -1516,8 +1586,13 @@ function lockRoulette(idx){
   document.getElementById('rou-val-'+idx).classList.remove('spinning');
   document.getElementById('rou-'+idx).classList.remove('active-slot');
   document.getElementById('rou-'+idx).classList.add('locked');
+  // 最高レア演出（虹色・超おめでたい）
+  if(isSuperRare(idx,val)){
+    document.getElementById('rou-'+idx).classList.add('rare','super-rare');
+    fireConfetti(idx);
+  }
   // レア演出（プレミアム）
-  if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  else if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
   // 逆レア演出（ニッチ・珍しさ）
   else if(isInverseRare(idx,val)) document.getElementById('rou-'+idx).classList.add('niche');
   // 次のスロットをアクティブに
