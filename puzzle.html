@@ -221,7 +221,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{font-size:18px;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:8px;font-weight:700;text-align:center;}
+.roulette-item-label{font-size:21px;letter-spacing:.18em;color:var(--brown-dark);margin-bottom:8px;font-weight:700;text-align:center;}
 .roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
@@ -413,19 +413,16 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .title-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  grid-auto-rows:150px;
   gap:10px;
   padding:4px 0;
-  min-height:310px; /* 常に2行ぶんを確保（ページ間で高さを統一） */
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:118px;min-height:auto;gap:8px;}
-  .title-grid-card{height:118px;padding:8px 6px;gap:2px;}
-  .title-grid-badge{font-size:24px;}
-  .title-grid-name{font-size:14px;line-height:1.25;}
-  .title-grid-card.locked .title-grid-name{font-size:13px;}
-  .title-grid-cond{font-size:11px;line-height:1.3;}
+  .title-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .title-grid-badge{font-size:34px;}
+  .title-grid-name{font-size:17px;line-height:1.3;}
+  .title-grid-card.locked .title-grid-name{font-size:16px;}
+  .title-grid-cond{font-size:12px;line-height:1.35;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
@@ -444,11 +441,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  padding:10px 6px 8px;border-radius:10px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:10px 8px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
   transition:border-color .2s;
-  height:150px;overflow:hidden;
+  aspect-ratio:1;overflow:hidden;
 }
 .title-grid-card.owned{
   border-color:var(--accent);
@@ -459,7 +456,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   border-color:rgba(90,74,58,.08);
 }
 .title-grid-badge{
-  font-size:28px;line-height:1;
+  font-size:32px;line-height:1;
   transition:filter .2s;
 }
 .title-grid-card.locked .title-grid-badge{
@@ -1742,12 +1739,13 @@ async function saveAndShare(){
   window._cardCanvas=cv;
   const r=window._lastResult||{};
   const tags=(r.titles||[]).map(titleToHashtag);
-  const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' #間取りすと';
+  // 自動生成タグ（固定）＋称号タグ
+  const fixedTags='#間取りすと #madori_st #間取りゲーム';
+  const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' '+fixedTags;
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
-  // モバイル端末か判定（タッチ＋細い画面）
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
-  // ダウンロード処理（確実に動く）
+  // ダウンロード処理
   const doDownload=()=>{
     cv.toBlob((blob)=>{
       if(!blob){ showGameToast('画像の作成に失敗しました'); return; }
@@ -1756,29 +1754,19 @@ async function saveAndShare(){
       a.href=url; a.download='物件_'+nm+'.png'; a.style.display='none';
       document.body.appendChild(a); a.click();
       setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
-      showGameToast('画像を保存しました📥（ダウンロードフォルダ）');
     },'image/png');
   };
 
   if(!isMobile){
-    // PC：画像をクリップボードにコピー（SNSに貼り付け可）＋念のためダウンロードも
-    let imgCopied=false;
-    try{
-      if(navigator.clipboard && window.ClipboardItem){
-        const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
-        if(blob){
-          await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
-          imgCopied=true;
-        }
-      }
-    }catch(e){ imgCopied=false; }
-    doDownload(); // ダウンロードも実行（確実に手元に残す）
-    if(imgCopied){
-      setTimeout(()=>showGameToast('画像をコピー＆保存しました📋 SNSに貼り付けOK'),1600);
+    // PC：シェア文面をコピー（通知1つだけ）。画像は別途ダウンロードもしておく
+    doDownload();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      try{ await navigator.clipboard.writeText(text); }catch(e){}
     }
+    showGameToast('シェア文面をコピーしました📋');
     return;
   }
-  // モバイル：共有シート（画像つき）。失敗時はダウンロード
+  // モバイル：共有シート（画像＋文面）。失敗時はダウンロード＋文面コピー
   cv.toBlob(async(blob)=>{
     if(!blob){ doDownload(); return; }
     const file=new File([blob],'madori.png',{type:'image/png'});
@@ -1786,7 +1774,12 @@ async function saveAndShare(){
       try{ await navigator.share({files:[file], text}); return; }
       catch(e){ if(e&&e.name==='AbortError')return; }
     }
+    // 共有不可：ダウンロード＋文面コピー
     doDownload();
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      try{ await navigator.clipboard.writeText(text); }catch(e){}
+    }
+    showGameToast('画像を保存＆文面をコピーしました📋');
   },'image/png');
 }
 
@@ -2437,6 +2430,8 @@ class PuzzleGame extends Phaser.Scene{
     // ── startDrag / moveDrag / endDrag ──
     const startDrag=(cx,cy,fromCanvas=false)=>{
       if(!this.currentDef||this._dragging)return;
+      // 完成（物件完成オーバーレイ表示中）はパーツを動かせない
+      if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
       // 枠(wrap)からは、配置検討中(プレビュー表示中)は再取得しない
       // 土地(canvas)からは、プレビューを掴んで動かせるので許可
       if(this._previewActive&&!fromCanvas)return;
@@ -2786,6 +2781,8 @@ class PuzzleGame extends Phaser.Scene{
   }
   doHold(){
     if(!this.currentDef)return;
+    // 完成後は交換不可
+    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
     if(this.holdDef){[this.holdDef,this.currentDef]=[this.currentDef,this.holdDef];}
     else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
     this.rotation=0; this.holdUsed=false;
