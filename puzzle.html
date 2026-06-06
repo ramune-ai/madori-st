@@ -2661,8 +2661,23 @@ class PuzzleGame extends Phaser.Scene{
 }
 
 function startPhaserGame(){
+  // 起動前にパーツゾーンのcanvasを最終サイズに確定（高さ変動でのズレ防止）
+  const presizeSlots=()=>{
+    const w=window.innerWidth||400;
+    const bigPx = w<420?34 : w<600?38 : 30;
+    const smallPx = w<420?17 : w<600?19 : 16;
+    const PAD=8;
+    const BIG=3*bigPx+PAD, SMALL=3*smallPx+PAD;
+    const set=(id,sz)=>{
+      const cv=document.getElementById(id);
+      if(cv){cv.width=sz;cv.height=sz;cv.style.width=sz+'px';cv.style.height=sz+'px';}
+    };
+    set('canvas-next2',SMALL); set('canvas-next1',SMALL);
+    set('canvas-current',BIG); set('canvas-hold',BIG);
+  };
   // screen-gameがdisplay:flexになった後、barのoffsetHeightを計測して起動
   const launch=()=>{
+    presizeSlots(); // 先にcanvasサイズを確定させてから高さ計測
     const topBar=document.getElementById('game-top-bar');
     const botBar=document.getElementById('game-bottom-bar');
     const tH=topBar?.offsetHeight||0;
