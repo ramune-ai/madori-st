@@ -214,6 +214,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   position:absolute;inset:0;
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
   cursor:pointer;
+  padding:8px 24px 22px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   transition:border-color .2s,outline-color .2s;
   overflow:visible;opacity:.45;pointer-events:none;
   outline:3px solid transparent;outline-offset:2px;
@@ -221,8 +223,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{position:absolute;top:24px;left:0;right:0;font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
-.roulette-item-value{position:absolute;top:52px;left:0;right:0;font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
+.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
+.roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
 .roulette-item.rare .roulette-item-value{
@@ -1117,7 +1119,7 @@ function isRare(idx,val){return isRareGacha(idx,val);}
 // 再抽選確定プール（築浅5以下・駅近5以下）
 const REROLL_POOLS={
   0:[0,1,2,3,4,5],        // 築浅確定（レア）
-  1:[1,2,3,4,5],          // 駅近確定（レア）
+  1:[0,1,2,3,4,5],          // 駅近確定（レア）
   2:[70,80,90,100],       // 高級確定（家賃レア70以上）
 };
 // 再抽選済みフラグ（per slot）
@@ -1578,7 +1580,7 @@ function startRoulette(){
   rerollDone[0]=rerollDone[1]=rerollDone[2]=false;
   for(let i=0;i<3;i++){
     rouletteLocked[i]=false; rouletteValues[i]=null;
-    document.getElementById('rou-'+i).classList.remove('locked','active-slot','rare');
+    document.getElementById('rou-'+i).classList.remove('locked','active-slot','rare','niche','super-rare');
     document.getElementById('rou-val-'+i).classList.add('spinning');
     const rb=document.getElementById('reroll-btn-'+i);
     if(rb) rb.classList.remove('visible');
