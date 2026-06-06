@@ -2440,7 +2440,7 @@ class PuzzleGame extends Phaser.Scene{
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
-    return 24; // 1マス=24px固定（次・今・保留・ドラッグ全て共通）
+    return 28; // 1マス=28px固定（次・今・保留・ドラッグ全て共通）
   }
 
   updatePreview(c,r){
@@ -2461,30 +2461,31 @@ class PuzzleGame extends Phaser.Scene{
       if(!shape[dr][dc])continue;
       const nr=r+dr,nc=c+dc;
       if(nr<0||nr>=ROWS||nc<0||nc>=COLS)continue;
-      this.previewGfx.fillStyle(ok?0x88cc88:0xdd8888,ok?0.18:0.12);
+      this.previewGfx.fillStyle(ok?0x88cc88:0xdd8888,ok?0.18:0.30);
       this.previewGfx.fillRect(this.sx(nc)+1,this.sy(nr)+1,CS-2,CS-2);
     }
-    // プレビュー画像
-    if(this.textures.exists(this.currentDef.type)){
-      const rot=this.rotation%4,dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
-      this.previewImg=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
-        .setDisplaySize(dw,dh).setAngle(rot*90).setDepth(4);
+    // 置ける場所のときだけパーツ画像・ラベルを表示（置けない場所では赤ハイライトのみ）
+    if(ok){
+      if(this.textures.exists(this.currentDef.type)){
+        const rot=this.rotation%4,dw=rot%2===0?pw:ph,dh=rot%2===0?ph:pw;
+        this.previewImg=this.add.image(px+pw/2,py+ph/2,this.currentDef.type)
+          .setDisplaySize(dw,dh).setAngle(rot*90).setDepth(4);
+      }
+      if(this.previewImg){
+        this._previewTween=this.tweens.add({
+          targets:this.previewImg,alpha:{from:0.9,to:0.5},
+          duration:500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'
+        });
+      }
+      const previewFs=Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
+      const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,{
+        fontSize:previewFs+'px',fill:'#2a1a0a',align:'center',fontFamily:'Meiryo,sans-serif',
+        fontStyle:'bold',stroke:'#ffffff',strokeThickness:3,
+        wordWrap:{width:pw-8}
+      }).setOrigin(0.5,0.5).setDepth(6).setAlpha(0.95);
+      if(!this._previewLabels)this._previewLabels=[];
+      this._previewLabels.push(lbl);
     }
-    if(this.previewImg){
-      this._previewTween=this.tweens.add({
-        targets:this.previewImg,alpha:{from:0.9,to:0.5},
-        duration:500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'
-      });
-    }
-    // ラベル
-    const previewFs=Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
-    const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,{
-      fontSize:previewFs+'px',fill:'#2a1a0a',align:'center',fontFamily:'Meiryo,sans-serif',
-      fontStyle:'bold',stroke:'#ffffff',strokeThickness:3,
-      wordWrap:{width:pw-8}
-    }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.75);
-    if(!this._previewLabels)this._previewLabels=[];
-    this._previewLabels.push(lbl);
     this._previewActive=true;
   }
 
