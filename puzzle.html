@@ -305,7 +305,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   .btn-rotate-new{padding:15px 26px 12px;}
   .btn-rotate-new .rot-icon{font-size:30px;}
   .btn-rotate-new .rot-label{font-size:11px;}
-  #game-bottom-bar{padding:10px 12px max(34px,calc(env(safe-area-inset-bottom) + 18px));gap:12px;}
+  #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
   display:flex;flex-direction:column;align-items:center;gap:5px;
@@ -440,7 +440,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
           <div class="next-sublabel">次の次</div>
           <canvas id="canvas-next2" width="70" height="70"></canvas>
         </div>
-        <div style="font-size:10px;color:var(--brown-light);margin:0 3px;">→</div>
         <div class="next-row">
           <div class="next-sublabel em">次</div>
           <canvas id="canvas-next1" width="90" height="90"></canvas>
@@ -1810,28 +1809,20 @@ class PuzzleGame extends Phaser.Scene{
           this._clearPreview(); this.drawUI();
         }
       } else {
-        // ドラッグして離した
+        // ドラッグして離した → どこで離しても必ず最寄りの土地内へスナップ
         const shape=this.getShape(this.currentDef,this.rotation);
+        // 離した位置をグリッド座標に変換（土地外でもClampで土地端に寄せる）
+        let baseC=this.curC, baseR=this.curR;
         if(g.ok){
-          // 土地内（グレー含む）で離した → 土地内に収まる位置へスナップ（ぴょっと戻る）
-          const snapped=this._snapIntoLand(shape,this.curC,this.curR);
-          this.curC=snapped.c; this.curR=snapped.r;
-          this._anchorC=snapped.c; this._anchorR=snapped.r;
-          this.updatePreview(this.curC,this.curR,true);
-          this._justDropped=true;
-          setTimeout(()=>{this._justDropped=false;},200);
-        } else if(this._previewActive){
-          // 土地の外側マージンで離した → 最後の位置を土地内にスナップして残す
-          const snapped=this._snapIntoLand(shape,this.curC,this.curR);
-          this.curC=snapped.c; this.curR=snapped.r;
-          this._anchorC=snapped.c; this._anchorR=snapped.r;
-          this.updatePreview(this.curC,this.curR,true);
-          this._justDropped=true;
-          setTimeout(()=>{this._justDropped=false;},200);
-        } else {
-          // 一度も土地内に入らず外で離した → キャンセル（パーツを枠に戻す）
-          this._clearPreview(); this.drawUI();
+          baseC=Phaser.Math.Clamp(Math.round(g.bx/CS-shape[0].length/2),0,COLS-shape[0].length);
+          baseR=Phaser.Math.Clamp(Math.round(g.by/CS-shape.length/2),0,ROWS-shape.length);
         }
+        const snapped=this._snapIntoLand(shape,baseC,baseR);
+        this.curC=snapped.c; this.curR=snapped.r;
+        this._anchorC=snapped.c; this._anchorR=snapped.r;
+        this.updatePreview(this.curC,this.curR,true);
+        this._justDropped=true;
+        setTimeout(()=>{this._justDropped=false;},200);
       }
     };
 
@@ -2489,17 +2480,16 @@ class PuzzleGame extends Phaser.Scene{
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
-    // 画面が狭いほど小さく（横切れ防止）。広いPCは大きめ。
     const w=window.innerWidth||400;
-    if(w<420)return 28;
-    if(w<600)return 32;
-    return 34;
+    if(w<420)return 34;
+    if(w<600)return 38;
+    return 38;
   }
   _unifiedCellPxSmall(){
     const w=window.innerWidth||400;
-    if(w<420)return 18;
-    if(w<600)return 20;
-    return 22;
+    if(w<420)return 17;
+    if(w<600)return 19;
+    return 20;
   }
 
   // パーツが土地内（LAND_MAP!==null）に完全に収まるかチェック（グレー侵入も他パーツ重なりも見る）
@@ -2669,7 +2659,7 @@ function startPhaserGame(){
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
     // 盤がコンテナいっぱいにならないよう余白係数(0.9)を掛ける → 上下左右にゆとり
-    const MARGIN=0.9;
+    const MARGIN=0.82;
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, 1.0);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
