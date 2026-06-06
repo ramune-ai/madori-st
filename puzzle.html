@@ -213,7 +213,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item{
   position:absolute;inset:0;
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
-  padding:20px 24px;cursor:pointer;
+  padding:16px 24px 26px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   transition:border-color .2s,outline-color .2s;
   overflow:visible;opacity:.45;pointer-events:none;
   outline:3px solid transparent;outline-offset:2px;
@@ -221,7 +222,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{font-size:21px;letter-spacing:.18em;color:var(--brown-dark);margin-bottom:8px;font-weight:700;text-align:center;}
+.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.18em;color:var(--brown-dark);margin-bottom:8px;font-weight:600;text-align:center;}
 .roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
@@ -237,7 +238,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.rare{border-color:#c8a020;background:linear-gradient(135deg,#fffbec,#fff8d6);}
 .roulette-item.rare::before{content:'✦ PREMIUM';position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.2em;color:#c8860a;background:#fff8d6;padding:2px 10px;border-radius:20px;border:1px solid #e8c040;white-space:nowrap;}
 /* tap-hint */
-.roulette-item .tap-hint{display:block;font-size:11px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:500;letter-spacing:.05em;text-align:center;margin-top:4px;}
+.roulette-item .tap-hint{position:absolute;bottom:7px;left:0;right:0;font-size:11px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:500;letter-spacing:.05em;text-align:center;}
 .roulette-item.active-slot .tap-hint{opacity:1;}
 .roulette-item.locked .tap-hint{display:none;}
 .roulette-item.locked::after{content:'✓ 確定';position:absolute;top:12px;right:14px;font-size:11px;color:var(--brown-light);letter-spacing:.1em;}
@@ -418,11 +419,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
-  .title-grid-badge{font-size:34px;}
-  .title-grid-name{font-size:17px;line-height:1.3;}
-  .title-grid-card.locked .title-grid-name{font-size:16px;}
-  .title-grid-cond{font-size:12px;line-height:1.35;}
+  .title-grid{grid-template-columns:repeat(2,1fr);gap:12px;}
+  .title-grid-badge{font-size:36px;}
+  .title-grid-name{font-size:18px;line-height:1.3;}
+  .title-grid-card.locked .title-grid-name{font-size:17px;}
+  .title-grid-cond{font-size:13px;line-height:1.4;}
+  .title-grid-card{padding:14px 10px;min-height:150px;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
@@ -441,11 +443,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-  padding:10px 8px;border-radius:10px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  padding:14px 10px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
   transition:border-color .2s;
-  aspect-ratio:1;overflow:hidden;
+  min-height:140px;
 }
 .title-grid-card.owned{
   border-color:var(--accent);
@@ -476,8 +478,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-size:11px;
 }
 .title-grid-cond{
-  font-size:10px;color:var(--brown-light);
-  line-height:1.4;letter-spacing:.02em;
+  font-size:11px;color:var(--brown-light);
+  line-height:1.45;letter-spacing:.02em;
 }
 .title-grid-new-badge{
   font-size:8px;font-weight:700;letter-spacing:.06em;
@@ -1370,7 +1372,6 @@ function openModal(type){
   document.getElementById('modal-overlay').classList.add('active');
 }
 // 称号一覧（ページ制）
-const TITLES_PER_PAGE=8;
 function renderTitlesPage(){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
@@ -1385,7 +1386,8 @@ function renderTitlesPage(){
     ...ALL_TITLES_MASTER.filter(m=>owned.has(m.title)),
     ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
   ];
-  const perPage=(window.innerWidth<=520)?6:8; // スマホは6件・PCは8件
+  const isMobileW=window.innerWidth<=520;
+  const perPage=isMobileW?4:8; // スマホ4件(2×2)・PC8件(4×2)でスクロール不要
   const totalPages=Math.ceil(sorted.length/perPage);
   let page=window._titlePage||0;
   if(page<0)page=0; if(page>=totalPages)page=totalPages-1;
@@ -1395,11 +1397,31 @@ function renderTitlesPage(){
   const pageItems=sorted.slice(start,start+perPage);
 
   body.innerHTML='';
-  // 進捗表示
+  // ── ヘッダー：左に獲得数、右にページャ ──
+  const header=document.createElement('div');
+  header.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
   const prog=document.createElement('div');
-  prog.style.cssText='font-size:15px;color:var(--brown);letter-spacing:.08em;margin-bottom:12px;text-align:center;font-weight:700;font-family:"Noto Serif JP",serif;';
+  prog.style.cssText='font-size:17px;color:var(--brown);letter-spacing:.06em;font-weight:700;font-family:"Noto Serif JP",serif;';
   prog.textContent=`獲得 ${ownedCount} / ${ALL_TITLES_MASTER.length}`;
-  body.appendChild(prog);
+  header.appendChild(prog);
+  if(totalPages>1){
+    const pager=document.createElement('div');
+    pager.style.cssText='display:flex;align-items:center;gap:10px;';
+    const prev=document.createElement('button');
+    prev.textContent='‹ 前へ';
+    prev.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page===0?'opacity:.35;pointer-events:none;':'');
+    prev.onclick=()=>{window._titlePage=page-1;renderTitlesPage();};
+    const ind=document.createElement('div');
+    ind.style.cssText='font-size:14px;color:var(--brown);letter-spacing:.06em;font-weight:700;min-width:42px;text-align:center;';
+    ind.textContent=`${page+1} / ${totalPages}`;
+    const next=document.createElement('button');
+    next.textContent='次へ ›';
+    next.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page>=totalPages-1?'opacity:.35;pointer-events:none;':'');
+    next.onclick=()=>{window._titlePage=page+1;renderTitlesPage();};
+    pager.appendChild(prev); pager.appendChild(ind); pager.appendChild(next);
+    header.appendChild(pager);
+  }
+  body.appendChild(header);
 
   const grid=document.createElement('div');
   grid.className='title-grid';
@@ -1428,7 +1450,7 @@ function renderTitlesPage(){
     }
     grid.appendChild(card);
   });
-  // ページに満たない分を空セルで埋めてカードサイズを全ページ共通に
+  // 空セルで埋めてカードサイズを全ページ共通に
   const emptyCount=perPage-pageItems.length;
   for(let e=0;e<emptyCount;e++){
     const ph=document.createElement('div');
@@ -1436,25 +1458,6 @@ function renderTitlesPage(){
     grid.appendChild(ph);
   }
   body.appendChild(grid);
-
-  // ページ送り
-  if(totalPages>1){
-    const pager=document.createElement('div');
-    pager.style.cssText='display:flex;align-items:center;justify-content:center;gap:16px;margin-top:16px;';
-    const prev=document.createElement('button');
-    prev.textContent='‹ 前へ';
-    prev.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:8px 16px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page===0?'opacity:.35;pointer-events:none;':'');
-    prev.onclick=()=>{window._titlePage=page-1;renderTitlesPage();};
-    const ind=document.createElement('div');
-    ind.style.cssText='font-size:13px;color:var(--brown);letter-spacing:.08em;font-weight:700;min-width:56px;text-align:center;';
-    ind.textContent=`${page+1} / ${totalPages}`;
-    const next=document.createElement('button');
-    next.textContent='次へ ›';
-    next.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:8px 16px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page>=totalPages-1?'opacity:.35;pointer-events:none;':'');
-    next.onclick=()=>{window._titlePage=page+1;renderTitlesPage();};
-    pager.appendChild(prev); pager.appendChild(ind); pager.appendChild(next);
-    body.appendChild(pager);
-  }
 }
 function closeModal(e){
   if(!e||e.target===document.getElementById('modal-overlay'))
@@ -1739,9 +1742,9 @@ async function saveAndShare(){
   window._cardCanvas=cv;
   const r=window._lastResult||{};
   const tags=(r.titles||[]).map(titleToHashtag);
-  // 自動生成タグ（固定）＋称号タグ
-  const fixedTags='#間取りすと #madori_st #間取りゲーム';
-  const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' '+fixedTags;
+  // シェア文面：固定文＋間取り＋固定タグ＋称号タグ
+  const titleTags=tags.join(' ');
+  const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #madori_st #間取りゲーム'+(titleTags?' '+titleTags:'');
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
