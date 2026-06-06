@@ -53,9 +53,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-container{
   flex:1;display:flex;justify-content:center;align-items:center;
   overflow:hidden;min-height:0;position:relative;
-  background:#f5f0e8;
+  background:#f8f4ee;
 }
-#game-container canvas{display:block;background:#f5f0e8;}
+#game-container canvas{display:block;background:#f8f4ee;}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -103,13 +103,15 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
 .next-sublabel{font-size:8px;color:var(--brown-light);letter-spacing:.06em;}
 .next-sublabel.em{color:var(--brown);font-weight:700;}
-/* PC専用：右クリック回転ヒント（スマホでは非表示） */
-#pc-rotate-hint{
-  display:none;font-size:11px;color:var(--brown-light);
-  letter-spacing:.04em;white-space:nowrap;
+/* 操作ヒント共通デザイン（3つ統一） */
+.ui-hint{
+  font-size:11px;color:var(--brown-light);
+  letter-spacing:.04em;white-space:nowrap;text-align:center;
   border:1px solid rgba(90,74,58,.18);border-radius:6px;
   padding:3px 10px;background:rgba(255,255,255,.5);
 }
+/* PC専用：右クリック回転ヒント（スマホでは非表示） */
+#pc-rotate-hint{ display:none; }
 @media(min-width:600px){#pc-rotate-hint{display:block;}}
 
 /* 現在パーツ（中央・大きく・ドラッグ可） */
@@ -141,7 +143,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #hold-col.drag-over{background:rgba(200,160,96,.3);border-color:var(--brown-dark);}
 #hold-col:active{background:rgba(200,160,96,.18);}
 .hold-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
-#hold-hint{font-size:8px;color:var(--brown-light);margin-top:0;}
 
 /* ── 下部ボタンバー ── */
 #game-bottom-bar{
@@ -306,7 +307,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   #current-piece-wrap{padding:2px 4px;}
   #hold-col,#next-col{padding:2px 5px;}
   #current-piece-wrap .piece-label,.hold-label{font-size:8px;}
-  #current-piece-hint,#hold-hint,.next-sublabel{font-size:7px;}
+  .ui-hint,.next-sublabel{font-size:8px;}
+  .ui-hint{padding:2px 6px;}
   .btn-undo{padding:14px 20px 11px;}
   .btn-undo .undo-icon{font-size:28px;}
   .btn-undo .undo-label{font-size:11px;}
@@ -454,19 +456,19 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
             <canvas id="canvas-next1" width="90" height="90"></canvas>
           </div>
         </div>
-        <div id="pc-rotate-hint">右クリックで回転</div>
+        <div id="pc-rotate-hint" class="ui-hint">右クリックで回転</div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
         <canvas id="canvas-current" width="100" height="100" style="display:block;width:100px;height:100px;"></canvas>
-        <div id="current-piece-hint" style="font-size:8px;color:var(--brown-light);">ドラッグ or 土地タップ</div>
+        <div id="current-piece-hint" class="ui-hint">ドラッグ or 土地タップ</div>
       </div>
       <!-- 保留 -->
       <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
         <div class="hold-label">保留</div>
         <canvas id="canvas-hold" width="90" height="90"></canvas>
-        <div id="hold-hint">タップで交換</div>
+        <div id="hold-hint" class="ui-hint">タップで交換</div>
       </div>
     </div>
   </div>
@@ -2694,7 +2696,7 @@ function startPhaserGame(){
     window._phaserGame=new Phaser.Game({
       type:Phaser.AUTO,
       width:CANVAS_W,height:CANVAS_H,
-      backgroundColor:'#f5f0e8',
+      backgroundColor:'#f8f4ee',
       parent:'game-container',
       scene:PuzzleGame,
       resolution:dpr,
