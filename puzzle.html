@@ -1697,7 +1697,7 @@ class PuzzleGame extends Phaser.Scene{
       this.curC=c; this.curR=r;
       // ドラッグで位置が決まったら回転アンカーも更新
       this._anchorC=c; this._anchorR=r;
-      this.updatePreview(c,r);
+      this.updatePreview(c,r,false); // ドラッグ中はスナップせず指位置に描画
     };
     const drawCC=()=>{
       if(!this.currentDef)return;
@@ -1730,8 +1730,11 @@ class PuzzleGame extends Phaser.Scene{
     };
 
     // ── startDrag / moveDrag / endDrag ──
-    const startDrag=(cx,cy)=>{
+    const startDrag=(cx,cy,fromCanvas=false)=>{
       if(!this.currentDef||this._dragging)return;
+      // 枠(wrap)からは、配置検討中(プレビュー表示中)は再取得しない
+      // 土地(canvas)からは、プレビューを掴んで動かせるので許可
+      if(this._previewActive&&!fromCanvas)return;
       this._dragging=true;
       this._justDropped=false;
       const g=toGame(cx,cy);
@@ -1780,14 +1783,21 @@ class PuzzleGame extends Phaser.Scene{
         }
       } else {
         // ドラッグして離した
+        const shape=this.getShape(this.currentDef,this.rotation);
         if(g.ok){
-          // 土地内：すでに追従中のプレビュー位置をそのまま残す（再計算しない＝ずれ防止）
-          this.updatePreview(this.curC,this.curR);
+          // 土地内（グレー含む）で離した → 土地内に収まる位置へスナップ（ぴょっと戻る）
+          const snapped=this._snapIntoLand(shape,this.curC,this.curR);
+          this.curC=snapped.c; this.curR=snapped.r;
+          this._anchorC=snapped.c; this._anchorR=snapped.r;
+          this.updatePreview(this.curC,this.curR,true);
           this._justDropped=true;
           setTimeout(()=>{this._justDropped=false;},200);
         } else if(this._previewActive){
-          // 土地外で離したが、直前まで土地内にいた → 最後のプレビュー位置を残す（戻さない）
-          this.updatePreview(this.curC,this.curR);
+          // 土地の外側マージンで離した → 最後の位置を土地内にスナップして残す
+          const snapped=this._snapIntoLand(shape,this.curC,this.curR);
+          this.curC=snapped.c; this.curR=snapped.r;
+          this._anchorC=snapped.c; this._anchorR=snapped.r;
+          this.updatePreview(this.curC,this.curR,true);
           this._justDropped=true;
           setTimeout(()=>{this._justDropped=false;},200);
         } else {
@@ -1905,7 +1915,7 @@ class PuzzleGame extends Phaser.Scene{
       _msx=e.clientX; _msy=e.clientY; _mMoved=false;
       if(this.currentDef){
         // パーツあり：ドラッグ開始（プレビュー追従）
-        startDrag(e.clientX,e.clientY);
+        startDrag(e.clientX,e.clientY,true);
         return;
       }
       // パーツなし：長押し500msでundo
@@ -1935,7 +1945,7 @@ class PuzzleGame extends Phaser.Scene{
       _clearLongPress();
 
       if(this.currentDef){
-        startDrag(t.clientX,t.clientY);
+        startDrag(t.clientX,t.clientY,true);
         return;
       }
       // パーツなし：長押しでundo
@@ -1945,7 +1955,7 @@ class PuzzleGame extends Phaser.Scene{
           if(!_touchMoved){
             this.doUndo();
             if(this.currentDef){
-              startDrag(_touchStartX,_touchStartY);
+              startDrag(_touchStartX,_touchStartY,true);
               _suppressNextTapPlace=true; // 長押しundo直後の指離しでは設置しない
             }
           }
@@ -2480,7 +2490,7 @@ class PuzzleGame extends Phaser.Scene{
     return {c,r}; // 見つからなければそのまま
   }
 
-  updatePreview(c,r){
+  updatePreview(c,r,snap=true){
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
     if(!this.currentDef)return;
     // 毎回クリアして再描画（シンプル・確実）
@@ -2490,9 +2500,12 @@ class PuzzleGame extends Phaser.Scene{
     this.previewGfx.clear();
     this._previewDefKey=null;
     const shape=this.getShape(this.currentDef,this.rotation);
-    // グレー（土地外）にまたがらないよう、土地内に収まる位置へ補正
-    const snapped=this._snapIntoLand(shape,c,r);
-    c=snapped.c; r=snapped.r;
+    // snap=true のときだけ土地内に収まる位置へ補正（ドラッグ離した時など）
+    // ドラッグ追従中は snap=false で指位置にそのまま描画（グレー上でも見える）
+    if(snap){
+      const snapped=this._snapIntoLand(shape,c,r);
+      c=snapped.c; r=snapped.r;
+    }
     this.curC=c; this.curR=r;
     const ok=this.canPlace(shape,c,r);
     const pw=shape[0].length*CS, ph=shape.length*CS;
