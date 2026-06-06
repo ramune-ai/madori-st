@@ -97,12 +97,20 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #next-col,#current-piece-wrap,#hold-col{min-width:0;flex-shrink:0;}
 /* 次のパーツ縦並び（左） */
 #next-col{
-  display:flex;flex-direction:row;align-items:center;gap:4px;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
   padding:4px 7px;
 }
 .next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
 .next-sublabel{font-size:8px;color:var(--brown-light);letter-spacing:.06em;}
 .next-sublabel.em{color:var(--brown);font-weight:700;}
+/* PC専用：右クリック回転ヒント（スマホでは非表示） */
+#pc-rotate-hint{
+  display:none;font-size:11px;color:var(--brown-light);
+  letter-spacing:.04em;white-space:nowrap;
+  border:1px solid rgba(90,74,58,.18);border-radius:6px;
+  padding:3px 10px;background:rgba(255,255,255,.5);
+}
+@media(min-width:600px){#pc-rotate-hint{display:block;}}
 
 /* 現在パーツ（中央・大きく・ドラッグ可） */
 #current-piece-wrap{
@@ -436,14 +444,17 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <div id="game-top-row2">
       <!-- 次のパーツ横並び（次の次→次） -->
       <div id="next-col">
-        <div class="next-row">
-          <div class="next-sublabel">次の次</div>
-          <canvas id="canvas-next2" width="70" height="70"></canvas>
+        <div style="display:flex;flex-direction:row;align-items:center;gap:6px;">
+          <div class="next-row">
+            <div class="next-sublabel">次の次</div>
+            <canvas id="canvas-next2" width="70" height="70"></canvas>
+          </div>
+          <div class="next-row">
+            <div class="next-sublabel em">次</div>
+            <canvas id="canvas-next1" width="90" height="90"></canvas>
+          </div>
         </div>
-        <div class="next-row">
-          <div class="next-sublabel em">次</div>
-          <canvas id="canvas-next1" width="90" height="90"></canvas>
-        </div>
+        <div id="pc-rotate-hint">右クリックで回転</div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
@@ -1801,9 +1812,15 @@ class PuzzleGame extends Phaser.Scene{
       }
       const g=toGame(cx,cy);
       if(wasTap){
-        // タップ＝動かさず離した → 離した位置にプレビューを置いて即設置
+        // タップ＝動かさず離した → タップ位置を土地内にスナップして即設置
         if(g.ok){
-          doPreview(cx,cy);
+          const shape=this.getShape(this.currentDef,this.rotation);
+          let tc=Phaser.Math.Clamp(Math.round(g.bx/CS-shape[0].length/2),0,COLS-shape[0].length);
+          let tr=Phaser.Math.Clamp(Math.round(g.by/CS-shape.length/2),0,ROWS-shape.length);
+          const snapped=this._snapIntoLand(shape,tc,tr);
+          this.curC=snapped.c; this.curR=snapped.r;
+          this._anchorC=snapped.c; this._anchorR=snapped.r;
+          this.updatePreview(this.curC,this.curR,true);
           if(this._previewActive) this.placeAtCursor();
         } else {
           this._clearPreview(); this.drawUI();
@@ -1871,6 +1888,7 @@ class PuzzleGame extends Phaser.Scene{
     document._dMU=(e)=>{
       if(!this._dragging)return;
       this._dragging=false;
+      hideGhost();
       if(holdCol)holdCol.classList.remove('drag-over');
       // 保留枠へのドロップ
       if(holdCol){
@@ -1879,26 +1897,35 @@ class PuzzleGame extends Phaser.Scene{
           this.doHold(); this._clearPreview(); this.drawUI(); return;
         }
       }
-      const g=toGame(e.clientX,e.clientY);
-      if(!g.ok){
-        // 土地外：直前までプレビューがあれば残す、なければキャンセル
-        if(this._previewActive){ this.updatePreview(this.curC,this.curR); }
-        else { this._clearPreview(); this.drawUI(); }
-        return;
-      }
-      // クリック位置のセル
       const sh=this.getShape(this.currentDef,this.rotation);
       const pw=sh[0].length, ph=sh.length;
-      const clickC=Phaser.Math.Clamp(Math.round(g.bx/CS-pw/2),0,COLS-pw);
-      const clickR=Phaser.Math.Clamp(Math.round(g.by/CS-ph/2),0,ROWS-ph);
+      const g=toGame(e.clientX,e.clientY);
+      const r=canvas.getBoundingClientRect();
+      const insideGrid = e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
 
       if(_mMoved){
-        // ドラッグした → プレビューを今の位置に残す（設置しない）
-        this.updatePreview(this.curC,this.curR);
-        this._mPreviewShown=true; // 次の同位置クリックで確定可能に
+        // ドラッグして離した → どこで離しても必ず最寄りの土地内へスナップ
+        let baseC=this.curC, baseR=this.curR;
+        if(g.ok){
+          baseC=Phaser.Math.Clamp(Math.round(g.bx/CS-pw/2),0,COLS-pw);
+          baseR=Phaser.Math.Clamp(Math.round(g.by/CS-ph/2),0,ROWS-ph);
+        }
+        const snapped=this._snapIntoLand(sh,baseC,baseR);
+        this.curC=snapped.c; this.curR=snapped.r;
+        this._anchorC=snapped.c; this._anchorR=snapped.r;
+        this.updatePreview(this.curC,this.curR,true);
+        this._mPreviewShown=true;
         return;
       }
       // 動かさずクリック
+      if(!insideGrid||!g.ok){
+        // 土地外をクリック → 何もしない（プレビュー維持 or 無視）
+        return;
+      }
+      let clickC=Phaser.Math.Clamp(Math.round(g.bx/CS-pw/2),0,COLS-pw);
+      let clickR=Phaser.Math.Clamp(Math.round(g.by/CS-ph/2),0,ROWS-ph);
+      const snapped=this._snapIntoLand(sh,clickC,clickR);
+      clickC=snapped.c; clickR=snapped.r;
       if(this._mPreviewShown && this.curC===clickC && this.curR===clickR){
         // 同じ位置を2回目クリック → 設置確定
         this.placeAtCursor();
@@ -1907,7 +1934,7 @@ class PuzzleGame extends Phaser.Scene{
         // 1回目クリック or 別位置クリック → プレビュー表示/移動
         this.curC=clickC; this.curR=clickR;
         this._anchorC=clickC; this._anchorR=clickR;
-        this.updatePreview(clickC,clickR);
+        this.updatePreview(clickC,clickR,true);
         this._mPreviewShown=true;
       }
     };
