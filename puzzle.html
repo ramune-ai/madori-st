@@ -1761,7 +1761,6 @@ function toggleResultFav(){
 async function saveAndShare(){
   if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
   const cv=await buildPropertyCard();
-  window._cardCanvas=cv;
   const r=window._lastResult||{};
   const tags=(r.titles||[]).map(titleToHashtag);
   // シェア文面：固定文＋間取り＋固定タグ＋称号タグ
@@ -3272,7 +3271,7 @@ class PuzzleGame extends Phaser.Scene{
     this._storageTexts=[];
     this._storageGfx=this.add.graphics().setDepth(2);
     const g=this._storageGfx;
-    const storageColor=0xC9A882;  // 暗めブラウンベージュ
+    const storageColor=0xE5D6C3;  // 薄めベージュ（淡い収納色）
     const visited=Array.from({length:ROWS},()=>Array(COLS).fill(false));
 
     for(let r0=0;r0<ROWS;r0++)for(let c0=0;c0<COLS;c0++){
