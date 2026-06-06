@@ -242,6 +242,18 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.locked .tap-hint{display:none;}
 .roulette-item.locked::after{content:'✓ 確定';position:absolute;top:12px;right:14px;font-size:11px;color:var(--brown-light);letter-spacing:.1em;}
 .roulette-item.rare.locked::after{color:#c8860a;}
+/* ── 逆レア（ニッチ・珍しさ）演出：紫×シルバーのコレクター感 ── */
+.roulette-item.niche .roulette-item-value{
+  background:linear-gradient(135deg,#7a5fa8,#b9a3d9,#8c6fb5,#b9a3d9);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:goldShine 2.4s linear infinite;
+  filter:drop-shadow(0 0 6px rgba(122,95,168,.45));
+  font-size:44px;
+}
+.roulette-item.niche{border-color:#9a7fc0;background:linear-gradient(135deg,#f7f3fc,#efe7f8);}
+.roulette-item.niche::before{content:'❖ RARE';position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.2em;color:#7a5fa8;background:#efe7f8;padding:2px 10px;border-radius:20px;border:1px solid #b9a3d9;white-space:nowrap;}
+.roulette-item.niche.locked::after{content:'✓ 確定';color:#7a5fa8;}
 /* 各スロット個別の再抽選ボタン */
 .reroll-slot-btn{
   position:absolute;right:-16px;bottom:-20px;
@@ -924,14 +936,81 @@ function gotoStart(){
 
 // ────────────────────────────────────────
 // 再抽選（各スロット1日1回）
+// ════════════════════════════════════════
+// 物件情報ガチャ：ブロック重み付き抽選
+// ════════════════════════════════════════
+// 各ブロック: {lo,hi,step,weight}（lo以上hi以下・step刻み）
+// A.築年数  ①0-5(レア) ②6-29(最頻) ③30-50(5刻み,50が逆レア)
+// B.駅徒歩  ①0-5(レア) ②6-15(最頻1) ③16-29(最頻2) ④30-50(10刻み,50が逆レア)
+// C.家賃    ①5-9(5が逆レア) ②10-20(最頻) ③21-39 ④40-75(5刻み) ⑤80-100(レア,10刻み)
+const GACHA_BLOCKS=[
+  // A.築年数
+  [
+    {lo:0,  hi:5,  step:1, weight:6},   // ①レア
+    {lo:6,  hi:29, step:1, weight:60},  // ②最頻
+    {lo:30, hi:50, step:5, weight:18},  // ③（50が逆レア）
+  ],
+  // B.駅徒歩
+  [
+    {lo:0,  hi:5,  step:1, weight:6},   // ①レア
+    {lo:6,  hi:15, step:1, weight:42},  // ②最頻1
+    {lo:16, hi:29, step:1, weight:32},  // ③最頻2
+    {lo:30, hi:50, step:10,weight:12},  // ④（50が逆レア）
+  ],
+  // C.家賃
+  [
+    {lo:5,  hi:9,  step:1, weight:14},  // ①（5が逆レア）
+    {lo:10, hi:20, step:1, weight:50},  // ②最頻
+    {lo:21, hi:39, step:1, weight:24},  // ③
+    {lo:40, hi:75, step:5, weight:14},  // ④
+    {lo:80, hi:100,step:10,weight:5},   // ⑤レア
+  ],
+];
+// レア値（プレミアム）：A①0-5, B①0-5, C⑤80-100
+function isRareGacha(idx,val){
+  if(idx===0) return val<=5;
+  if(idx===1) return val<=5;
+  if(idx===2) return val>=80;
+  return false;
+}
+// 逆レア値（ニッチ）：A 50, B 50, C 5
+function isInverseRare(idx,val){
+  if(idx===0) return val>=50;
+  if(idx===1) return val>=50;
+  if(idx===2) return val<=5;
+  return false;
+}
+// ブロック内の取りうる値リスト
+function blockValues(b){
+  const arr=[];
+  for(let v=b.lo; v<=b.hi; v+=b.step) arr.push(v);
+  return arr;
+}
+// 項目idxの全候補値（スピン表示用）
+function gachaAllValues(idx){
+  const out=[];
+  GACHA_BLOCKS[idx].forEach(b=>{ blockValues(b).forEach(v=>out.push(v)); });
+  return out;
+}
+// 重み付き抽選で1つの値を返す
+function drawGachaValue(idx){
+  const blocks=GACHA_BLOCKS[idx];
+  const total=blocks.reduce((s,b)=>s+b.weight,0);
+  let r=Math.random()*total;
+  let chosen=blocks[blocks.length-1];
+  for(const b of blocks){ if(r<b.weight){chosen=b;break;} r-=b.weight; }
+  const vals=blockValues(chosen);
+  return vals[Math.floor(Math.random()*vals.length)];
+}
+
 // ────────────────────────────────────────
 // レア判定
 const RARE_COND=[
   v=>v<=5,    // 築年数5以下
   v=>v<=5,    // 駅徒歩5以下
-  v=>v<=9,    // 家賃1桁（9以下）
+  v=>v>=80,   // 家賃80以上（高級＝レア）
 ];
-function isRare(idx,val){return RARE_COND[idx](val);}
+function isRare(idx,val){return isRareGacha(idx,val);}
 
 // 再抽選確定プール（築浅5以下・駅近5以下）
 const REROLL_POOLS={
@@ -975,27 +1054,35 @@ function doRerollSlot(idx){
   rouletteLocked[idx]=false;
   lockedCount=[0,1,2].filter(i=>i!==idx&&rouletteLocked[i]).length;
   if(rouletteIntervals[idx])clearInterval(rouletteIntervals[idx]);
-  const pool=REROLL_POOLS[idx]||ROULETTE_POOLS[rouletteKeys[idx]];
+  const all=gachaAllValues(idx);
   rouletteIntervals[idx]=setInterval(()=>{
-    valEl.textContent=pool[Math.floor(Math.random()*pool.length)]+rouletteUnits[idx];
+    valEl.textContent=all[Math.floor(Math.random()*all.length)]+rouletteUnits[idx];
   },80);
   item.onclick=()=>lockRerollSlot(idx);
   updateRerollBtnSlot(idx);
 }
 
-// 再抽選後の確定用（専用プールから値を取る）
+// 再抽選後の確定用
 function lockRerollSlot(idx){
   if(rouletteLocked[idx])return;
   clearInterval(rouletteIntervals[idx]);
-  const pool=REROLL_POOLS[idx]||ROULETTE_POOLS[rouletteKeys[idx]];
-  const val=pool[Math.floor(Math.random()*pool.length)];
+  // レア確定プールがあればそれ（築浅・駅近確定）、なければ通常の重み付き抽選
+  let val;
+  if(REROLL_POOLS[idx]){
+    const pool=REROLL_POOLS[idx];
+    val=pool[Math.floor(Math.random()*pool.length)];
+  } else {
+    val=drawGachaValue(idx);
+  }
   rouletteValues[idx]=val;
   rouletteLocked[idx]=true;
   document.getElementById('rou-val-'+idx).textContent=val+rouletteUnits[idx];
   document.getElementById('rou-val-'+idx).classList.remove('spinning');
   document.getElementById('rou-'+idx).classList.remove('active-slot');
+  document.getElementById('rou-'+idx).classList.remove('rare','niche');
   document.getElementById('rou-'+idx).classList.add('locked');
-  if(isRare(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  else if(isInverseRare(idx,val)) document.getElementById('rou-'+idx).classList.add('niche');
   // 再抽選後は自スロットのPOPを消す
   const pop2=document.querySelector('#rou-'+idx+' .reroll-pop');
   if(pop2) pop2.classList.remove('visible');
@@ -1357,9 +1444,9 @@ function startRoulette(){
   for(let i=0;i<3;i++){
     if(rouletteIntervals[i])clearInterval(rouletteIntervals[i]);
     (idx=>{
+      const all=gachaAllValues(idx);
       rouletteIntervals[idx]=setInterval(()=>{
-        const pool=ROULETTE_POOLS[rouletteKeys[idx]];
-        document.getElementById('rou-val-'+idx).textContent=pool[Math.floor(Math.random()*pool.length)]+rouletteUnits[idx];
+        document.getElementById('rou-val-'+idx).textContent=all[Math.floor(Math.random()*all.length)]+rouletteUnits[idx];
       },80);
     })(i);
   }
@@ -1368,16 +1455,17 @@ function lockRoulette(idx){
   if(rouletteLocked[idx])return;
   for(let i=0;i<idx;i++)if(!rouletteLocked[i])return;
   clearInterval(rouletteIntervals[idx]);
-  const pool=ROULETTE_POOLS[rouletteKeys[idx]];
-  const val=pool[Math.floor(Math.random()*pool.length)];
+  const val=drawGachaValue(idx);
   rouletteValues[idx]=val;
   rouletteLocked[idx]=true;
   document.getElementById('rou-val-'+idx).textContent=val+rouletteUnits[idx];
   document.getElementById('rou-val-'+idx).classList.remove('spinning');
   document.getElementById('rou-'+idx).classList.remove('active-slot');
   document.getElementById('rou-'+idx).classList.add('locked');
-  // レア演出
-  if(isRare(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  // レア演出（プレミアム）
+  if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  // 逆レア演出（ニッチ・珍しさ）
+  else if(isInverseRare(idx,val)) document.getElementById('rou-'+idx).classList.add('niche');
   // 次のスロットをアクティブに
   if(idx+1<3) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
   if(++lockedCount===3){
@@ -1594,24 +1682,28 @@ async function saveAndShare(){
   if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
   const cv=await buildPropertyCard();
   window._cardCanvas=cv;
-  // 共有シートを開く（非対応ならダウンロード）
   cv.toBlob(async(blob)=>{
     if(!blob)return;
     const r=window._lastResult||{};
     const tags=(r.titles||[]).map(titleToHashtag);
     const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' #間取りすと';
+    const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
     const file=new File([blob],'madori.png',{type:'image/png'});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file], text}); return; }catch(e){ return; }
+    // ファイル共有が使える環境（主にスマホ）では共有シート
+    let shared=false;
+    if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+      try{ await navigator.share({files:[file], text}); shared=true; }
+      catch(e){ if(e&&e.name==='AbortError'){return;} shared=false; }
     }
-    // フォールバック：ダウンロード（PCなど共有非対応）
+    if(shared)return;
+    // フォールバック：ダウンロード（PC等）
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
     a.href=url; a.download='物件_'+nm+'.png';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    showGameToast('画像をダウンロードフォルダに保存しました📥');
+    a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
+    showGameToast('画像を保存しました📥（ダウンロードフォルダ）');
   },'image/png');
 }
 
@@ -1846,9 +1938,9 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:20},
-  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:15},
-  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:15},
+  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:21},
+  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:16},
+  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:17},
   {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:13},
   {name:'トイレ',    w:1,h:2,color:0xD4EEF8,label:'トイレ',      type:'toilet',   weight:11},
   {name:'お風呂',    w:2,h:2,color:0xB8DFF0,label:'お風呂',      type:'bath',     weight:11},
@@ -2610,6 +2702,12 @@ class PuzzleGame extends Phaser.Scene{
   }
   doUndo(){
     if(this.undoStack.length===0)return;
+    // ドラッグ・プレビュー状態を確実にリセット（戻す後に今のパーツが消える不具合防止）
+    this._dragging=false;
+    this._previewActive=false;
+    this._mPreviewShown=false;
+    const ghost=document.getElementById('drag-ghost');
+    if(ghost)ghost.style.display='none';
     const state=this.undoStack.pop();
     this.grid=state.grid;
     this.currentDef=state.currentDef; this.rotation=state.rotation;
@@ -2621,8 +2719,9 @@ class PuzzleGame extends Phaser.Scene{
     // 全ビジュアルを破棄して再構築
     this._destroyAllBoardVisuals();
     this.rebuildBoardVisuals();
-    this.drawBoard(); this.drawUI();
+    this.drawBoard();
     this._clearPreview();
+    this.drawUI();
     // プレビューはドラッグ開始まで表示しない
     document.getElementById('btn-complete-overlay').classList.remove('visible');
     this.checkNoPlace();
