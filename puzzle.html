@@ -358,6 +358,37 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .btn-card-action.dl{background:#fff;color:#5a4a3a;border:1px solid rgba(90,74,58,.2);}
 #card-hint{font-size:11px;color:rgba(255,255,255,.7);letter-spacing:.05em;}
 
+/* ── ゲーム風トースト ── */
+#game-toast{
+  position:fixed;left:50%;bottom:48px;transform:translateX(-50%) translateY(20px);
+  background:rgba(58,42,26,.94);color:#f5f0e8;
+  font-family:'Noto Sans JP',sans-serif;font-size:14px;letter-spacing:.04em;
+  padding:13px 24px;border-radius:30px;z-index:400;
+  box-shadow:0 6px 24px rgba(58,42,26,.35);
+  opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;white-space:nowrap;
+}
+#game-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ── ゲーム風確認ダイアログ ── */
+#game-confirm-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(58,42,26,.55);align-items:center;justify-content:center;padding:24px;
+}
+#game-confirm-overlay.active{display:flex;}
+#game-confirm-box{
+  background:var(--cream);border:2px solid #c8a060;border-radius:16px;
+  max-width:340px;width:100%;padding:26px 22px 20px;text-align:center;
+  box-shadow:0 12px 40px rgba(58,42,26,.4);animation:popIn .3s ease both;
+}
+#game-confirm-msg{
+  font-family:'Noto Sans JP',sans-serif;font-size:14px;line-height:1.7;
+  color:var(--brown-dark);letter-spacing:.03em;margin-bottom:20px;white-space:pre-line;
+}
+#game-confirm-btns{display:flex;gap:10px;}
+.gc-btn{flex:1;padding:12px 0;border-radius:10px;font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.08em;cursor:pointer;border:none;transition:transform .15s;}
+.gc-btn:hover{transform:translateY(-2px);}
+.gc-cancel{background:#fff;border:1px solid rgba(90,74,58,.25);color:var(--brown-light);}
+.gc-ok{background:var(--brown-dark);color:#f5f0e8;}
+
 /* ── モーダル ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,42,26,.6);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.active{display:flex;}
@@ -704,7 +735,73 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   </div>
 </div>
 
+<!-- ゲーム風トースト -->
+<div id="game-toast"></div>
+
+<!-- ゲーム風確認ダイアログ -->
+<div id="game-confirm-overlay">
+  <div id="game-confirm-box">
+    <div id="game-confirm-msg"></div>
+    <div id="game-confirm-btns">
+      <button id="game-confirm-cancel" class="gc-btn gc-cancel">やめる</button>
+      <button id="game-confirm-ok" class="gc-btn gc-ok">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// ────────────────────────────────────────
+// ゲーム風 トースト / 確認ダイアログ
+// ────────────────────────────────────────
+let _gameToastTimer=null;
+function showGameToast(msg){
+  const el=document.getElementById('game-toast');
+  if(!el)return;
+  el.textContent=msg;
+  el.classList.add('show');
+  if(_gameToastTimer)clearTimeout(_gameToastTimer);
+  _gameToastTimer=setTimeout(()=>{el.classList.remove('show');},2400);
+}
+// Promise<boolean> を返す確認ダイアログ（OKでtrue）
+function showGameConfirm(msg,okLabel,cancelLabel){
+  return new Promise((resolve)=>{
+    const ov=document.getElementById('game-confirm-overlay');
+    const msgEl=document.getElementById('game-confirm-msg');
+    const okBtn=document.getElementById('game-confirm-ok');
+    const cancelBtn=document.getElementById('game-confirm-cancel');
+    if(!ov||!msgEl||!okBtn||!cancelBtn){resolve(window.confirm(msg));return;}
+    msgEl.textContent=msg;
+    okBtn.textContent=okLabel||'OK';
+    cancelBtn.textContent=cancelLabel||'やめる';
+    ov.classList.add('active');
+    const cleanup=(val)=>{
+      ov.classList.remove('active');
+      okBtn.onclick=null; cancelBtn.onclick=null;
+      resolve(val);
+    };
+    okBtn.onclick=()=>cleanup(true);
+    cancelBtn.onclick=()=>cleanup(false);
+  });
+}
+// お知らせだけのダイアログ（OKのみ）
+function showGameAlert(msg){
+  return new Promise((resolve)=>{
+    const ov=document.getElementById('game-confirm-overlay');
+    const msgEl=document.getElementById('game-confirm-msg');
+    const okBtn=document.getElementById('game-confirm-ok');
+    const cancelBtn=document.getElementById('game-confirm-cancel');
+    if(!ov||!msgEl||!okBtn||!cancelBtn){window.alert(msg);resolve();return;}
+    msgEl.textContent=msg;
+    okBtn.textContent='OK';
+    cancelBtn.style.display='none';
+    ov.classList.add('active');
+    okBtn.onclick=()=>{
+      ov.classList.remove('active');
+      cancelBtn.style.display=''; okBtn.onclick=null;
+      resolve();
+    };
+  });
+}
 // ────────────────────────────────────────
 // 画面管理
 // ────────────────────────────────────────
@@ -1128,12 +1225,13 @@ function renderSavesList(){
     delBtn.style.cssText='flex-shrink:0;background:none;border:none;color:rgba(90,74,58,.35);font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;transition:color .15s;';
     delBtn.onmouseover=()=>delBtn.style.color='#c0392b';
     delBtn.onmouseout=()=>delBtn.style.color='rgba(90,74,58,.35)';
-    delBtn.onclick=()=>{
+    delBtn.onclick=async()=>{
       if(s.fav){
-        alert('お気に入り登録中の物件です。\n消したい場合は、お気に入りを解除してください。');
+        await showGameAlert('お気に入り登録中の物件です。\n消したい場合は、お気に入りを解除してください。');
         return;
       }
-      if(!confirm(`「${s.propName||s.label||'この物件'}」を削除してもよいですか？`))return;
+      const ok=await showGameConfirm(`「${s.propName||s.label||'この物件'}」を削除してもよいですか？`,'削除する','やめる');
+      if(!ok)return;
       const cur=loadHistory();
       saveHistory(cur.filter(x=>x.id!==s.id));
       renderSavesList();
@@ -1486,6 +1584,7 @@ function toggleResultFav(){
   cur.fav=!cur.fav;
   saveHistory(list);
   refreshFavButton();
+  showGameToast(cur.fav?'お気に入りに登録しました★':'お気に入りを解除しました');
 }
 
 // ════════════════════════════════════════
@@ -1505,16 +1604,14 @@ async function saveAndShare(){
     if(navigator.canShare && navigator.canShare({files:[file]})){
       try{ await navigator.share({files:[file], text}); return; }catch(e){ return; }
     }
-    if(navigator.share){
-      try{ await navigator.share({text}); }catch(e){}
-    }
-    // フォールバック：ダウンロード
+    // フォールバック：ダウンロード（PCなど共有非対応）
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
     a.href=url; a.download='物件_'+nm+'.png';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url),1000);
+    showGameToast('画像をダウンロードフォルダに保存しました📥');
   },'image/png');
 }
 
@@ -1535,117 +1632,136 @@ function buildPropertyCard(){
     const earned=(window._earnedTitles||[]).map(t=>t.title);
     const tags=earned.map(titleToHashtag);
 
-    // カードサイズ（縦長・SNS向け 3:4 くらい）
     const dpr=Math.min(window.devicePixelRatio||1,2);
-    const W=720, baseH=1100;
-    // 間取り画像のアスペクトから高さを微調整
+    const W=720;
+    const PADX=40; // 左右の内側余白
+    // 間取り画像サイズ（小さめ・確実に収まる）
     let madoriW=0, madoriH=0;
     if(madoriSnapshot){
-      const maxMW=560, maxMH=440;
+      const maxMW=W-PADX*2-40, maxMH=420;
       const sc=Math.min(maxMW/madoriSnapshot.width, maxMH/madoriSnapshot.height);
       madoriW=Math.round(madoriSnapshot.width*sc);
       madoriH=Math.round(madoriSnapshot.height*sc);
     }
-    const H=baseH;
+
+    // ── 高さを順に積み上げて算出（崩れ防止） ──
+    // 一時contextでタグ行数を測る
+    const tmp=document.createElement('canvas').getContext('2d');
+    tmp.font="500 22px 'Noto Sans JP',sans-serif";
+    const tagMaxW=W-PADX*2;
+    let tagLines=[];
+    if(tags.length){
+      let line='';
+      tags.forEach(tag=>{
+        const test=line?line+'　'+tag:tag;
+        if(tmp.measureText(test).width>tagMaxW && line){ tagLines.push(line); line=tag; }
+        else line=test;
+      });
+      if(line)tagLines.push(line);
+    }
+
+    const BAND_H=72;
+    let y=BAND_H+34;            // 帯の下から開始
+    const yBand=y;
+    if(equipped) y+=54;        // 装備称号
+    const yEquip=yBand;
+    const yName=y; y+=52;      // 物件名
+    const yTags=y; if(tagLines.length) y+=tagLines.length*34+10; // ハッシュタグ
+    const yLabel=y; y+=58;     // 間取りラベル
+    const yMadori=y; if(madoriH>0) y+=madoriH+24+30; // 間取り画像（白枠込み）
+    const SPEC_H=120;
+    const ySpec=y; y+=SPEC_H+34; // スペック3列
+    const yFooter=y+10; y+=46;   // フッター
+    const H=y+20;
+
     const cv=document.createElement('canvas');
-    cv.width=W*dpr; cv.height=H*dpr;
+    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
     const ctx=cv.getContext('2d');
     ctx.scale(dpr,dpr);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
 
-    // 背景（クリーム＋枠）
+    // 背景＋外枠
     ctx.fillStyle='#f5f0e8'; ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='#8a7060'; ctx.lineWidth=6;
     ctx.strokeRect(12,12,W-24,H-24);
-    // 上部の帯
-    ctx.fillStyle='#5a4a3a'; ctx.fillRect(12,12,W-24,70);
+    // 帯
+    ctx.fillStyle='#5a4a3a'; ctx.fillRect(12,12,W-24,BAND_H);
     ctx.fillStyle='#f5f0e8';
     ctx.font="bold 30px 'Noto Serif JP',serif";
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('賃 貸 物 件 情 報', W/2, 48);
+    ctx.fillText('賃 貸 物 件 情 報', W/2, 12+BAND_H/2);
 
-    let y=120;
-    // 装備称号バッジ
+    // 装備称号
     if(equipped){
       ctx.font="bold 22px 'Noto Serif JP',serif";
       const tw=ctx.measureText(equipped).width;
       const bw=tw+44, bx=(W-bw)/2;
       ctx.fillStyle='#c8a060';
-      _roundRect(ctx,bx,y-22,bw,44,22); ctx.fill();
+      _roundRect(ctx,bx,yEquip,bw,40,20); ctx.fill();
       ctx.fillStyle='#fff';
-      ctx.fillText(equipped, W/2, y+1);
-      y+=58;
+      ctx.fillText(equipped, W/2, yEquip+20);
     }
     // 物件名
     ctx.fillStyle='#3a2a1a';
-    ctx.font="bold 38px 'Noto Serif JP',serif";
-    ctx.fillText(propName, W/2, y+4);
-    y+=40;
-    // 間取りラベル（2LDK等）
+    ctx.font="bold 36px 'Noto Serif JP',serif";
+    ctx.fillText(propName, W/2, yName+18);
+    // ハッシュタグ（物件名の下＝説明タグ風）
+    if(tagLines.length){
+      ctx.fillStyle='#6a8a50';
+      ctx.font="500 22px 'Noto Sans JP',sans-serif";
+      tagLines.forEach((ln,i)=>{ ctx.fillText(ln, W/2, yTags+16+i*34); });
+    }
+    // 間取りラベル
     ctx.fillStyle='#8a7060';
     ctx.font="bold 30px 'Noto Serif JP',serif";
-    ctx.fillText(r.label||'', W/2, y+18);
-    y+=56;
+    ctx.fillText(r.label||'', W/2, yLabel+22);
 
-    // 間取り画像（枠付き白背景）
+    // 間取り画像
     if(madoriSnapshot && madoriW>0){
-      const mx=(W-madoriW)/2, my=y;
+      const mx=(W-madoriW)/2, my=yMadori;
       ctx.fillStyle='#fff';
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.fill();
       ctx.strokeStyle='rgba(90,74,58,.15)'; ctx.lineWidth=1;
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.stroke();
       ctx.drawImage(madoriSnapshot, mx, my, madoriW, madoriH);
-      y+=madoriH+34;
-    } else {
-      y+=20;
     }
 
-    // スペック3列（築年数・駅徒歩・家賃）
+    // スペック3列（数字と単位を横に並べて重なり防止）
     const specs=[
-      {label:'築年数', val:(r.age??'--'), unit:'年'},
-      {label:'駅徒歩', val:(r.walk??'--'), unit:'分'},
-      {label:'家賃',   val:(r.rent??'--'), unit:'万円'},
+      {label:'築年数', val:String(r.age??'--'), unit:'年'},
+      {label:'駅徒歩', val:String(r.walk??'--'), unit:'分'},
+      {label:'家賃',   val:String(r.rent??'--'), unit:'万円'},
     ];
-    const gap=16, cardW=(W-48-gap*2)/3, cardH=110, sx0=24;
+    const gap=16, cardW=(W-PADX*2-gap*2)/3, sx0=PADX;
     specs.forEach((s,i)=>{
       const cx=sx0+i*(cardW+gap);
       ctx.fillStyle='#fff';
-      _roundRect(ctx,cx,y,cardW,cardH,12); ctx.fill();
+      _roundRect(ctx,cx,ySpec,cardW,SPEC_H,12); ctx.fill();
       ctx.strokeStyle='rgba(90,74,58,.1)'; ctx.lineWidth=1;
-      _roundRect(ctx,cx,y,cardW,cardH,12); ctx.stroke();
+      _roundRect(ctx,cx,ySpec,cardW,SPEC_H,12); ctx.stroke();
+      // ラベル
       ctx.fillStyle='#8a7060';
       ctx.font="500 17px 'Noto Sans JP',sans-serif";
-      ctx.fillText(s.label, cx+cardW/2, y+28);
+      ctx.fillText(s.label, cx+cardW/2, ySpec+28);
+      // 数字＋単位（横並び・中央寄せ）
       ctx.fillStyle='#3a2a1a';
-      ctx.font="bold 40px 'Noto Serif JP',serif";
-      ctx.fillText(String(s.val), cx+cardW/2, y+72);
-      ctx.fillStyle='#8a7060';
-      ctx.font="500 15px 'Noto Sans JP',sans-serif";
-      ctx.fillText(s.unit, cx+cardW/2, y+98);
-    });
-    y+=cardH+40;
-
-    // ハッシュタグ（称号から自動生成）
-    if(tags.length){
-      ctx.fillStyle='#6a8a50';
-      ctx.font="500 20px 'Noto Sans JP',sans-serif";
+      const numFont="bold 42px 'Noto Serif JP',serif";
+      const unitFont="500 16px 'Noto Sans JP',sans-serif";
+      ctx.font=numFont; const nw=ctx.measureText(s.val).width;
+      ctx.font=unitFont; const uw=ctx.measureText(s.unit).width;
+      const totalW=nw+4+uw;
+      const startX=cx+cardW/2-totalW/2;
+      ctx.textAlign='left';
+      ctx.fillStyle='#3a2a1a'; ctx.font=numFont;
+      ctx.fillText(s.val, startX, ySpec+78);
+      ctx.fillStyle='#8a7060'; ctx.font=unitFont;
+      ctx.fillText(s.unit, startX+nw+4, ySpec+88);
       ctx.textAlign='center';
-      // 折り返し描画
-      const maxW=W-80;
-      let line='', lines=[];
-      tags.forEach(tag=>{
-        const test=line?line+'　'+tag:tag;
-        if(ctx.measureText(test).width>maxW && line){ lines.push(line); line=tag; }
-        else line=test;
-      });
-      if(line)lines.push(line);
-      lines.forEach((ln,i)=>{ ctx.fillText(ln, W/2, y+i*30); });
-      y+=lines.length*30+20;
-    }
+    });
 
     // フッター
     ctx.fillStyle='#b0a090';
     ctx.font="400 15px 'Noto Sans JP',sans-serif";
-    ctx.fillText('MADORI-ST　間取りすと', W/2, H-40);
+    ctx.fillText('MADORI-ST　間取りすと', W/2, yFooter);
 
     resolve(cv);
   });
