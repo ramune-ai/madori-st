@@ -276,24 +276,55 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 /* ── ④ 結果 ── */
 #screen-result{background:rgba(245,240,232,0.82);padding-top:20px;}
-.result-wrap{text-align:center;max-width:440px;width:100%;}
+.result-wrap{text-align:center;max-width:420px;width:100%;}
 .result-title-hero{font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:10px;animation:popIn .5s ease both;text-shadow:0 2px 20px rgba(200,160,96,.5);}
-.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:52px;font-weight:700;color:var(--brown-dark);line-height:1;margin-bottom:20px;letter-spacing:.04em;}
-.result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;}
-.result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:12px 6px 10px;text-align:center;}
-.result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:6px;font-weight:500;}
-.result-spec-value{font-family:'Noto Serif JP',serif;font-size:26px;font-weight:700;color:var(--brown-dark);line-height:1;}
+/* 広告カード本体 */
+.res-card{
+  background:#f5f0e8;border:3px solid #8a7060;border-radius:12px;
+  padding:0 16px 14px;margin-bottom:14px;overflow:hidden;
+  animation:popIn .5s ease both;
+}
+.res-card-band{
+  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 12px;padding:9px 0;
+  font-family:'Noto Serif JP',serif;font-size:17px;letter-spacing:.18em;font-weight:700;
+}
+.res-equipped{
+  display:inline-block;background:#c8a060;color:#fff;
+  font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.06em;
+  padding:5px 16px;border-radius:18px;margin-bottom:8px;
+}
+.res-prop-name{
+  font-family:'Noto Serif JP',serif;font-size:23px;font-weight:700;
+  color:#3a2a1a;letter-spacing:.04em;margin-bottom:8px;
+}
+.res-hashtags{
+  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;
+}
+.res-hashtag{
+  font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
+  color:#6a8a50;background:rgba(106,138,80,.1);
+  padding:3px 10px;border-radius:14px;letter-spacing:.02em;
+}
+.res-hashtag.new{background:#6a8a50;color:#fff;}
+.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);line-height:1;margin-bottom:12px;letter-spacing:.04em;}
+.result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
+.result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
+.result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
+.result-spec-value{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;color:var(--brown-dark);line-height:1;}
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
-#res-madori-preview{display:flex;justify-content:center;margin-bottom:16px;}
+#res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
+.res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
 .res-title-owned-chip{background:rgba(90,74,58,.07);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
-/* ボタン */
-.result-btns{display:flex;gap:10px;justify-content:center;margin-top:4px;}
-.btn-result{flex:1;max-width:130px;padding:13px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.1em;cursor:pointer;transition:transform .15s,box-shadow .15s;border:none;}
+/* ボタン（2x2グリッド） */
+.result-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+.btn-result{padding:13px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.08em;cursor:pointer;transition:transform .15s,box-shadow .15s;border:none;}
 .btn-result.primary{background:var(--brown-dark);color:#f5f0e8;box-shadow:0 4px 14px rgba(58,42,26,.22);}
 .btn-result.secondary{background:#fff;border:1px solid rgba(90,74,58,.22);color:var(--brown-light);}
+.btn-result.fav{background:#fff;border:1px solid #c8a060;color:#b8860b;}
+.btn-result.fav.active{background:#f4d06a;color:#6a4a10;border-color:#d4a020;}
 .btn-result:hover{transform:translateY(-2px);}
 .btn-result.primary:hover{box-shadow:0 6px 18px rgba(58,42,26,.3);}
 
@@ -607,43 +638,45 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   </div>
 </div>
 
-<!-- ⑤ 結果画面 -->
+<!-- ⑤ 結果画面（賃貸広告風） -->
 <div id="screen-result" class="screen">
   <div class="result-wrap">
-    <div class="result-title-hero">物件完成！</div>
-    <div id="res-player-name" style="font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:10px;display:none;text-align:center;"></div>
-    <div class="result-ldk-hero" id="res-room-label">---</div>
-
-    <!-- スペックカード3列 -->
-    <div class="result-spec-grid pop-in">
-      <div class="result-spec-card">
-        <div class="result-spec-label">築 年 数</div>
-        <div class="result-spec-value" id="res-age">--<span class="result-spec-unit">年</span></div>
+    <div id="res-card" class="res-card">
+      <div class="res-card-band">賃 貸 物 件 情 報</div>
+      <!-- 装備称号 -->
+      <div id="res-equipped-title" class="res-equipped" style="display:none;"></div>
+      <!-- 物件名 -->
+      <div id="res-prop-name" class="res-prop-name">間取りすと：とくめい</div>
+      <!-- ハッシュタグ（物件説明一言タグ風） -->
+      <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
+      <!-- 間取りラベル -->
+      <div class="result-ldk-hero" id="res-room-label">---</div>
+      <!-- 間取り図プレビュー（小さめ） -->
+      <div id="res-madori-preview"></div>
+      <!-- スペックカード3列 -->
+      <div class="result-spec-grid pop-in">
+        <div class="result-spec-card">
+          <div class="result-spec-label">築 年 数</div>
+          <div class="result-spec-value" id="res-age">--<span class="result-spec-unit">年</span></div>
+        </div>
+        <div class="result-spec-card">
+          <div class="result-spec-label">駅 徒 歩</div>
+          <div class="result-spec-value" id="res-walk">--<span class="result-spec-unit">分</span></div>
+        </div>
+        <div class="result-spec-card">
+          <div class="result-spec-label">家 賃</div>
+          <div class="result-spec-value" id="res-rent">--<span class="result-spec-unit">万</span></div>
+        </div>
       </div>
-      <div class="result-spec-card">
-        <div class="result-spec-label">駅 徒 歩</div>
-        <div class="result-spec-value" id="res-walk">--<span class="result-spec-unit">分</span></div>
-      </div>
-      <div class="result-spec-card">
-        <div class="result-spec-label">家 賃</div>
-        <div class="result-spec-value" id="res-rent">--<span class="result-spec-unit">万</span></div>
-      </div>
+      <div class="res-card-footer">MADORI-ST　間取りすと</div>
     </div>
 
-    <!-- 間取り図プレビュー -->
-    <div id="res-madori-preview"></div>
-
-    <!-- 称号 -->
-    <div id="res-titles-wrap" style="display:none;width:100%;margin-bottom:16px;">
-      <div id="res-titles-new-row" style="display:none;"></div>
-      <div id="res-titles-owned-row" style="display:none;margin-top:8px;"></div>
-    </div>
-
-    <!-- ボタン -->
-    <div class="result-btns">
-      <button class="btn-result primary" onclick="showPropertyCard()">📋 物 件 カ ー ド</button>
-      <button class="btn-result secondary" onclick="gotoGame()">も う 一 度</button>
-      <button class="btn-result secondary" onclick="gotoStart()">戻 る</button>
+    <!-- ボタン（2段） -->
+    <div class="result-btn-grid">
+      <button class="btn-result fav" id="res-fav-btn" onclick="toggleResultFav()">☆ お気に入り</button>
+      <button class="btn-result primary" onclick="saveAndShare()">📤 保存＆シェア</button>
+      <button class="btn-result secondary" onclick="gotoStart()">タイトルへ</button>
+      <button class="btn-result secondary" onclick="gotoGame()">もう一度</button>
     </div>
     <div id="save-toast" style="display:none;margin-top:10px;font-size:12px;color:var(--green);letter-spacing:.1em;text-align:center;">✓ 保存しました</div>
   </div>
@@ -1050,13 +1083,13 @@ function renderSavesList(){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
   title.textContent='間取り保存一覧';
-  const list=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+  const list=loadHistory();
   if(list.length===0){
-    body.innerHTML='<div class="modal-empty">保存された間取りはありません。<br>ゲームプレイ後に「💾 保存」ボタンで保存できます。</div>';
+    body.innerHTML='<div class="modal-empty">まだ物件の履歴がありません。<br>ゲームをプレイして物件を完成させると、自動で保存されます（最新30件）。</div>';
     return;
   }
-  const lockedCount=list.filter(s=>s.locked).length;
-  body.innerHTML=`<div style="font-size:11px;color:var(--brown-light);margin-bottom:12px;letter-spacing:.04em;">全${list.length}件 / 最大20件保存　🔒ロック：${lockedCount}/15件（ロック解除しないと自動削除されません）</div>`;
+  const favCount=list.filter(s=>s.fav).length;
+  body.innerHTML=`<div style="font-size:11px;color:var(--brown-light);margin-bottom:12px;letter-spacing:.04em;">完成した物件を自動保存（最新30件）　★お気に入り：${favCount}件（解除するまで自動削除されません）</div>`;
   list.forEach((s)=>{
     const row=document.createElement('div');
     row.style.cssText='display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(90,74,58,.1);';
@@ -1067,30 +1100,26 @@ function renderSavesList(){
     // 情報
     const info=document.createElement('div');
     info.style.cssText='flex:1;min-width:0;';
+    const tagsHtml=(s.titles&&s.titles.length)
+      ? `<div style="font-size:10px;color:#6a8a50;margin-top:3px;">${s.titles.map(t=>titleToHashtag(t)).join(' ')}</div>` : '';
     info.innerHTML=`
-      <div style="font-family:'Noto Serif JP',serif;font-size:16px;color:var(--brown-dark);font-weight:700;margin-bottom:3px;">${s.labelRaw||s.label||'--'}</div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:13px;color:var(--brown-dark);font-weight:700;margin-bottom:2px;">${s.propName||'間取りすと：とくめい'}</div>
+      <div style="font-family:'Noto Serif JP',serif;font-size:15px;color:var(--brown-dark);font-weight:700;margin-bottom:3px;">${s.labelRaw||s.label||'--'}</div>
       <div style="font-size:11px;color:var(--brown-light);letter-spacing:.04em;">築${s.age??'--'}年　駅${s.walk??'--'}分　${s.rent??'--'}万円</div>
       <div style="font-size:10px;color:var(--brown-light);margin-top:2px;opacity:.7;">${s.date||''}</div>
-      ${s.titles&&s.titles.length?`<div style="font-size:10px;color:var(--brown-light);margin-top:3px;opacity:.8;">${s.titles.join('・')}</div>`:''}
+      ${tagsHtml}
     `;
-    // ロックボタン
-    const lockBtn=document.createElement('button');
-    lockBtn.textContent=s.locked?'🔒':'🔓';
-    lockBtn.title=s.locked?'ロック中（タップで解除）':'ロックする';
-    lockBtn.style.cssText='flex-shrink:0;background:none;border:1px solid rgba(90,74,58,.2);border-radius:8px;font-size:16px;cursor:pointer;padding:4px 7px;line-height:1;transition:all .15s;';
-    lockBtn.onclick=()=>{
-      const cur=JSON.parse(localStorage.getItem('madori-saves')||'[]');
+    // お気に入りボタン
+    const favBtn=document.createElement('button');
+    favBtn.textContent=s.fav?'★':'☆';
+    favBtn.title=s.fav?'お気に入り中（タップで解除）':'お気に入りに登録';
+    favBtn.style.cssText='flex-shrink:0;background:'+(s.fav?'#f4d06a':'none')+';border:1px solid '+(s.fav?'#d4a020':'rgba(90,74,58,.2)')+';border-radius:8px;font-size:16px;color:'+(s.fav?'#6a4a10':'rgba(90,74,58,.5)')+';cursor:pointer;padding:4px 8px;line-height:1;transition:all .15s;';
+    favBtn.onclick=()=>{
+      const cur=loadHistory();
       const idx=cur.findIndex(x=>x.id===s.id);
       if(idx===-1)return;
-      if(!cur[idx].locked){
-        // ロックしようとしている→上限チェック
-        const lc=cur.filter(x=>x.locked).length;
-        if(lc>=15){alert('ロックは最大15件までです。');return;}
-        cur[idx].locked=true;
-      }else{
-        cur[idx].locked=false;
-      }
-      localStorage.setItem('madori-saves',JSON.stringify(cur));
+      cur[idx].fav=!cur[idx].fav;
+      saveHistory(cur);
       renderSavesList();
     };
     // 削除ボタン
@@ -1100,19 +1129,18 @@ function renderSavesList(){
     delBtn.onmouseover=()=>delBtn.style.color='#c0392b';
     delBtn.onmouseout=()=>delBtn.style.color='rgba(90,74,58,.35)';
     delBtn.onclick=()=>{
-      if(s.locked){
-        alert('ロック中の間取りは削除できません。先にロックを解除してください。');
+      if(s.fav){
+        alert('お気に入り登録中の物件です。\n消したい場合は、お気に入りを解除してください。');
         return;
       }
-      if(!confirm(`「${s.labelRaw||s.label||'この間取り'}」を削除してもよいですか？`))return;
-      const cur=JSON.parse(localStorage.getItem('madori-saves')||'[]');
-      const next=cur.filter(x=>x.id!==s.id);
-      localStorage.setItem('madori-saves',JSON.stringify(next));
+      if(!confirm(`「${s.propName||s.label||'この物件'}」を削除してもよいですか？`))return;
+      const cur=loadHistory();
+      saveHistory(cur.filter(x=>x.id!==s.id));
       renderSavesList();
     };
     row.appendChild(thumb);
     row.appendChild(info);
-    row.appendChild(lockBtn);
+    row.appendChild(favBtn);
     row.appendChild(delBtn);
     body.appendChild(row);
   });
@@ -1312,12 +1340,6 @@ function countRoomLabel(roomTypes,counts){
   return ldkLabel+extra;
 }
 function showResult(){
-  const nameEl=document.getElementById('res-player-name');
-  if(nameEl){
-    const pname=window._playerName||'';
-    if(pname){nameEl.textContent=pname+' の間取り';nameEl.style.display='block';}
-    else{nameEl.style.display='none';}
-  }
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
   const rent=rouletteValues[2]??'--';
@@ -1335,57 +1357,165 @@ function showResult(){
       }
     }));
   }
-  // 間取りラベル：+WC等を同行に小さくインライン表示
+  // 装備称号
+  const equipped=localStorage.getItem('madori-selected-title')||'';
+  const eqEl=document.getElementById('res-equipped-title');
+  if(eqEl){
+    if(equipped){eqEl.textContent=equipped;eqEl.style.display='inline-block';}
+    else{eqEl.style.display='none';}
+  }
+  // 物件名
+  const rawName=(window._playerName||localStorage.getItem('madori-player-name')||'').trim();
+  const propName='間取りすと：'+(rawName||'とくめい');
+  const nameEl=document.getElementById('res-prop-name');
+  if(nameEl)nameEl.textContent=propName;
+  // 間取りラベル
   const roomLabel=countRoomLabel(roomTypes,counts);
   const ldkMatch=roomLabel.match(/^([^+]+)(.*)/);
   const heroEl=document.getElementById('res-room-label');
   if(heroEl){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
-    heroEl.innerHTML=main+(sub?`<span style="font-size:28px;color:var(--brown-dark);letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
+    heroEl.innerHTML=main+(sub?`<span style="font-size:22px;color:var(--brown-dark);letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
   }
-  // 間取り図プレビュー
+  // ハッシュタグ（称号→#タグ。物件説明一言タグ風に上部表示）
+  const newTitles=window._newTitles||[];
+  const earnedTitles=(window._earnedTitles||[]).map(t=>t.title);
+  const tagWrap=document.getElementById('res-hashtags');
+  if(tagWrap){
+    tagWrap.innerHTML='';
+    if(earnedTitles.length>0){
+      earnedTitles.forEach(t=>{
+        const isNew=newTitles.includes(t);
+        const span=document.createElement('span');
+        span.className='res-hashtag'+(isNew?' new':'');
+        span.textContent=titleToHashtag(t);
+        tagWrap.appendChild(span);
+      });
+      tagWrap.style.display='flex';
+    } else {
+      tagWrap.style.display='none';
+    }
+  }
+  // 間取り図プレビュー（小さめ）
   const prevEl=document.getElementById('res-madori-preview');
   if(prevEl&&madoriSnapshot){
     prevEl.innerHTML='';
     const cv=document.createElement('canvas');
-    const maxW=Math.min(420,window.innerWidth-24), maxH=400;
+    const maxW=Math.min(300,window.innerWidth-80), maxH=260;
     const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
     cv.width=madoriSnapshot.width*scale; cv.height=madoriSnapshot.height*scale;
-    cv.style.cssText='display:block;border-radius:12px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;';
+    cv.style.cssText='display:block;border-radius:10px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;';
     cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
     prevEl.appendChild(cv);
   }
-  // 称号表示：今回条件を満たした全称号（NEWだけ少し目立つ）
-  const newTitles=window._newTitles||[];
-  const earnedTitles=(window._earnedTitles||[]).map(t=>t.title);
-  const titlesWrap=document.getElementById('res-titles-wrap');
-  const newRow=document.getElementById('res-titles-new-row');
-  const ownedRow=document.getElementById('res-titles-owned-row');
-  if(titlesWrap&&newRow&&ownedRow){
-    newRow.innerHTML=''; ownedRow.innerHTML='';
-    newRow.style.display='none'; ownedRow.style.display='none';
-    if(earnedTitles.length>0){
-      newRow.style.cssText='display:flex;flex-wrap:wrap;gap:7px;justify-content:center;';
-      earnedTitles.forEach(t=>{
-        const isNew=newTitles.includes(t);
-        const chip=document.createElement('div');
-        chip.style.cssText=isNew
-          ?'display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:\'Noto Serif JP\',serif;font-size:13px;letter-spacing:.08em;padding:6px 14px;border-radius:4px;'
-          :'display:inline-flex;align-items:center;font-family:\'Noto Serif JP\',serif;font-size:12px;letter-spacing:.06em;padding:5px 12px;border-radius:20px;background:rgba(90,74,58,.07);color:var(--brown-light);border:1px solid rgba(90,74,58,.15);';
-        chip.innerHTML=isNew?`<span style="font-size:9px;background:rgba(255,255,255,.22);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;">NEW</span>${t}`:t;
-        newRow.appendChild(chip);
-      });
-    }
-    titlesWrap.style.display=earnedTitles.length?'block':'none';
-  }
   window._lastResult={
-    name:window._playerName||'マドリスト',
-    label:roomLabel,
+    name:window._playerName||'とくめい',
+    propName, label:roomLabel,
     labelRaw:roomLabel, age, walk, rent,
-    titles:(window._earnedTitles||[]).map(t=>t.title),
+    titles:earnedTitles,
+    equipped,
     date:new Date().toLocaleDateString('ja-JP'),
   };
+  // 履歴に自動保存（最新30件・お気に入りは残す）
+  autoSaveToHistory();
+  // お気に入りボタンの状態を反映
+  refreshFavButton();
+}
+
+// ════════════════════════════════════════
+// 物件履歴（自動保存30件＋お気に入り）
+// ════════════════════════════════════════
+const HISTORY_KEY='madori-history';
+const HISTORY_MAX=30;
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }
+  catch(e){ return []; }
+}
+function saveHistory(list){
+  try{ localStorage.setItem(HISTORY_KEY,JSON.stringify(list)); }catch(e){}
+}
+// 現在の完成物件を履歴へ自動保存。古い非お気に入りから削除して最大30件。
+function autoSaveToHistory(){
+  const r=window._lastResult||{};
+  let img='';
+  if(madoriSnapshot){
+    try{
+      const cv=document.createElement('canvas');
+      const sc=Math.min(260/madoriSnapshot.width,220/madoriSnapshot.height);
+      cv.width=Math.round(madoriSnapshot.width*sc);
+      cv.height=Math.round(madoriSnapshot.height*sc);
+      cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
+      img=cv.toDataURL('image/png');
+    }catch(e){}
+  }
+  const entry={
+    id:'m'+Date.now(),
+    propName:r.propName||'間取りすと：とくめい',
+    label:r.label||'', age:r.age, walk:r.walk, rent:r.rent,
+    titles:r.titles||[], equipped:r.equipped||'',
+    date:r.date||new Date().toLocaleDateString('ja-JP'),
+    img, fav:false,
+  };
+  window._currentHistoryId=entry.id;
+  let list=loadHistory();
+  list.unshift(entry); // 最新を先頭に
+  // 非お気に入りの古いものから削るが、総数はお気に入り＋最新30件まで
+  const favs=list.filter(e=>e.fav);
+  const nonfavs=list.filter(e=>!e.fav);
+  const keepNonfav=nonfavs.slice(0, Math.max(0, HISTORY_MAX-0)); // 非お気に入りは最大30件
+  // 結合：お気に入りは全部残す＋非お気に入りは新しい順に30件
+  // ただし重複を避けるためidで再構成（元の順序＝新しい順を維持）
+  const keepIds=new Set([...favs.map(e=>e.id), ...keepNonfav.map(e=>e.id)]);
+  list=list.filter(e=>keepIds.has(e.id));
+  saveHistory(list);
+}
+function refreshFavButton(){
+  const btn=document.getElementById('res-fav-btn');
+  if(!btn)return;
+  const list=loadHistory();
+  const cur=list.find(e=>e.id===window._currentHistoryId);
+  const isFav=cur&&cur.fav;
+  btn.classList.toggle('active',!!isFav);
+  btn.textContent=isFav?'★ お気に入り':'☆ お気に入り';
+}
+function toggleResultFav(){
+  const list=loadHistory();
+  const cur=list.find(e=>e.id===window._currentHistoryId);
+  if(!cur)return;
+  cur.fav=!cur.fav;
+  saveHistory(list);
+  refreshFavButton();
+}
+
+// ════════════════════════════════════════
+// 保存＆シェア：完成画面のカード部分を画像化
+// ════════════════════════════════════════
+async function saveAndShare(){
+  if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
+  const cv=await buildPropertyCard();
+  window._cardCanvas=cv;
+  // 共有シートを開く（非対応ならダウンロード）
+  cv.toBlob(async(blob)=>{
+    if(!blob)return;
+    const r=window._lastResult||{};
+    const tags=(r.titles||[]).map(titleToHashtag);
+    const text='間取りすとで物件を作ったよ！ '+(r.label||'')+' '+tags.join(' ')+' #間取りすと';
+    const file=new File([blob],'madori.png',{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], text}); return; }catch(e){ return; }
+    }
+    if(navigator.share){
+      try{ await navigator.share({text}); }catch(e){}
+    }
+    // フォールバック：ダウンロード
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
+    a.href=url; a.download='物件_'+nm+'.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  },'image/png');
 }
 
 // ════════════════════════════════════════
