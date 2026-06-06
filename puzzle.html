@@ -1557,6 +1557,7 @@ class PuzzleGame extends Phaser.Scene{
     if(document._madoriMouseUp)  {document.removeEventListener('mouseup',  document._madoriMouseUp);  document._madoriMouseUp=null;}
     this.bgGfx=this.add.graphics().setDepth(0);
     this.gridGfx=this.add.graphics().setDepth(1);
+    this.borderGfx=this.add.graphics().setDepth(8); // 土地外枠（パーツより前面）
     this.previewGfx=this.add.graphics().setDepth(4);
     this.previewImg=null;
     this.drawBg();
@@ -2242,8 +2243,14 @@ class PuzzleGame extends Phaser.Scene{
       if(isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS);
       if(isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS);
     }
-    // 土地の外周＝隣が土地外の辺に太枠を描く（端で切れないよう内側に2pxオフセット）
-    const BW=4, off=BW/2; // 線幅と半分のオフセット
+    this.drawBorder();
+  }
+  // 土地の外周枠を最前面レイヤーに描く（パーツ画像に隠れない）
+  drawBorder(){
+    if(!this.borderGfx)return;
+    const g=this.borderGfx; g.clear();
+    const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
+    const BW=4, off=BW/2;
     g.lineStyle(BW,0x8a7060,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
@@ -2611,7 +2618,9 @@ function startPhaserGame(){
     const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
-    const scaleRatio=Math.min(cW/CANVAS_W, cH/CANVAS_H, 1.0); // 画面にフィット（1.0上限）
+    // 盤がコンテナいっぱいにならないよう余白係数(0.9)を掛ける → 上下左右にゆとり
+    const MARGIN=0.9;
+    const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, 1.0);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
