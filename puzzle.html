@@ -2242,15 +2242,16 @@ class PuzzleGame extends Phaser.Scene{
       if(isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS);
       if(isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS);
     }
-    // 土地の外周＝隣が土地外の辺に太枠を描く
-    g.lineStyle(4,0x8a7060,1);
+    // 土地の外周＝隣が土地外の辺に太枠を描く（端で切れないよう内側に2pxオフセット）
+    const BW=4, off=BW/2; // 線幅と半分のオフセット
+    g.lineStyle(BW,0x8a7060,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.lineBetween(px,py,px+CS,py);
-      if(!isLand(r+1,c)) g.lineBetween(px,py+CS,px+CS,py+CS);
-      if(!isLand(r,c-1)) g.lineBetween(px,py,px,py+CS);
-      if(!isLand(r,c+1)) g.lineBetween(px+CS,py,px+CS,py+CS);
+      if(!isLand(r-1,c)) g.lineBetween(px,py+off,px+CS,py+off);        // 上辺
+      if(!isLand(r+1,c)) g.lineBetween(px,py+CS-off,px+CS,py+CS-off);  // 下辺
+      if(!isLand(r,c-1)) g.lineBetween(px+off,py,px+off,py+CS);        // 左辺
+      if(!isLand(r,c+1)) g.lineBetween(px+CS-off,py,px+CS-off,py+CS);  // 右辺
     }
   }
   drawBoard(){
@@ -2298,17 +2299,18 @@ class PuzzleGame extends Phaser.Scene{
       });
     }
 
-    // ── 次/次次/保留 canvas（1マスpxは共通＝大きさ統一、枠サイズはスロット別）──
-    const unitPx=this._unifiedCellPx();
+    // ── 次/次次/保留 canvas（次系は小さめ、今・保留は大きめ）──
+    const bigPx=this._unifiedCellPx();      // 今・保留
+    const smallPx=this._unifiedCellPxSmall();// 次・次の次
     const PAD=8;
-    const BOX=3*unitPx+PAD;        // 標準枠（今・保留）：3マス分
-    const SMALL=Math.round(2.4*unitPx+PAD); // 次・次次の枠：少し小さく（省スペース）
+    const BIG_BOX=3*bigPx+PAD;     // 今・保留の枠
+    const SMALL_BOX=3*smallPx+PAD; // 次・次の次の枠
     const slots=[
-      {def:this.queue[1], canvasId:'canvas-next2', box:SMALL},
-      {def:this.queue[0], canvasId:'canvas-next1', box:SMALL},
-      {def:this.holdDef,  canvasId:'canvas-hold',  box:BOX},
+      {def:this.queue[1], canvasId:'canvas-next2', box:SMALL_BOX, px:smallPx},
+      {def:this.queue[0], canvasId:'canvas-next1', box:SMALL_BOX, px:smallPx},
+      {def:this.holdDef,  canvasId:'canvas-hold',  box:BIG_BOX,   px:bigPx},
     ];
-    for(const {def,canvasId,box} of slots){
+    for(const {def,canvasId,box,px} of slots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
       cv.width=box; cv.height=box;
@@ -2324,25 +2326,24 @@ class PuzzleGame extends Phaser.Scene{
         }
         continue;
       }
-      // パーツを共通1マスpx（unitPx）で中央描画 → どのスロットでも1マスの大きさは同じ
       const sh=this.getShape(def,0);
       const sw=sh[0].length, sr=sh.length;
-      const ox=Math.floor((box-sw*unitPx)/2), oy=Math.floor((box-sr*unitPx)/2);
-      this._drawDefOnCanvasFixed(ctx,def,ox,oy,sw*unitPx,sr*unitPx,0);
+      const ox=Math.floor((box-sw*px)/2), oy=Math.floor((box-sr*px)/2);
+      this._drawDefOnCanvasFixed(ctx,def,ox,oy,sw*px,sr*px,0);
     }
 
-    // ── 現在パーツ canvas（標準枠・共通1マスpx）──
+    // ── 現在パーツ canvas（大きめ）──
     const cc=document.getElementById('canvas-current');
     if(cc){
-      cc.width=BOX; cc.height=BOX;
-      cc.style.width=BOX+'px'; cc.style.height=BOX+'px';
+      cc.width=BIG_BOX; cc.height=BIG_BOX;
+      cc.style.width=BIG_BOX+'px'; cc.style.height=BIG_BOX+'px';
       const ctx=cc.getContext('2d');
-      ctx.clearRect(0,0,BOX,BOX);
+      ctx.clearRect(0,0,BIG_BOX,BIG_BOX);
       if(this.currentDef&&!this._dragging&&!this._previewActive){
         const shape=this.getShape(this.currentDef,this.rotation);
         const sw=shape[0].length,sh=shape.length;
-        const ox=Math.floor((BOX-sw*unitPx)/2),oy=Math.floor((BOX-sh*unitPx)/2);
-        this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*unitPx,sh*unitPx,this.rotation);
+        const ox=Math.floor((BIG_BOX-sw*bigPx)/2),oy=Math.floor((BIG_BOX-sh*bigPx)/2);
+        this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*bigPx,sh*bigPx,this.rotation);
       }
     }
   }
@@ -2440,7 +2441,34 @@ class PuzzleGame extends Phaser.Scene{
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
-    return 28; // 1マス=28px固定（次・今・保留・ドラッグ全て共通）
+    return 34; // 今のパーツ・保留の1マスpx（大きめ＝見やすい）
+  }
+  _unifiedCellPxSmall(){
+    return 22; // 次・次の次の1マスpx（小さめ＝省スペース）
+  }
+
+  // パーツが土地内（LAND_MAP!==null）に完全に収まるかチェック（グレー侵入も他パーツ重なりも見る）
+  _fitsInLand(shape,c,r){
+    for(let dr=0;dr<shape.length;dr++)for(let dc=0;dc<shape[0].length;dc++){
+      if(!shape[dr][dc])continue;
+      const nr=r+dr,nc=c+dc;
+      if(nr<0||nr>=ROWS||nc<0||nc>=COLS)return false;
+      if(LAND_MAP[nr][nc]===null)return false; // グレー（土地外）に侵入
+    }
+    return true;
+  }
+  // 指定位置がグレーにまたがるとき、近くの土地内に収まる位置へスナップ
+  _snapIntoLand(shape,c,r){
+    if(this._fitsInLand(shape,c,r))return {c,r};
+    // 徐々に範囲を広げて最寄りの収まる位置を探す
+    for(let radius=1;radius<=Math.max(COLS,ROWS);radius++){
+      for(let dr=-radius;dr<=radius;dr++)for(let dc=-radius;dc<=radius;dc++){
+        const nc=Phaser.Math.Clamp(c+dc,0,COLS-shape[0].length);
+        const nr=Phaser.Math.Clamp(r+dr,0,ROWS-shape.length);
+        if(this._fitsInLand(shape,nc,nr))return {c:nc,r:nr};
+      }
+    }
+    return {c,r}; // 見つからなければそのまま
   }
 
   updatePreview(c,r){
@@ -2453,6 +2481,10 @@ class PuzzleGame extends Phaser.Scene{
     this.previewGfx.clear();
     this._previewDefKey=null;
     const shape=this.getShape(this.currentDef,this.rotation);
+    // グレー（土地外）にまたがらないよう、土地内に収まる位置へ補正
+    const snapped=this._snapIntoLand(shape,c,r);
+    c=snapped.c; r=snapped.r;
+    this.curC=c; this.curR=r;
     const ok=this.canPlace(shape,c,r);
     const pw=shape[0].length*CS, ph=shape.length*CS;
     const px=this.sx(c), py=this.sy(r);
