@@ -214,8 +214,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   position:absolute;inset:0;
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
   cursor:pointer;
-  padding:8px 24px 22px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   transition:border-color .2s,outline-color .2s;
   overflow:visible;opacity:.45;pointer-events:none;
   outline:3px solid transparent;outline-offset:2px;
@@ -223,8 +221,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
-.roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
+/* ラベルは枠中央のやや上、値は枠中央に絶対配置（状態でズレない） */
+.roulette-item-label{position:absolute;left:0;right:0;top:50%;transform:translateY(-34px);font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
+.roulette-item-value{position:absolute;left:0;right:0;top:50%;transform:translateY(4px);font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
 .roulette-item.rare .roulette-item-value{
