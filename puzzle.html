@@ -221,7 +221,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
 .roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
-.roulette-item-label{font-size:14px;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:6px;font-weight:700;text-align:center;}
+.roulette-item-label{font-size:18px;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:8px;font-weight:700;text-align:center;}
 .roulette-item-value{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
@@ -420,8 +420,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:140px;min-height:580px;}
-  .title-grid-card{height:140px;}
+  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:118px;min-height:auto;gap:8px;}
+  .title-grid-card{height:118px;padding:8px 6px;gap:2px;}
+  .title-grid-badge{font-size:24px;}
+  .title-grid-name{font-size:14px;line-height:1.25;}
+  .title-grid-card.locked .title-grid-name{font-size:13px;}
+  .title-grid-cond{font-size:11px;line-height:1.3;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
@@ -464,7 +468,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 }
 .title-grid-name{
   font-family:'Noto Serif JP',serif;
-  font-size:12px;font-weight:700;
+  font-size:13px;font-weight:700;
   color:var(--brown-dark);
   letter-spacing:.04em;line-height:1.35;
   word-break:break-all;
@@ -475,7 +479,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-size:11px;
 }
 .title-grid-cond{
-  font-size:9px;color:var(--brown-light);
+  font-size:10px;color:var(--brown-light);
   line-height:1.4;letter-spacing:.02em;
 }
 .title-grid-new-badge{
@@ -964,20 +968,21 @@ const GACHA_BLOCKS=[
     {lo:16, hi:29, step:1, weight:32},  // ③最頻2
     {lo:30, hi:50, step:10,weight:12},  // ④（50が逆レア）
   ],
-  // C.家賃
+  // C.家賃  ①5-9(5が逆レア) ②10-20(最頻) ③21-39 ④40-65(5刻み) ⑤70-100(レア,10刻み)
+  // 確率の多い順：②①③④⑤
   [
-    {lo:5,  hi:9,  step:1, weight:14},  // ①（5が逆レア）
-    {lo:10, hi:20, step:1, weight:50},  // ②最頻
-    {lo:21, hi:39, step:1, weight:24},  // ③
-    {lo:40, hi:75, step:5, weight:14},  // ④
-    {lo:80, hi:100,step:10,weight:5},   // ⑤レア
+    {lo:5,  hi:9,  step:1, weight:26},  // ①（5が逆レア）2番目に多い
+    {lo:10, hi:20, step:1, weight:46},  // ②最頻（最多）
+    {lo:21, hi:39, step:1, weight:16},  // ③3番目
+    {lo:40, hi:65, step:5, weight:8},   // ④4番目
+    {lo:70, hi:100,step:10,weight:4},   // ⑤レア（最少）
   ],
 ];
-// レア値（プレミアム）：A①0-5, B①0-5, C⑤80-100
+// レア値（プレミアム）：A①0-5, B①0-5, C⑤70-100
 function isRareGacha(idx,val){
   if(idx===0) return val<=5;
   if(idx===1) return val<=5;
-  if(idx===2) return val>=80;
+  if(idx===2) return val>=70;
   return false;
 }
 // 逆レア値（ニッチ）：A 50, B 50, C 5
@@ -1015,7 +1020,7 @@ function drawGachaValue(idx){
 const RARE_COND=[
   v=>v<=5,    // 築年数5以下
   v=>v<=5,    // 駅徒歩5以下
-  v=>v>=80,   // 家賃80以上（高級＝レア）
+  v=>v>=70,   // 家賃70以上（高級＝レア）
 ];
 function isRare(idx,val){return isRareGacha(idx,val);}
 
@@ -1023,7 +1028,7 @@ function isRare(idx,val){return isRareGacha(idx,val);}
 const REROLL_POOLS={
   0:[0,1,2,3,4,5],        // 築浅確定（レア）
   1:[1,2,3,4,5],          // 駅近確定（レア）
-  2:[80,90,100],          // 高級確定（家賃レア80以上）
+  2:[70,80,90,100],       // 高級確定（家賃レア70以上）
 };
 // 再抽選済みフラグ（per slot）
 const rerollDone=[false,false,false];
@@ -1383,13 +1388,14 @@ function renderTitlesPage(){
     ...ALL_TITLES_MASTER.filter(m=>owned.has(m.title)),
     ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
   ];
-  const totalPages=Math.ceil(sorted.length/TITLES_PER_PAGE);
+  const perPage=(window.innerWidth<=520)?6:8; // スマホは6件・PCは8件
+  const totalPages=Math.ceil(sorted.length/perPage);
   let page=window._titlePage||0;
   if(page<0)page=0; if(page>=totalPages)page=totalPages-1;
   window._titlePage=page;
   const ownedCount=ALL_TITLES_MASTER.filter(m=>owned.has(m.title)).length;
-  const start=page*TITLES_PER_PAGE;
-  const pageItems=sorted.slice(start,start+TITLES_PER_PAGE);
+  const start=page*perPage;
+  const pageItems=sorted.slice(start,start+perPage);
 
   body.innerHTML='';
   // 進捗表示
@@ -1426,7 +1432,7 @@ function renderTitlesPage(){
     grid.appendChild(card);
   });
   // ページに満たない分を空セルで埋めてカードサイズを全ページ共通に
-  const emptyCount=TITLES_PER_PAGE-pageItems.length;
+  const emptyCount=perPage-pageItems.length;
   for(let e=0;e<emptyCount;e++){
     const ph=document.createElement('div');
     ph.style.cssText='visibility:hidden;';
@@ -1755,14 +1761,20 @@ async function saveAndShare(){
   };
 
   if(!isMobile){
-    // PC：共有シートが不安定なので、確実にダウンロード＋投稿文をコピー
-    doDownload();
-    // 投稿用テキストをクリップボードにコピー（貼り付けるだけで使える）
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      try{
-        await navigator.clipboard.writeText(text);
-        setTimeout(()=>showGameToast('画像を保存＆投稿文をコピーしました📋'),1600);
-      }catch(e){}
+    // PC：画像をクリップボードにコピー（SNSに貼り付け可）＋念のためダウンロードも
+    let imgCopied=false;
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+        if(blob){
+          await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+          imgCopied=true;
+        }
+      }
+    }catch(e){ imgCopied=false; }
+    doDownload(); // ダウンロードも実行（確実に手元に残す）
+    if(imgCopied){
+      setTimeout(()=>showGameToast('画像をコピー＆保存しました📋 SNSに貼り付けOK'),1600);
     }
     return;
   }
