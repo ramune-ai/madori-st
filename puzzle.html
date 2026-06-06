@@ -53,9 +53,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-container{
   flex:1;display:flex;justify-content:center;align-items:center;
   overflow:hidden;min-height:0;position:relative;
-  background:#f8f4ee;
+  background:#f5f0e8;
 }
-#game-container canvas{display:block;background:#f8f4ee;}
+#game-container canvas{display:block;background:#f5f0e8;}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -87,7 +87,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 /* 2段目：次次/次 | 現在パーツ | 保留 */
 #game-top-row2{
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:flex-end;justify-content:center;
   padding:3px 8px 4px;gap:6px;
   max-width:100%;
   flex-wrap:nowrap;
@@ -2696,7 +2696,7 @@ function startPhaserGame(){
     window._phaserGame=new Phaser.Game({
       type:Phaser.AUTO,
       width:CANVAS_W,height:CANVAS_H,
-      backgroundColor:'#f8f4ee',
+      transparent:true,
       parent:'game-container',
       scene:PuzzleGame,
       resolution:dpr,
