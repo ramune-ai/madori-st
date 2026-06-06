@@ -2187,6 +2187,8 @@ class PuzzleGame extends Phaser.Scene{
     gameScene=this;
     this._sessionId=(this._sessionId||0)+1;
     const sessionId=this._sessionId;
+    // 盤面テキストの描画解像度（高DPI端末でも文字をくっきり）
+    this._txtRes=Math.min(3,Math.max(2,Math.round(window.devicePixelRatio||1)));
     pickRandomLand(); // 土地形状をランダム選択
     this._storageGfx=null;
     this._storageTexts=[];
@@ -2845,13 +2847,14 @@ class PuzzleGame extends Phaser.Scene{
       ? ''
       : (cell.fixed ? '玄関' : (cell.label || ''));
     if(labelText){
-      const labelFs=cell.fixed?14:Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
+      const labelFs=cell.fixed?15:Math.min(16,Math.floor(pw*0.26),Math.floor(ph*0.26));
       const lbl=this.add.text(px+pw/2, py+ph/2, labelText,{
         fontSize:labelFs+'px',
         fill:cell.fixed?'#604010':'#2a1a0a',
         align:'center',fontFamily:'Meiryo,sans-serif',
         fontStyle:'bold',
-        stroke:'#ffffff',strokeThickness:3,
+        stroke:'#ffffff',strokeThickness:1.5,
+        resolution:this._txtRes,
         wordWrap:{width:pw-8}
       }).setOrigin(0.5,0.5).setDepth(5);
       this.boardLabels[pid]=lbl;
@@ -2906,10 +2909,12 @@ class PuzzleGame extends Phaser.Scene{
     const shouldEnd = !curOk && !swapOk;
     if(!shouldEnd)return;
 
-    // 全て置けない → 終了
-    this.fillEmptyAsStorage();
+    // 全て置けない → 終了。まず「完成」表示を確実に出す
+    console.log('[end] 完成判定: curOk='+curOk+' swapOk='+swapOk+' → 終了表示');
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this._clearPreview();
+    // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
+    try{ this.fillEmptyAsStorage(); }catch(e){ console.warn('[end] 収納描画スキップ:', e); }
   }
   canPlace(shape,c,r){
     for(let dr=0;dr<shape.length;dr++)
@@ -3246,10 +3251,11 @@ class PuzzleGame extends Phaser.Scene{
         duration:500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'
       });
     }
-    const previewFs=Math.min(14,Math.floor(pw*0.22),Math.floor(ph*0.22));
+    const previewFs=Math.min(16,Math.floor(pw*0.26),Math.floor(ph*0.26));
     const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,{
       fontSize:previewFs+'px',fill:'#2a1a0a',align:'center',fontFamily:'Meiryo,sans-serif',
-      fontStyle:'bold',stroke:'#ffffff',strokeThickness:3,
+      fontStyle:'bold',stroke:'#ffffff',strokeThickness:1.5,
+      resolution:this._txtRes,
       wordWrap:{width:pw-8}
     }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.6);
     if(!this._previewLabels)this._previewLabels=[];
@@ -3297,22 +3303,22 @@ class PuzzleGame extends Phaser.Scene{
         g.fillStyle(storageColor,0.9);
         g.fillRect(px,py,CS,CS);  // 隙間なし
       }
-      // 塊の重心（塊に含まれる全マスの平均位置）に「収納」を表示
-      const minR=Math.min(...cells.map(([r])=>r));
-      const maxR=Math.max(...cells.map(([r])=>r));
-      const minC=Math.min(...cells.map(([,c])=>c));
-      const maxC=Math.max(...cells.map(([,c])=>c));
-      // 重心計算
+      // 塊の重心を求め、塊内で最も重心に近いマスにラベルを置く（他パーツへのはみ出し防止）
       const cx=cells.reduce((s,[,c])=>s+this.sx(c)+CS/2,0)/cells.length;
       const cy=cells.reduce((s,[r])=>s+this.sy(r)+CS/2,0)/cells.length;
-      const blockW=(maxC-minC+1)*CS;
-      const blockH=(maxR-minR+1)*CS;
-      // 1マスのとき小さく、複数マスのとき少し大きく
-      const fs=cells.length===1?8:Math.min(11, Math.floor(Math.sqrt(cells.length)*5));
-      const t=this.add.text(cx, cy, '収納', {
+      let lx=cx, ly=cy, bestD=Infinity;
+      for(const [r,c] of cells){
+        const ccx=this.sx(c)+CS/2, ccy=this.sy(r)+CS/2;
+        const d=(ccx-cx)*(ccx-cx)+(ccy-cy)*(ccy-cy);
+        if(d<bestD){bestD=d; lx=ccx; ly=ccy;}
+      }
+      // 塊が大きいほど少し大きく（最小でも読める大きさを確保）
+      const fs=Math.min(16, Math.max(12, Math.floor(Math.sqrt(cells.length)*6)));
+      const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-        fontFamily:'Meiryo,sans-serif',stroke:'#ffffffdd',strokeThickness:2,
-        wordWrap:{width:CS*Math.min(cells.length,3)-4}
+        fontFamily:'Meiryo,sans-serif',stroke:'#ffffff',strokeThickness:1,
+        resolution:this._txtRes,
+        wordWrap:{width:CS*2-4}
       }).setOrigin(0.5,0.5).setDepth(3);
       this._storageTexts.push(t);
     }
