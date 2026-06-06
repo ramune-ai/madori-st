@@ -61,6 +61,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   display:flex;flex-direction:column;flex-shrink:0;
   background:rgba(245,240,232,.98);
   position:relative;z-index:30;
+  width:100%;max-width:100vw;overflow-x:hidden;
 }
 /* 1段目：設置数 + ナビボタン */
 #game-top-row1{
@@ -91,8 +92,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   flex-wrap:nowrap;
   overflow:hidden;
 }
-#game-top-row2 canvas{max-width:100%;height:auto;}
-#next-col,#current-piece-wrap,#hold-col{min-width:0;flex-shrink:1;}
+#game-top-row2 canvas{flex-shrink:0;}
+#next-col,#current-piece-wrap,#hold-col{min-width:0;flex-shrink:0;}
 /* 次のパーツ縦並び（左） */
 #next-col{
   display:flex;flex-direction:row;align-items:center;gap:4px;
@@ -297,7 +298,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   #hold-col,#next-col{padding:2px 5px;}
   #current-piece-wrap .piece-label,.hold-label{font-size:8px;}
   #current-piece-hint,#hold-hint,.next-sublabel{font-size:7px;}
-  #game-top-row2 canvas{max-width:84px;}
   .btn-undo{padding:9px 13px 7px;}
   .btn-undo .undo-icon{font-size:20px;}
   .btn-rotate-new{padding:10px 18px 8px;}
@@ -1657,34 +1657,9 @@ class PuzzleGame extends Phaser.Scene{
     this._pdownX=0; this._pdownY=0;
     this.input.on('pointerdown',(p)=>{
       if(p.rightButtonDown()){ this.rotatePiece(1); return; }
-      if(this._dragging)return;
-      this._pdownTime=Date.now();
-      this._pdownX=p.x; this._pdownY=p.y;
     });
-    this.input.on('pointerup',(p)=>{
-      if(p.rightButtonDown())return;
-      if(this._dragging)return;
-      if(this._justDropped)return;
-      const elapsed=Date.now()-this._pdownTime;
-      if(elapsed>400)return;
-      if(!this.currentDef)return;
-      const bx=p.x, by=p.y;
-      const shape=this.getShape(this.currentDef,this.rotation);
-      const pw=shape[0].length, ph=shape.length;
-      const tapC=Math.floor(bx/CS), tapR=Math.floor(by/CS);
-      const tc=Phaser.Math.Clamp(Math.round(bx/CS-pw/2),0,COLS-pw);
-      const tr=Phaser.Math.Clamp(Math.round(by/CS-ph/2),0,ROWS-ph);
-      if(this._previewActive){
-        // プレビュー表示中：パーツ内クリック→設置確定、外→そこへ移動
-        const inPiece=(tapC>=this.curC&&tapC<this.curC+pw&&tapR>=this.curR&&tapR<this.curR+ph);
-        if(inPiece) this.placeAtCursor();
-        else { this.curC=tc; this.curR=tr; this._anchorC=tc; this._anchorR=tr; this.updatePreview(this.curC,this.curR); }
-      } else {
-        // プレビュー無し（初回クリック）→ クリック位置にプレビュー表示
-        this.curC=tc; this.curR=tr; this._anchorC=tc; this._anchorR=tr;
-        this.updatePreview(this.curC,this.curR);
-      }
-    });
+    // 設置処理はマウス=document._dMU、タッチ=canvas._cLTE が担当（competition回避のためここでは何もしない）
+    this.input.on('pointerup',(p)=>{});
     if(this.game.canvas){
       this.game.canvas.addEventListener('contextmenu',e=>e.preventDefault());
     }
@@ -1725,8 +1700,8 @@ class PuzzleGame extends Phaser.Scene{
       if(!this.currentDef)return;
       const cc=document.getElementById('canvas-current'); if(!cc)return;
       const cp=this._unifiedCellPx();
-      const PAD=10;
-      const BOX=3*cp+PAD; // 固定枠サイズ（drawUIと統一）
+      const PAD=8;
+      const BOX=3*cp+PAD;
       cc.width=BOX; cc.height=BOX;
       cc.style.width=BOX+'px'; cc.style.height=BOX+'px';
       const sh=this.getShape(this.currentDef,this.rotation);
@@ -1745,7 +1720,7 @@ class PuzzleGame extends Phaser.Scene{
     let _touchStartX=0,_touchStartY=0,_touchMoved=false,_longPressTimer=null,_suppressNextTapPlace=false,_touchStartTime=0;
     const DRAG_THRESHOLD=12; // タッチ：これ以上動いたら「ドラッグ」
     // マウス
-    let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null,_mPendingDrag=false;
+    let _msx=0,_msy=0,_mMoved=false,_mLongTimer=null;
     const MOUSE_DRAG_THRESHOLD=5;
     const _clearLongPress=()=>{
       if(_longPressTimer){clearTimeout(_longPressTimer);_longPressTimer=null;}
@@ -1850,23 +1825,58 @@ class PuzzleGame extends Phaser.Scene{
     if(document._dMM)document.removeEventListener('mousemove',document._dMM);
     if(document._dMU)document.removeEventListener('mouseup',  document._dMU);
     document._dMM=(e)=>{
-      if(this._dragging){ moveDrag(e.clientX,e.clientY); return; }
-      const dx=e.clientX-_msx, dy=e.clientY-_msy;
-      if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD){
-        _mMoved=true;
-        if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;}
-        // ドラッグ開始候補かつパーツあり → ここで初めてドラッグ開始
-        if(_mPendingDrag&&this.currentDef){
-          _mPendingDrag=false;
-          startDrag(_msx,_msy);
-          moveDrag(e.clientX,e.clientY);
-        }
+      if(this._dragging){
+        const dx=e.clientX-_msx, dy=e.clientY-_msy;
+        if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
+        moveDrag(e.clientX,e.clientY);
+        return;
       }
+      const dx=e.clientX-_msx, dy=e.clientY-_msy;
+      if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
+      if(_mLongTimer&&_mMoved){clearTimeout(_mLongTimer);_mLongTimer=null;}
     };
     document._dMU=(e)=>{
       if(!this._dragging)return;
-      // PC：ドラッグして離しても設置しない。プレビューを残し、次のクリックで確定。
-      endDrag(e.clientX,e.clientY,false);
+      this._dragging=false;
+      if(holdCol)holdCol.classList.remove('drag-over');
+      // 保留枠へのドロップ
+      if(holdCol){
+        const h=holdCol.getBoundingClientRect();
+        if(e.clientX>=h.left&&e.clientX<=h.right&&e.clientY>=h.top&&e.clientY<=h.bottom){
+          this.doHold(); this._clearPreview(); this.drawUI(); return;
+        }
+      }
+      const g=toGame(e.clientX,e.clientY);
+      if(!g.ok){
+        // 土地外：直前までプレビューがあれば残す、なければキャンセル
+        if(this._previewActive){ this.updatePreview(this.curC,this.curR); }
+        else { this._clearPreview(); this.drawUI(); }
+        return;
+      }
+      // クリック位置のセル
+      const sh=this.getShape(this.currentDef,this.rotation);
+      const pw=sh[0].length, ph=sh.length;
+      const clickC=Phaser.Math.Clamp(Math.round(g.bx/CS-pw/2),0,COLS-pw);
+      const clickR=Phaser.Math.Clamp(Math.round(g.by/CS-ph/2),0,ROWS-ph);
+
+      if(_mMoved){
+        // ドラッグした → プレビューを今の位置に残す（設置しない）
+        this.updatePreview(this.curC,this.curR);
+        this._mPreviewShown=true; // 次の同位置クリックで確定可能に
+        return;
+      }
+      // 動かさずクリック
+      if(this._mPreviewShown && this.curC===clickC && this.curR===clickR){
+        // 同じ位置を2回目クリック → 設置確定
+        this.placeAtCursor();
+        this._mPreviewShown=false;
+      } else {
+        // 1回目クリック or 別位置クリック → プレビュー表示/移動
+        this.curC=clickC; this.curR=clickR;
+        this._anchorC=clickC; this._anchorR=clickR;
+        this.updatePreview(clickC,clickR);
+        this._mPreviewShown=true;
+      }
     };
     document.addEventListener('mousemove',document._dMM);
     document.addEventListener('mouseup',  document._dMU);
@@ -1883,30 +1893,28 @@ class PuzzleGame extends Phaser.Scene{
       if(canvas[k]){canvas.removeEventListener(ev,canvas[k]);delete canvas[k];}
     });
 
-    // マウス操作（土地）
-    // mousedown → 位置記録のみ（即ドラッグしない）
-    // mousemove → 閾値超えたらドラッグ開始
-    // mouseup（動かさず）→ クリック扱い：Phaserのpointerupが設置/移動を処理
+    // マウス操作（土地）2段階方式:
+    //   1回目クリック（動かさず）→ プレビュー表示
+    //   プレビュー中に再クリック（パーツ内）→ 設置確定
+    //   押したままドラッグ→離す → プレビュー移動（設置しない）
     canvas._cLD=(e)=>{
       if(e.button!==0)return;
       _msx=e.clientX; _msy=e.clientY; _mMoved=false;
-      _mPendingDrag=this.currentDef?true:false; // パーツありならドラッグ開始候補
-      if(this.currentDef)return;
+      if(this.currentDef){
+        // パーツあり：ドラッグ開始（プレビュー追従）
+        startDrag(e.clientX,e.clientY);
+        return;
+      }
       // パーツなし：長押し500msでundo
       if(_mLongTimer)clearTimeout(_mLongTimer);
       _mLongTimer=setTimeout(()=>{
         _mLongTimer=null;
-        if(!_mMoved&&!this.currentDef&&this.undoStack.length){
-          this.doUndo();
-          // undo後はパーツ復活するがドラッグは開始しない（クリックで操作）
-        }
+        if(!_mMoved&&!this.currentDef&&this.undoStack.length){ this.doUndo(); }
       },500);
     };
     canvas._cLU=(e)=>{
       if(_mLongTimer){clearTimeout(_mLongTimer);_mLongTimer=null;}
-      _mPendingDrag=false;
-      // 動かさずに離した場合は Phaser pointerup がクリック確定を処理
-      // ドラッグしていた場合は document._dMU が endDrag を処理
+      // 設置/プレビュー判定は document._dMU が担当
     };
 
     // ── タッチ操作（土地）──
@@ -2007,6 +2015,7 @@ class PuzzleGame extends Phaser.Scene{
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     // 回転アンカー（補正前の希望位置）を初期化
     this._anchorC=this.curC; this._anchorR=this.curR;
+    this._mPreviewShown=false; // マウス2段階確定フラグをリセット
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
     this._clearPreview();
@@ -2289,41 +2298,40 @@ class PuzzleGame extends Phaser.Scene{
       });
     }
 
-    // ── 次/次次/保留 canvas（枠は固定サイズ・中身は共通1マスpx）──
+    // ── 次/次次/保留 canvas（1マスpxは共通＝大きさ統一、枠サイズはスロット別）──
     const unitPx=this._unifiedCellPx();
-    const PAD=10;
-    // 最大パーツ（3マス）が収まる固定枠サイズ。枠は常にこのサイズで動かない
-    const BOX=3*unitPx+PAD; // 30*3+10 = 100px
-    const nextSlots=[
-      {def:this.queue[1], canvasId:'canvas-next2'},
-      {def:this.queue[0], canvasId:'canvas-next1'},
-      {def:this.holdDef,  canvasId:'canvas-hold'},
+    const PAD=8;
+    const BOX=3*unitPx+PAD;        // 標準枠（今・保留）：3マス分
+    const SMALL=Math.round(2.4*unitPx+PAD); // 次・次次の枠：少し小さく（省スペース）
+    const slots=[
+      {def:this.queue[1], canvasId:'canvas-next2', box:SMALL},
+      {def:this.queue[0], canvasId:'canvas-next1', box:SMALL},
+      {def:this.holdDef,  canvasId:'canvas-hold',  box:BOX},
     ];
-    for(const {def,canvasId} of nextSlots){
+    for(const {def,canvasId,box} of slots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
-      // 枠は常に固定サイズ
-      cv.width=BOX; cv.height=BOX;
-      cv.style.width=BOX+'px'; cv.style.height=BOX+'px';
+      cv.width=box; cv.height=box;
+      cv.style.width=box+'px'; cv.style.height=box+'px';
       const ctx=cv.getContext('2d');
-      ctx.clearRect(0,0,BOX,BOX);
+      ctx.clearRect(0,0,box,box);
       if(!def){
         if(canvasId==='canvas-hold'){
           ctx.fillStyle='rgba(90,74,58,.18)';
           ctx.font='12px Meiryo,sans-serif';
           ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText('なし',BOX/2,BOX/2);
+          ctx.fillText('なし',box/2,box/2);
         }
         continue;
       }
-      // パーツを共通1マスpxで中央に描画
+      // パーツを共通1マスpx（unitPx）で中央描画 → どのスロットでも1マスの大きさは同じ
       const sh=this.getShape(def,0);
       const sw=sh[0].length, sr=sh.length;
-      const ox=Math.floor((BOX-sw*unitPx)/2), oy=Math.floor((BOX-sr*unitPx)/2);
+      const ox=Math.floor((box-sw*unitPx)/2), oy=Math.floor((box-sr*unitPx)/2);
       this._drawDefOnCanvasFixed(ctx,def,ox,oy,sw*unitPx,sr*unitPx,0);
     }
 
-    // ── 現在パーツ canvas（枠は固定・中身は共通1マスpxで中央描画）──
+    // ── 現在パーツ canvas（標準枠・共通1マスpx）──
     const cc=document.getElementById('canvas-current');
     if(cc){
       cc.width=BOX; cc.height=BOX;
@@ -2432,7 +2440,7 @@ class PuzzleGame extends Phaser.Scene{
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
-    return 30; // 1マス=30px固定（次・今・保留・ドラッグ全て共通）
+    return 24; // 1マス=24px固定（次・今・保留・ドラッグ全て共通）
   }
 
   updatePreview(c,r){
