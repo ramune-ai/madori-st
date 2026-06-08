@@ -238,10 +238,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .roulette-item.rare{border-color:#c8a020;background:linear-gradient(135deg,#fffbec,#fff8d6);}
 .roulette-item.rare::before{content:'✦ PREMIUM';position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.2em;color:#c8860a;background:#fff8d6;padding:2px 10px;border-radius:20px;border:1px solid #e8c040;white-space:nowrap;}
 /* tap-hint */
-.roulette-item .tap-hint{position:absolute;bottom:7px;left:0;right:0;font-size:11px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:500;letter-spacing:.05em;text-align:center;}
+.roulette-item .tap-hint{position:absolute;top:11px;right:14px;left:auto;bottom:auto;font-size:14px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:700;letter-spacing:.05em;text-align:right;}
 .roulette-item.active-slot .tap-hint{opacity:1;}
 .roulette-item.locked .tap-hint{display:none;}
-.roulette-item.locked::after{content:'✓ 確定';position:absolute;top:12px;right:14px;font-size:11px;color:var(--brown-light);letter-spacing:.1em;}
+.roulette-item.locked::after{content:'✓ 確定';position:absolute;top:11px;right:14px;font-size:14px;font-weight:700;color:var(--brown-light);letter-spacing:.1em;}
 .roulette-item.rare.locked::after{color:#c8860a;}
 /* ── 最高レア（虹色・超おめでたい）演出 ── */
 .roulette-item.super-rare .roulette-item-value{
@@ -513,6 +513,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   will-change:opacity,transform;
 }
 .title-new-badge-inline{font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;letter-spacing:.08em;flex-shrink:0;}
+/* 称号発表：名前を大きく＋獲得条件を併記 */
+.title-reveal-text{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
+.title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.1em;line-height:1.2;}
+.title-reveal-cond{font-size:12px;font-weight:400;letter-spacing:.03em;line-height:1.35;opacity:.8;}
+.title-owned-chip.is-reveal{display:flex !important;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:12px 20px;border-radius:6px;background:rgba(90,74,58,.08);color:var(--brown-dark);}
+.title-owned-chip.is-reveal .title-reveal-name{font-size:19px;color:var(--brown-dark);}
+.title-owned-chip.is-reveal .title-reveal-cond{color:var(--brown-light);}
 .titles-owned-section{margin-top:20px;width:100%;}
 .titles-owned-label-sm{font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;opacity:.7;}
 .titles-owned-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;opacity:.5;}
@@ -984,6 +991,7 @@ function gotoStart(){
   showMadoriBg(false);
   updateStartProfile();
   showScreen('screen-start');
+  try{ localStorage.removeItem('madori-game-state'); }catch(e){}
 }
 
 // ────────────────────────────────────────
@@ -1237,6 +1245,9 @@ function showTitlesReveal(){
 
   const listEl=document.getElementById('title-reveal-list');
   listEl.innerHTML='';
+  // 称号名→獲得条件の対応表（ALL_TITLES_MASTERから）
+  const condByTitle={};
+  ALL_TITLES_MASTER.forEach(m=>{condByTitle[m.title]=m.condition;});
   const ownedSection=document.getElementById('titles-owned-section');
   const ownedChips=document.getElementById('titles-owned-chips');
   if(ownedSection) ownedSection.style.display='none';
@@ -1254,16 +1265,17 @@ function showTitlesReveal(){
 
   allItems.forEach(({title,isNew},i)=>{
     const delay=200+i*INTERVAL;
+    const cond=condByTitle[title]||'';
     setTimeout(()=>{
       const el=document.createElement('div');
+      const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${title}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
       if(isNew){
         el.className='title-new-item';
-        el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${title}`;
+        el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${inner}`;
       } else {
-        el.className='title-owned-chip';
-        el.style.display='block';
+        el.className='title-owned-chip is-reveal';
         el.style.marginBottom='8px';
-        el.textContent=title;
+        el.innerHTML=inner;
       }
       el.style.opacity='0';
       el.style.transform='translateY(12px)';
@@ -2175,6 +2187,7 @@ let LAND_MAP=LAND_PRESETS[0].map(row=>row.slice());
 function pickRandomLand(){
   const idx=Math.floor(Math.random()*LAND_PRESETS.length);
   LAND_MAP=LAND_PRESETS[idx].map(row=>row.slice());
+  window._landIndex=idx;
   return idx;
 }
 const GENKAN_COLOR=0xD4A870;
@@ -2189,7 +2202,14 @@ class PuzzleGame extends Phaser.Scene{
     const sessionId=this._sessionId;
     // 盤面テキストの描画解像度（高DPI端末でも文字をくっきり）
     this._txtRes=Math.min(3,Math.max(2,Math.round(window.devicePixelRatio||1)));
-    pickRandomLand(); // 土地形状をランダム選択
+    // リロード復元データ（あれば1回だけ消費）
+    this._restorePayload=window._restoreState||null; window._restoreState=null;
+    if(this._restorePayload && typeof this._restorePayload.land==='number' && LAND_PRESETS[this._restorePayload.land]){
+      LAND_MAP=LAND_PRESETS[this._restorePayload.land].map(row=>row.slice());
+      window._landIndex=this._restorePayload.land;
+    }else{
+      pickRandomLand(); // 土地形状をランダム選択
+    }
     this._storageGfx=null;
     this._storageTexts=[];
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
@@ -2258,18 +2278,55 @@ class PuzzleGame extends Phaser.Scene{
     const entries=Object.entries(SVG_TEX);
     Promise.all(entries.map(([k,v])=>loadTexture(k,v))).then(()=>{
       if(this._sessionId!==sessionId)return;
-      this.placeGenkan();
-      // 既存ビジュアルを破棄して再構築（テクスチャロード後に確実に反映）
-      Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
-      Object.values(this.boardLabels).forEach(o=>{if(o&&o.destroy)o.destroy();});
-      this.boardImgs={};
-      this.boardLabels={};
-      this.rebuildBoardVisuals();
-      this.drawBoard();
-      this.nextPiece();
-      this.drawUI();
+      let restored=false;
+      if(this._restorePayload){
+        try{ restored=this._applyRestore(this._restorePayload); }
+        catch(e){ console.warn('[resume] 復元失敗→新規開始:',e); restored=false; }
+      }
+      this._restorePayload=null;
+      if(restored){
+        // 復元済み：ビジュアル再構築のみ
+        Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
+        Object.values(this.boardLabels).forEach(o=>{if(o&&o.destroy)o.destroy();});
+        this.boardImgs={}; this.boardLabels={};
+        this.rebuildBoardVisuals();
+        this.drawBoard();
+        this.drawUI();
+        this.checkNoPlace();
+      }else{
+        this.placeGenkan();
+        // 既存ビジュアルを破棄して再構築（テクスチャロード後に確実に反映）
+        Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
+        Object.values(this.boardLabels).forEach(o=>{if(o&&o.destroy)o.destroy();});
+        this.boardImgs={};
+        this.boardLabels={};
+        this.rebuildBoardVisuals();
+        this.drawBoard();
+        this.nextPiece();
+        this.drawUI();
+      }
     });
     this.setupKeys();
+  }
+
+  // 保存済み状態を現在のシーンへ反映。成功でtrue
+  _applyRestore(st){
+    if(!st||st.v!==1||!Array.isArray(st.grid)||st.grid.length!==ROWS)return false;
+    const byType=t=>PARTS_DEF.find(d=>d.type===t)||null;
+    this.grid=st.grid.map(row=>row.map(cell=>cell?{...cell}:null));
+    this.queue=(st.queue||[]).map(byType).filter(Boolean);
+    while(this.queue.length<4)this.queue.push(this.pickRandom());
+    this.currentDef=byType(st.currentType)||this.queue.shift()||this.pickRandom();
+    this.holdDef=st.holdType?byType(st.holdType):null;
+    this.rotation=st.rotation||0;
+    this.partCount=st.partCount||0;
+    this.holdUsed=!!st.holdUsed;
+    this.curC=(typeof st.curC==='number')?st.curC:Math.floor(COLS/2);
+    this.curR=(typeof st.curR==='number')?st.curR:0;
+    this._anchorC=this.curC; this._anchorR=this.curR;
+    this.undoStack=[];
+    this._mPreviewShown=false; this._tapPreviewShown=false;
+    return true;
   }
 
   setupKeys(){
@@ -2736,6 +2793,7 @@ class PuzzleGame extends Phaser.Scene{
     // プレビューはドラッグ開始まで表示しない
     this._clearPreview();
     this.checkNoPlace();
+    this._persist();
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
@@ -2753,6 +2811,7 @@ class PuzzleGame extends Phaser.Scene{
     // ドラッグ中・プレビュー中はcanvas-currentを再描画しない
     if(!this._dragging&&!this._previewActive) this.drawUI();
     else this._updateTopBar(); // カウント等だけ更新
+    this._persist();
   }
   doHold(){
     if(!this.currentDef)return;
@@ -2765,6 +2824,7 @@ class PuzzleGame extends Phaser.Scene{
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     this._clearPreview();
     this.drawUI();
+    this._persist();
   }
   doUndo(){
     if(this.undoStack.length===0)return;
@@ -2792,6 +2852,7 @@ class PuzzleGame extends Phaser.Scene{
     // プレビューはドラッグ開始まで表示しない
     document.getElementById('btn-complete-overlay').classList.remove('visible');
     this.checkNoPlace();
+    this._persist();
   }
 
   // ★ ビジュアル全破棄（boardImgs + boardLabels を Map として管理）
@@ -2885,6 +2946,28 @@ class PuzzleGame extends Phaser.Scene{
     this._createCellVisual(this.grid[gr][gx]);
   }
 
+  // 進行中のゲームをlocalStorageへ保存（リロードで続きから再開するため）
+  _persist(){
+    try{
+      if(document.getElementById('btn-complete-overlay').classList.contains('visible')){
+        // 完成後は保存しない（再開対象は進行中のみ）
+        localStorage.removeItem('madori-game-state'); return;
+      }
+      const st={
+        v:1,
+        land:(typeof window._landIndex==='number')?window._landIndex:0,
+        grid:this.grid,
+        queue:this.queue.map(d=>d&&d.type),
+        currentType:this.currentDef&&this.currentDef.type,
+        holdType:this.holdDef?this.holdDef.type:null,
+        rotation:this.rotation,
+        partCount:this.partCount,
+        holdUsed:!!this.holdUsed,
+        curC:this.curC, curR:this.curR
+      };
+      localStorage.setItem('madori-game-state', JSON.stringify(st));
+    }catch(e){ /* 保存失敗は無視（ゲームは継続） */ }
+  }
   checkNoPlace(){
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
 
@@ -2911,6 +2994,7 @@ class PuzzleGame extends Phaser.Scene{
 
     // 全て置けない → 終了。まず「完成」表示を確実に出す
     document.getElementById('btn-complete-overlay').classList.add('visible');
+    try{ localStorage.removeItem('madori-game-state'); }catch(e){}
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
     try{ this.fillEmptyAsStorage(); }catch(e){ console.warn('[end] 収納描画スキップ:', e); }
@@ -3312,7 +3396,8 @@ class PuzzleGame extends Phaser.Scene{
         if(d<bestD){bestD=d; lx=ccx; ly=ccy;}
       }
       // 塊が大きいほど少し大きく（最小でも読める大きさを確保）
-      const fs=Math.min(30, Math.max(22, Math.floor(Math.sqrt(cells.length)*10)));
+      // マス幅に必ず収まる上限に制限（隣のパーツへ文字がはみ出さないように）
+      const fs=Math.min(23, Math.max(21, Math.floor(Math.sqrt(cells.length)*9)));
       const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
         fontFamily:'Meiryo,sans-serif',stroke:'#ffffff',strokeThickness:1,
@@ -3395,6 +3480,19 @@ function startPhaserGame(){
 
 // 起動時プロフィール表示
 updateStartProfile();
+
+// リロード時：進行中のゲームがあれば続きから再開（無ければスタート画面のまま）
+function tryResumeGame(){
+  try{
+    const raw=localStorage.getItem('madori-game-state');
+    if(!raw)return;
+    const st=JSON.parse(raw);
+    if(!st||st.v!==1||!Array.isArray(st.grid)||st.grid.length!==ROWS)return;
+    window._restoreState=st;
+    gotoGame();
+  }catch(e){ try{localStorage.removeItem('madori-game-state');}catch(_){} }
+}
+tryResumeGame();
 </script>
 </body>
 </html>
