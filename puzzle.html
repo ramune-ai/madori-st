@@ -2910,7 +2910,6 @@ class PuzzleGame extends Phaser.Scene{
     if(!shouldEnd)return;
 
     // 全て置けない → 終了。まず「完成」表示を確実に出す
-    console.log('[end] 完成判定: curOk='+curOk+' swapOk='+swapOk+' → 終了表示');
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
@@ -3313,7 +3312,7 @@ class PuzzleGame extends Phaser.Scene{
         if(d<bestD){bestD=d; lx=ccx; ly=ccy;}
       }
       // 塊が大きいほど少し大きく（最小でも読める大きさを確保）
-      const fs=Math.min(16, Math.max(12, Math.floor(Math.sqrt(cells.length)*6)));
+      const fs=Math.min(30, Math.max(22, Math.floor(Math.sqrt(cells.length)*10)));
       const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
         fontFamily:'Meiryo,sans-serif',stroke:'#ffffff',strokeThickness:1,
