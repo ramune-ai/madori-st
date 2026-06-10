@@ -337,6 +337,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .result-title-hero{font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:10px;animation:popIn .5s ease both;text-shadow:0 2px 20px rgba(200,160,96,.5);}
 /* 広告カード本体 */
 .res-card{
+  position:relative;
   background:#f5f0e8;border:3px solid #8a7060;border-radius:12px;
   padding:0 16px 14px;margin-bottom:14px;overflow:hidden;
   animation:popIn .5s ease both;
@@ -371,6 +372,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
+.res-game-note{position:absolute;top:6px;left:10px;z-index:5;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:rgba(245,240,232,.9);letter-spacing:.05em;}
+.res-pop{margin:14px 16px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
@@ -717,7 +720,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <div id="screen-result" class="screen">
   <div class="result-wrap">
     <div id="res-card" class="res-card">
+      <div class="res-game-note">※これはゲーム画面です</div>
       <div class="res-card-band">賃 貸 物 件 情 報</div>
+      <!-- 最レア称号POP -->
+      <div id="res-pop" class="res-pop" style="display:none;"></div>
       <!-- 装備称号 -->
       <div id="res-equipped-title" class="res-equipped" style="display:none;"></div>
       <!-- 物件名 -->
@@ -1452,18 +1458,92 @@ function renderSavesList(){
 // モーダル
 // ────────────────────────────────────────
 // ── 全称号マスターデータ（badge・condition付き） ──
+// レア値判定（称号用）：中央の「ふつう帯」以外をレアとみなす
+const rareAge =a=>(a<=5||a>=40);
+const rareWalk=w=>(w<=5||w>=30);
+const rareRent=r=>(r<=9||r>=50);
+// 称号マスター。rar=レア度（小さいほどレア。POP表示や並び順に使用）
+// check(x) … x={age,walk,rent,n:パーツ数,st:収納マス数}
 const ALL_TITLES_MASTER=[
-  {title:'掘り出し物件の達人', badge:'🏆', condition:'築5年以内・駅徒歩5分以内・家賃8万円以下'},
-  {title:'レトロ愛好家',       badge:'🏚️', condition:'築40年以上の物件を完成させる'},
-  {title:'駅前派',             badge:'🚉', condition:'駅徒歩3分以内'},
-  {title:'静寂の探求者',       badge:'🌲', condition:'駅徒歩30分以上'},
-  {title:'高級志向',           badge:'💎', condition:'家賃50万円以上'},
-  {title:'コスパ王',           badge:'👑', condition:'家賃6万円以下かつ駅徒歩10分以内'},
-  {title:'和洋折衷の使い手',   badge:'🏯', condition:'和室と洋室を両方配置する'},
-  {title:'採光重視派',         badge:'🌤️', condition:'バルコニーを配置する'},
-  {title:'謎の間取りすと',     badge:'🔮', condition:'お風呂もトイレも置かずに完成'},
-  {title:'玄関マニア',         badge:'🚪', condition:'玄関を配置する'},
-  {title:'間取りすと見習い',   badge:'📐', condition:'はじめての物件を完成させる'},
+  // ── 物件情報・レアの掛け算 ──
+  {title:'伝説の間取りすと', badge:'🌈', rar:1, condition:'築年数・駅徒歩・家賃のすべてでレア値',
+    pop:'これが伝説の間取りです…！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&rareRent(x.rent)},
+  {title:'いい仕事してます', badge:'✨', rar:3, condition:'築年数と駅徒歩の両方でレア値',
+    pop:'こだわりの逸品、できました！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&!rareRent(x.rent)},
+  {title:'腕利き大家さん', badge:'🔨', rar:3, condition:'築年数と家賃の両方でレア値',
+    pop:'大家さんの自信作です！', check:x=>rareAge(x.age)&&rareRent(x.rent)&&!rareWalk(x.walk)},
+  {title:'立地こそ正義', badge:'📍', rar:3, condition:'駅徒歩と家賃の両方でレア値',
+    pop:'立地で選びたい人、必見！', check:x=>rareWalk(x.walk)&&rareRent(x.rent)&&!rareAge(x.age)},
+  // ── 物件情報・単独レア ──
+  {title:'新築の香りソムリエ', badge:'🌸', rar:2, condition:'築0年の物件を完成させる',
+    pop:'新築の香り、ここにあります！', check:x=>x.age===0},
+  {title:'ピカピカ至上主義', badge:'🫧', rar:5, condition:'築1〜5年の物件を完成させる',
+    pop:'ピカピカ好きな人、集まれ！', check:x=>x.age>=1&&x.age<=5},
+  {title:'レトロ愛好家', badge:'🏚️', rar:5, condition:'築40年以上の物件を完成させる',
+    pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
+  {title:'古民家ロマンチスト', badge:'🏮', rar:4, condition:'築50年（最古）の物件を完成させる',
+    pop:'ロマンを感じたい人へ！', check:x=>x.age>=50},
+  {title:'もはや駅の住人', badge:'🚉', rar:2, condition:'駅徒歩0分',
+    pop:'もう改札が玄関です！', check:x=>x.walk===0},
+  {title:'ギリギリまで寝てたい派', badge:'⏰', rar:5, condition:'駅徒歩1〜5分',
+    pop:'朝に弱い人、必見！', check:x=>x.walk>=1&&x.walk<=5},
+  {title:'いい運動になる', badge:'👟', rar:5, condition:'駅徒歩30分以上',
+    pop:'健康第一な人へおすすめ！', check:x=>x.walk>=30&&x.walk<50},
+  {title:'通勤という名の小旅行', badge:'🧳', rar:4, condition:'駅徒歩50分（最遠）',
+    pop:'旅気分を味わいたい人へ！', check:x=>x.walk>=50},
+  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, condition:'家賃が最安値',
+    pop:'掘り出し物件、見つかりました！', check:x=>x.rent===5},
+  {title:'コスパ王', badge:'👑', rar:5, condition:'家賃1桁万円',
+    pop:'コスパ重視な人、必見！', check:x=>x.rent>=6&&x.rent<=9},
+  {title:'コンシェルジュと顔なじみ', badge:'🛎️', rar:5, condition:'家賃50万円以上',
+    pop:'ワンランク上を求める人へ！', check:x=>x.rent>=50&&x.rent<100},
+  {title:'もはや宮殿', badge:'🏰', rar:2, condition:'家賃が最高値',
+    pop:'宮殿暮らし、はじめませんか！', check:x=>x.rent>=100},
+  // ── パーツ配置・組み合わせ ──
+  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, condition:'洋室も和室も0個で完成',
+    pop:'部屋がなくても夢はある！', check:x=>x.n.youshitsu===0&&x.n.washitsu===0},
+  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, condition:'お風呂もトイレも0個で完成',
+    pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
+  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, condition:'和室＋洋室が合計5個以上',
+    pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
+  // ── パーツ配置・単独 ──
+  {title:'洋室おやすみ中', badge:'🛋️', rar:4, condition:'洋室0個で完成',
+    pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
+  {title:'フローリング王国', badge:'🪵', rar:4, condition:'洋室4個以上',
+    pop:'フローリング好き、集まれ！', check:x=>x.n.youshitsu>=4},
+  {title:'畳は次の物件で', badge:'🪑', rar:4, condition:'和室0個で完成',
+    pop:'畳なし物件、あります！', check:x=>x.n.washitsu===0&&x.n.youshitsu>0},
+  {title:'サザエさん家', badge:'🐟', rar:4, condition:'和室4個以上',
+    pop:'大きな茶の間に憧れる人へ！', check:x=>x.n.washitsu>=4},
+  {title:'洗練された都会', badge:'🏙️', rar:4, condition:'バルコニー0個で完成',
+    pop:'都会派なあなたへ！', check:x=>x.n.balcony===0},
+  {title:'園芸師', badge:'🪴', rar:4, condition:'バルコニー4個以上',
+    pop:'植物と暮らしたい人、必見！', check:x=>x.n.balcony>=4},
+  {title:'銭湯派', badge:'♨️', rar:4, condition:'お風呂0個で完成',
+    pop:'銭湯めぐりが好きな人へ！', check:x=>x.n.bath===0&&x.n.toilet>0},
+  {title:'圧倒的清潔感', badge:'🛁', rar:4, condition:'お風呂4個以上',
+    pop:'いつでもピカピカでいたい人へ！', check:x=>x.n.bath>=4},
+  {title:'コンビニトイレの常連', badge:'🏪', rar:4, condition:'トイレ0個で完成',
+    pop:'おおらかに暮らしたい人へ！', check:x=>x.n.toilet===0&&x.n.bath>0},
+  {title:'1秒も待てない', badge:'🚽', rar:4, condition:'トイレ4個以上',
+    pop:'順番待ちにサヨナラしたい人へ！', check:x=>x.n.toilet>=4},
+  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:4, condition:'キッチン0個で完成',
+    pop:'ウーバーヘビーユーザー必見！', check:x=>x.n.kitchen===0},
+  {title:'厨房', badge:'🍳', rar:4, condition:'キッチン4個以上',
+    pop:'料理が主役の暮らし、いかが！', check:x=>x.n.kitchen>=4},
+  {title:'動線が命', badge:'🧭', rar:4, condition:'廊下0個で完成',
+    pop:'ムダのない動線、求む人へ！', check:x=>x.n.roka===0},
+  {title:'ウォーキングコース', badge:'🚶', rar:4, condition:'廊下5個以上',
+    pop:'家の中でお散歩したい人へ！', check:x=>x.n.roka>=5},
+  {title:'ミニマリスト', badge:'🍃', rar:4, condition:'収納0マスで完成',
+    pop:'ミニマリスト必見！', check:x=>x.st===0},
+  {title:'いつか使うかも', badge:'📦', rar:5, condition:'収納10マス以上',
+    pop:'捨てられない人、安心です！', check:x=>x.st>=10&&x.st<20},
+  {title:'トランクルーム', badge:'🗄️', rar:4, condition:'収納20マス以上',
+    pop:'荷物が多い人、必見！', check:x=>x.st>=20},
+  // ── 救済 ──
+  {title:'間取りすと見習い', badge:'📐', rar:6, condition:'はじめての物件を完成させる',
+    pop:'記念すべき第一歩です！', check:null},
 ];
 
 function openModal(type){
@@ -1689,21 +1769,38 @@ function restoreRouletteLocks(rv,rl,rd){
 // ────────────────────────────────────────
 // 称号・結果
 // ────────────────────────────────────────
-function generateTitles(age,walk,rent,roomTypes){
-  // 複数称号を返す（条件に合うものを全部）
-  const has=t=>roomTypes.has(t);
+// 盤面からパーツ数と収納マス数を集計
+function collectMadoriStats(){
+  const n={youshitsu:0,washitsu:0,roka:0,kitchen:0,bath:0,toilet:0,balcony:0,genkan:0};
+  let st=0;
+  if(gameScene&&gameScene.grid){
+    const seen=new Set();
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      const cell=gameScene.grid[r][c];
+      if(cell){
+        if(!seen.has(cell.pid)){
+          seen.add(cell.pid);
+          const t=cell.type||(cell.fixed?'genkan':'');
+          if(n[t]!==undefined)n[t]++;
+        }
+      }else if(LAND_MAP[r][c]!==null){ st++; } // 空き土地マス＝収納
+    }
+  }
+  return {n,st};
+}
+// 獲得称号を判定してレア順（rar昇順）で返す
+function generateTitles(age,walk,rent){
+  const {n,st}=collectMadoriStats();
+  const x={age:+age,walk:+walk,rent:+rent,n,st};
   const earned=[];
-  if(age<=5&&walk<=5&&rent<=8) earned.push({title:'掘り出し物件の達人',comment:'新しくて駅近で安い！夢の物件を作り上げました。'});
-  if(age>=40) earned.push({title:'レトロ愛好家',comment:'年季の入った物件に味わいを感じる間取りすとです。'});
-  if(walk<=3) earned.push({title:'駅前派',comment:'徒歩3分以内！毎日の通勤が楽になりそうです。'});
-  if(walk>=30) earned.push({title:'静寂の探求者',comment:'駅から離れた場所での静かな暮らし。'});
-  if(rent>=50) earned.push({title:'高級志向',comment:'上質な暮らしを追求した間取りです。'});
-  if(rent<=6&&walk<=10) earned.push({title:'コスパ王',comment:'リーズナブルな家賃で駅近を確保。'});
-  if(has('washitsu')&&has('youshitsu')) earned.push({title:'和洋折衷の使い手',comment:'和室と洋室を組み合わせたセンス溢れる間取り。'});
-  if(has('balcony')) earned.push({title:'採光重視派',comment:'バルコニーで光と風を取り込む間取りです。'});
-  if(has('genkan'))  earned.push({title:'玄関マニア',comment:'玄関を設けた、おもてなしの心あふれる間取り。'});
-  if(!has('bath')&&!has('toilet')) earned.push({title:'謎の間取りすと',comment:'お風呂もトイレもない…独自の美学の間取りすとです。'});
-  if(earned.length===0) earned.push({title:'間取りすと見習い',comment:'はじめての一歩！経験を積んで素敵な間取りを目指そう。'});
+  for(const m of ALL_TITLES_MASTER){
+    if(m.check&&m.check(x)) earned.push({title:m.title,pop:m.pop||'',rar:m.rar||9});
+  }
+  if(earned.length===0){
+    const beg=ALL_TITLES_MASTER.find(m=>m.title==='間取りすと見習い');
+    earned.push({title:beg.title,pop:beg.pop,rar:beg.rar});
+  }
+  earned.sort((a,b)=>a.rar-b.rar);
   return earned;
 }
 function generateTitle(age,walk,rent,roomTypes){
@@ -1783,6 +1880,13 @@ function showResult(){
     } else {
       tagWrap.style.display='none';
     }
+  }
+  // 最レア称号POP（レア度1位の称号の宣伝文）
+  const popEl=document.getElementById('res-pop');
+  if(popEl){
+    const top=(window._earnedTitles||[])[0];
+    if(top&&top.pop){ popEl.textContent='＼ '+top.pop+' ／'; popEl.style.display='block'; }
+    else popEl.style.display='none';
   }
   // 間取り図プレビュー（小さめ・高DPI対応でくっきり）
   const prevEl=document.getElementById('res-madori-preview');
@@ -1962,6 +2066,7 @@ function buildPropertyCard(){
     const propName='間取りすと：'+(rawName||'とくめい');
     const earned=(window._earnedTitles||[]).map(t=>t.title);
     const tags=earned.map(titleToHashtag);
+    const pop=((window._earnedTitles||[])[0]||{}).pop||'';
 
     const dpr=Math.min(window.devicePixelRatio||1,2);
     const W=720;
@@ -1992,10 +2097,10 @@ function buildPropertyCard(){
     }
 
     const BAND_H=72;
-    let y=BAND_H+34;            // 帯の下から開始
-    const yBand=y;
+    let y=BAND_H+30;            // 帯の下から開始
+    const yPop=y; if(pop) y+=56; // 最レア称号POP
+    const yEquip=y;
     if(equipped) y+=54;        // 装備称号
-    const yEquip=yBand;
     const yName=y; y+=52;      // 物件名
     const yTags=y; if(tagLines.length) y+=tagLines.length*34+10; // ハッシュタグ
     const yLabel=y; y+=58;     // 間取りラベル
@@ -2020,6 +2125,19 @@ function buildPropertyCard(){
     ctx.fillStyle='#f5f0e8';
     ctx.font="bold 30px 'Noto Serif JP',serif";
     ctx.fillText('賃 貸 物 件 情 報', W/2, 12+BAND_H/2);
+    // ゲーム画面注記（帯の左上）
+    ctx.save();
+    ctx.textAlign='left';
+    ctx.font="500 15px 'Noto Sans JP',sans-serif";
+    ctx.fillStyle='rgba(245,240,232,.9)';
+    ctx.fillText('※これはゲーム画面です', 24, 12+18);
+    ctx.restore();
+    // 最レア称号POP
+    if(pop){
+      ctx.font="bold 27px 'Noto Serif JP',serif";
+      ctx.fillStyle='#b03a2e';
+      ctx.fillText('＼ '+pop+' ／', W/2, yPop+22);
+    }
 
     // 装備称号
     if(equipped){
@@ -3063,21 +3181,17 @@ class PuzzleGame extends Phaser.Scene{
       g.fillStyle(cell.color,1); g.fillRect(px+1,py+1,pw-2,ph-2);
       this.boardImgs[pid]=g;
     }
-    // ラベルテキスト（テクスチャがある場合は非表示）
-    const labelText = cellType && this.textures.exists(cellType)
-      ? ''
+    // ラベルテキスト（テクスチャがある場合は非表示。ただし廊下は常時表示）
+    const hasTex = cellType && this.textures.exists(cellType);
+    const labelText = cellType==='roka' ? '廊下'
+      : hasTex ? ''
       : (cell.fixed ? '玄関' : (cell.label || ''));
     if(labelText){
-      const labelFs=cell.fixed?15:Math.min(16,Math.floor(pw*0.26),Math.floor(ph*0.26));
-      const lbl=this.add.text(px+pw/2, py+ph/2, labelText,{
-        fontSize:labelFs+'px',
-        fill:cell.fixed?'#604010':'#2a1a0a',
-        align:'center',fontFamily:'Meiryo,sans-serif',
-        fontStyle:'bold',
-        stroke:'#ffffff',strokeThickness:1.5,
-        resolution:this._txtRes,
-        wordWrap:{width:pw-8}
-      }).setOrigin(0.5,0.5).setDepth(5);
+      const labelFs=this._labelFontSize(pw,ph);
+      const lbl=this.add.text(px+pw/2, py+ph/2, labelText,
+        this._labelStyle(labelFs, cell.fixed?'#604010':'#2a1a0a', pw));
+      lbl.setShadow(0,1,'rgba(255,255,255,0.6)',2,false,true);
+      lbl.setOrigin(0.5,0.5).setDepth(5);
       this.boardLabels[pid]=lbl;
     }
   }
@@ -3106,6 +3220,13 @@ class PuzzleGame extends Phaser.Scene{
     this._createCellVisual(this.grid[gr][gx]);
   }
 
+  // 盤面テキストの統一スタイル（パーツ名・プレビュー・収納で共通）
+  _labelFontSize(pw,ph){ return Math.min(23, Math.max(18, Math.floor(Math.min(pw,ph)*0.40))); }
+  _labelStyle(fs,color,wrapW){
+    return {fontSize:fs+'px',fill:color,align:'center',
+      fontFamily:'Meiryo,sans-serif',fontStyle:'bold',
+      resolution:this._txtRes, wordWrap:{width:wrapW-8}};
+  }
   // 進行中のゲームを保存（リロードで続きから再開するため）
   _persist(){ persistFlow('screen-game'); }
   checkNoPlace(){
@@ -3210,6 +3331,18 @@ class PuzzleGame extends Phaser.Scene{
       if(!isLand(r+1,c)) g.lineBetween(px,py+CS-off,px+CS,py+CS-off);  // 下辺
       if(!isLand(r,c-1)) g.lineBetween(px+off,py,px+off,py+CS);        // 左辺
       if(!isLand(r,c+1)) g.lineBetween(px+CS-off,py,px+CS-off,py+CS);  // 右辺
+    }
+    // L字土地の内側コーナーで欠ける交点（線の太さぶんの正方形）を埋める
+    g.fillStyle(0x8a7060,1);
+    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
+      const tl=isLand(r-1,c-1), tr=isLand(r-1,c), bl=isLand(r,c-1), br=isLand(r,c);
+      const cnt=(tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0);
+      if(cnt!==3)continue; // 3マスが土地＝内側コーナー
+      const X=c*CS, Y=r*CS;
+      if(!tl) g.fillRect(X,Y,BW,BW);
+      else if(!tr) g.fillRect(X-BW,Y,BW,BW);
+      else if(!bl) g.fillRect(X,Y-BW,BW,BW);
+      else g.fillRect(X-BW,Y-BW,BW,BW);
     }
   }
   drawBoard(){
@@ -3474,13 +3607,11 @@ class PuzzleGame extends Phaser.Scene{
         duration:500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'
       });
     }
-    const previewFs=Math.min(16,Math.floor(pw*0.26),Math.floor(ph*0.26));
-    const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,{
-      fontSize:previewFs+'px',fill:'#2a1a0a',align:'center',fontFamily:'Meiryo,sans-serif',
-      fontStyle:'bold',stroke:'#ffffff',strokeThickness:1.5,
-      resolution:this._txtRes,
-      wordWrap:{width:pw-8}
-    }).setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.6);
+    const previewFs=this._labelFontSize(pw,ph);
+    const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,
+      this._labelStyle(previewFs,'#2a1a0a',pw));
+    lbl.setShadow(0,1,'rgba(255,255,255,0.6)',2,false,true);
+    lbl.setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.6);
     if(!this._previewLabels)this._previewLabels=[];
     this._previewLabels.push(lbl);
     this._previewActive=true;
@@ -3567,7 +3698,7 @@ class PuzzleGame extends Phaser.Scene{
       if(colR.length) ly=clampInSeg(colR,ly,halfH,(r)=>this.sy(r));
       const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-        fontFamily:'Meiryo,sans-serif',
+        fontFamily:'Meiryo,sans-serif',fontStyle:'bold',
         resolution:this._txtRes,
         wordWrap:{width:CS*2-4}
       }).setOrigin(0.5,0.5).setDepth(3);
