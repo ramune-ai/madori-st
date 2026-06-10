@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>間取りすと</title>
 <!-- アイコン：image/favicon.png（タブ用）と image/icon-180.png（iPhoneホーム画面用）を配置すると表示される -->
-<link rel="icon" type="image/png" href="image/favicon.png?v=1">
-<link rel="apple-touch-icon" href="image/icon-180.png?v=1">
+<link rel="icon" type="image/png" href="image/favicon.png?v=2">
+<link rel="apple-touch-icon" href="image/icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
@@ -528,10 +528,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* 称号発表：名前を大きく＋獲得条件を併記 */
 .title-reveal-text{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
 .title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.1em;line-height:1.2;}
-.title-reveal-cond{font-size:15px;font-weight:400;letter-spacing:.03em;line-height:1.4;opacity:.85;}
+.title-reveal-cond{font-size:15px;font-weight:500;letter-spacing:.03em;line-height:1.4;opacity:1;}
 .title-owned-chip.is-reveal{display:flex !important;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:12px 20px;border-radius:6px;background:#ece3d3;color:var(--brown-dark);border:1px solid rgba(90,74,58,.18);}
 .title-owned-chip.is-reveal .title-reveal-name{font-size:19px;color:var(--brown-dark);}
-.title-owned-chip.is-reveal .title-reveal-cond{color:var(--brown-light);}
+.title-owned-chip.is-reveal .title-reveal-cond{color:#4a3a2a;}
 .titles-owned-section{margin-top:20px;width:100%;}
 .titles-owned-label-sm{font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;opacity:.7;}
 .titles-owned-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;opacity:.5;}
@@ -1372,7 +1372,7 @@ function showImageZoom(src){
   ov.innerHTML='';
   const im=document.createElement('img');
   im.src=src;
-  im.style.cssText='width:96vw;height:auto;max-height:90vh;object-fit:contain;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.4);background:#f5f0e8;';
+  im.style.cssText='max-width:96vw;max-height:90vh;width:auto;height:auto;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.4);';
   ov.appendChild(im);
   ov.style.display='flex';
 }
@@ -1784,16 +1784,20 @@ function showResult(){
       tagWrap.style.display='none';
     }
   }
-  // 間取り図プレビュー（小さめ）
+  // 間取り図プレビュー（小さめ・高DPI対応でくっきり）
   const prevEl=document.getElementById('res-madori-preview');
   if(prevEl&&madoriSnapshot){
     prevEl.innerHTML='';
     const cv=document.createElement('canvas');
     const maxW=Math.min(300,window.innerWidth-80), maxH=260;
     const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
-    cv.width=madoriSnapshot.width*scale; cv.height=madoriSnapshot.height*scale;
-    cv.style.cssText='display:block;border-radius:10px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;';
-    cv.getContext('2d').drawImage(madoriSnapshot,0,0,cv.width,cv.height);
+    const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
+    const dpr=Math.min(3,window.devicePixelRatio||1);
+    cv.width=Math.round(dispW*dpr); cv.height=Math.round(dispH*dpr);
+    cv.style.cssText='display:block;border-radius:10px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:'+Math.round(dispH)+'px;';
+    const ctx=cv.getContext('2d');
+    ctx.imageSmoothingQuality='high';
+    ctx.drawImage(madoriSnapshot,0,0,cv.width,cv.height);
     prevEl.appendChild(cv);
   }
   window._lastResult={
