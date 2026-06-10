@@ -42,7 +42,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .btn-start:hover::after{background:rgba(255,255,255,.06);}
 .btn-start:active{transform:translateY(0);}
 .start-sub-btns{display:flex;gap:24px;margin-top:36px;animation:fadeUp .8s .4s ease both;}
-.btn-sub{background:none;border:1px solid rgba(90,74,58,.3);color:var(--brown-light);font-size:12px;letter-spacing:.15em;padding:10px 24px;border-radius:3px;cursor:pointer;transition:all .2s;}
+.btn-sub{position:relative;background:none;border:1px solid rgba(90,74,58,.3);color:var(--brown-light);font-size:12px;letter-spacing:.15em;padding:10px 24px;border-radius:3px;cursor:pointer;transition:all .2s;}
 .btn-sub:hover{border-color:var(--brown-light);color:var(--brown);background:rgba(90,74,58,.05);}
 
 /* ── ② ゲーム画面 ── */
@@ -77,9 +77,28 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* 設置数グリッド */
 #part-count-grid{
   display:grid;grid-template-columns:repeat(4,auto);
-  gap:1px 8px;font-size:10px;color:var(--brown-light);
+  gap:2px 14px;font-size:13px;font-weight:500;color:var(--brown-dark);
   font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em;flex:1;
 }
+#game-top-row1{max-width:620px;margin:0 auto;width:100%;}
+/* ☰メニュー */
+#game-menu-wrap{position:relative;flex-shrink:0;}
+#game-menu-btn{font-size:20px;line-height:1;padding:7px 13px;border:1px solid rgba(90,74,58,.25);border-radius:9px;background:#fff;color:var(--brown-dark);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#game-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid rgba(90,74,58,.2);border-radius:10px;box-shadow:0 6px 20px rgba(58,42,26,.18);z-index:80;min-width:160px;overflow:hidden;}
+#game-menu.open{display:block;}
+#game-menu button{display:block;width:100%;background:none;border:none;padding:12px 16px;font-size:14px;color:var(--brown-dark);text-align:left;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:.04em;}
+#game-menu button:hover{background:rgba(200,160,96,.12);}
+/* スタート画面プロフィールカード */
+.start-profile{margin:14px auto 4px;background:#fff;border:1px solid rgba(90,74,58,.18);border-radius:12px;padding:10px 18px 8px;cursor:pointer;max-width:300px;animation:fadeDown .6s ease both;box-shadow:0 2px 10px rgba(58,42,26,.06);}
+.sp-row{display:flex;align-items:center;gap:10px;justify-content:center;}
+.sp-ico{font-size:22px;}
+.sp-main{text-align:left;min-width:110px;}
+.sp-title{font-size:12px;color:var(--accent);letter-spacing:.1em;font-family:'Noto Serif JP',serif;min-height:15px;}
+.sp-name{font-size:18px;font-weight:700;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.08em;}
+.sp-edit{font-size:12px;color:var(--brown-light);border:1px solid rgba(90,74,58,.25);padding:3px 9px;border-radius:7px;white-space:nowrap;}
+.sp-hint{font-size:11px;color:var(--brown-light);margin-top:5px;text-align:center;letter-spacing:.03em;}
+/* 称号一覧ボタンのNEW! */
+.titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
 .pc-item{display:flex;align-items:center;gap:3px;white-space:nowrap;}
 .pc-name{color:var(--brown-light);font-size:9px;min-width:3em;}
 .pc-count{color:var(--brown-dark);font-weight:700;font-size:11px;min-width:1.4em;text-align:right;}
@@ -351,10 +370,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.06em;
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
-.res-prop-name{
-  font-family:'Noto Serif JP',serif;font-size:23px;font-weight:700;
-  color:#3a2a1a;letter-spacing:.04em;margin-bottom:8px;
-}
 .res-hashtags{
   display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;
 }
@@ -372,7 +387,21 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-game-note{position:absolute;top:6px;left:10px;z-index:5;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:rgba(245,240,232,.9);letter-spacing:.05em;}
+.res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:8px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:7px 10px;}
+.res-main-row{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 4px;flex-wrap:wrap;}
+#res-madori-preview{margin-bottom:0;}
+.res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
+.res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
+.rsv-label{font-size:13px;font-weight:700;color:#4a3a2a;letter-spacing:.18em;font-family:'Noto Serif JP',serif;}
+.rsv-val{font-size:25px;font-weight:700;color:#3a2a1a;font-family:'Noto Serif JP',serif;line-height:1.15;}
+.rsv-unit{font-size:12px;color:#6a5a4a;margin-left:2px;font-family:'Noto Sans JP',sans-serif;font-weight:700;}
+.rsv-val.rare{background:linear-gradient(135deg,#c8860a,#f5c842,#e8a020,#f5c842);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShine 2s linear infinite;}
+.rsv-val.niche{background:linear-gradient(135deg,#7a5fa8,#b9a3d9,#8c6fb5,#b9a3d9);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShine 2.4s linear infinite;}
+.rsv-val.super{background:linear-gradient(90deg,#ff3b3b,#ff9d00,#ffe600,#3bd16f,#3b8bff,#9b3bff,#ff3bd1,#ff3b3b);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbowFlow 2.2s linear infinite;}
+.rsv-val.rare .rsv-unit,.rsv-val.niche .rsv-unit,.rsv-val.super .rsv-unit{-webkit-text-fill-color:#6a5a4a;}
+.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:2px 2px 0;}
+.res-promo{margin-top:12px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
+.res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
 .res-pop{margin:14px 16px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
@@ -546,21 +575,27 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ① スタート -->
 <div id="screen-start" class="screen active">
   <!-- 左上：名前＋称号コーナー -->
-  <div id="start-profile" style="position:absolute;top:calc(16px + env(safe-area-inset-top));left:16px;text-align:left;animation:fadeDown .6s ease both;max-width:200px;">
-    <div id="start-profile-title" style="font-size:11px;color:var(--accent);letter-spacing:.12em;font-family:'Noto Serif JP',serif;margin-bottom:3px;min-height:16px;"></div>
-    <div id="start-profile-name" style="font-size:16px;font-weight:700;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;cursor:pointer;" onclick="openNameEdit()" title="タップで名前を編集">
-      <span id="start-name-text">名前未設定</span><span style="font-size:10px;color:var(--brown-light);margin-left:4px;">✎</span>
-    </div>
-  </div>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
     <div class="logo-sub">MADORI-ST</div>
   </div>
+  <!-- プロフィール（名前＋表示称号）。タップで編集 -->
+  <div id="start-profile" class="start-profile" onclick="openNameEdit()" title="タップで名前と称号を設定">
+    <div class="sp-row">
+      <span class="sp-ico">👤</span>
+      <div class="sp-main">
+        <div id="start-profile-title" class="sp-title"></div>
+        <div class="sp-name"><span id="start-name-text">名前未設定</span></div>
+      </div>
+      <span class="sp-edit">✎ 編集</span>
+    </div>
+    <div class="sp-hint">マドリスト名と表示称号を設定できます</div>
+  </div>
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <div class="start-sub-btns">
     <button class="btn-sub" onclick="openModal('saves')">間取り保存一覧</button>
-    <button class="btn-sub" onclick="openModal('titles')">称号一覧</button>
+    <button class="btn-sub" onclick="openModal('titles')">称号一覧<span id="titles-new-pop" class="titles-new-pop" style="display:none;">NEW!</span></button>
   </div>
 </div>
 
@@ -588,9 +623,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div id="part-count-grid">
         <!-- JS で動的生成 -->
       </div>
-      <div id="game-nav-btns">
-        <button class="btn-nav" onclick="gotoStart()">スタートへ</button>
-        <button class="btn-nav" onclick="gotoGame()">リトライ</button>
+      <div id="game-menu-wrap">
+        <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
+        <div id="game-menu">
+          <button onclick="toggleGameMenu();gotoGame()">↻　リトライ</button>
+          <button onclick="toggleGameMenu();gotoStart()">🏠　タイトルへ</button>
+        </div>
       </div>
     </div>
     <!-- 2段目：次次/次 | 現在★ | 保留 -->
@@ -719,36 +757,31 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <!-- ⑤ 結果画面（賃貸広告風） -->
 <div id="screen-result" class="screen">
   <div class="result-wrap">
+    <div class="res-note-bar">※これはゲーム画面です</div>
     <div id="res-card" class="res-card">
-      <div class="res-game-note">※これはゲーム画面です</div>
       <div class="res-card-band">賃 貸 物 件 情 報</div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
       <!-- 装備称号 -->
       <div id="res-equipped-title" class="res-equipped" style="display:none;"></div>
-      <!-- 物件名 -->
-      <div id="res-prop-name" class="res-prop-name">間取りすと：とくめい</div>
       <!-- ハッシュタグ（物件説明一言タグ風） -->
       <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
       <!-- 間取りラベル -->
       <div class="result-ldk-hero" id="res-room-label">---</div>
-      <!-- 間取り図プレビュー（小さめ） -->
-      <div id="res-madori-preview"></div>
-      <!-- スペックカード3列 -->
-      <div class="result-spec-grid pop-in">
-        <div class="result-spec-card">
-          <div class="result-spec-label">築 年 数</div>
-          <div class="result-spec-value" id="res-age">--<span class="result-spec-unit">年</span></div>
-        </div>
-        <div class="result-spec-card">
-          <div class="result-spec-label">駅 徒 歩</div>
-          <div class="result-spec-value" id="res-walk">--<span class="result-spec-unit">分</span></div>
-        </div>
-        <div class="result-spec-card">
-          <div class="result-spec-label">家 賃</div>
-          <div class="result-spec-value" id="res-rent">--<span class="result-spec-unit">万</span></div>
+      <!-- 間取り図（左）＋ 物件情報3点・公開日・名前（右） -->
+      <div class="res-main-row">
+        <div id="res-madori-preview"></div>
+        <div class="res-side">
+          <div class="res-spec-v"><div class="rsv-label">築年数</div><div class="rsv-val" id="res-age">--<span class="rsv-unit">年</span></div></div>
+          <div class="res-spec-v"><div class="rsv-label">駅徒歩</div><div class="rsv-val" id="res-walk">--<span class="rsv-unit">分</span></div></div>
+          <div class="res-spec-v"><div class="rsv-label">家　賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
+          <div class="res-meta">
+            <div>情報公開日　<span id="res-date">--</span></div>
+            <div>間取りすと　<span id="res-name2">とくめい</span></div>
+          </div>
         </div>
       </div>
+      <div class="res-promo">間取りゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@madori_st</span></div>
       <div class="res-card-footer">MADORI-ST　間取りすと</div>
     </div>
 
@@ -1006,9 +1039,21 @@ function closeNameEdit(e){
 }
 
 
+// ゲーム内☰メニューの開閉
+function toggleGameMenu(e){
+  const m=document.getElementById('game-menu');
+  if(m)m.classList.toggle('open');
+  if(e)e.stopPropagation();
+}
+document.addEventListener('click',()=>{
+  const m=document.getElementById('game-menu');
+  if(m&&m.classList.contains('open'))m.classList.remove('open');
+});
+
 function gotoStart(){
   showMadoriBg(false);
   updateStartProfile();
+  updateTitlesNewBadge();
   showScreen('screen-start');
   try{ localStorage.removeItem('madori-game-state'); }catch(e){}
 }
@@ -1462,56 +1507,50 @@ function renderSavesList(){
 const rareAge =a=>(a<=5||a>=40);
 const rareWalk=w=>(w<=5||w>=30);
 const rareRent=r=>(r<=9||r>=50);
-// 称号マスター。rar=レア度（小さいほどレア。POP表示や並び順に使用）
+// 称号マスター。一覧はこの並び順（物件情報：単独→複合 → パーツ配置：単独→複合）で表示。
+// rar=レア度（小さいほどレア。POP表示や獲得時の並びに使用）
 // check(x) … x={age,walk,rent,n:パーツ数,st:収納マス数}
 const ALL_TITLES_MASTER=[
-  // ── 物件情報・レアの掛け算 ──
-  {title:'伝説の間取りすと', badge:'🌈', rar:1, condition:'築年数・駅徒歩・家賃のすべてでレア値',
-    pop:'これが伝説の間取りです…！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&rareRent(x.rent)},
-  {title:'いい仕事してます', badge:'✨', rar:3, condition:'築年数と駅徒歩の両方でレア値',
-    pop:'こだわりの逸品、できました！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&!rareRent(x.rent)},
-  {title:'腕利き大家さん', badge:'🔨', rar:3, condition:'築年数と家賃の両方でレア値',
-    pop:'大家さんの自信作です！', check:x=>rareAge(x.age)&&rareRent(x.rent)&&!rareWalk(x.walk)},
-  {title:'立地こそ正義', badge:'📍', rar:3, condition:'駅徒歩と家賃の両方でレア値',
-    pop:'立地で選びたい人、必見！', check:x=>rareWalk(x.walk)&&rareRent(x.rent)&&!rareAge(x.age)},
-  // ── 物件情報・単独レア ──
-  {title:'新築の香りソムリエ', badge:'🌸', rar:2, condition:'築0年の物件を完成させる',
+  // ══ 物件情報面・単独 ══
+  {title:'新築の香りソムリエ', badge:'🌸', rar:2, condition:'築0年',
     pop:'新築の香り、ここにあります！', check:x=>x.age===0},
-  {title:'ピカピカ至上主義', badge:'🫧', rar:5, condition:'築1〜5年の物件を完成させる',
-    pop:'ピカピカ好きな人、集まれ！', check:x=>x.age>=1&&x.age<=5},
-  {title:'レトロ愛好家', badge:'🏚️', rar:5, condition:'築40年以上の物件を完成させる',
+  {title:'美品コレクター', badge:'🫧', rar:5, condition:'築1〜5年',
+    pop:'美品好きな人、必見！', check:x=>x.age>=1&&x.age<=5},
+  {title:'レトロ愛好家', badge:'🏚️', rar:5, condition:'築40〜49年',
     pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
-  {title:'古民家ロマンチスト', badge:'🏮', rar:4, condition:'築50年（最古）の物件を完成させる',
+  {title:'古民家ロマンチスト', badge:'🏮', rar:4, condition:'築50年（最古）',
     pop:'ロマンを感じたい人へ！', check:x=>x.age>=50},
   {title:'もはや駅の住人', badge:'🚉', rar:2, condition:'駅徒歩0分',
     pop:'もう改札が玄関です！', check:x=>x.walk===0},
-  {title:'ギリギリまで寝てたい派', badge:'⏰', rar:5, condition:'駅徒歩1〜5分',
+  {title:'ギリギリまで寝てたい', badge:'⏰', rar:5, condition:'駅徒歩1〜5分',
     pop:'朝に弱い人、必見！', check:x=>x.walk>=1&&x.walk<=5},
-  {title:'いい運動になる', badge:'👟', rar:5, condition:'駅徒歩30分以上',
+  {title:'いい運動になる', badge:'👟', rar:5, condition:'駅徒歩30〜49分',
     pop:'健康第一な人へおすすめ！', check:x=>x.walk>=30&&x.walk<50},
   {title:'通勤という名の小旅行', badge:'🧳', rar:4, condition:'駅徒歩50分（最遠）',
     pop:'旅気分を味わいたい人へ！', check:x=>x.walk>=50},
-  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, condition:'家賃が最安値',
+  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, condition:'家賃5万円（最安値）',
     pop:'掘り出し物件、見つかりました！', check:x=>x.rent===5},
-  {title:'コスパ王', badge:'👑', rar:5, condition:'家賃1桁万円',
+  {title:'コスパ王', badge:'👑', rar:5, condition:'家賃6〜9万円',
     pop:'コスパ重視な人、必見！', check:x=>x.rent>=6&&x.rent<=9},
-  {title:'コンシェルジュと顔なじみ', badge:'🛎️', rar:5, condition:'家賃50万円以上',
+  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, condition:'家賃50〜90万円',
     pop:'ワンランク上を求める人へ！', check:x=>x.rent>=50&&x.rent<100},
-  {title:'もはや宮殿', badge:'🏰', rar:2, condition:'家賃が最高値',
+  {title:'新時代の宮殿', badge:'🏰', rar:2, condition:'家賃100万円（最高値）',
     pop:'宮殿暮らし、はじめませんか！', check:x=>x.rent>=100},
-  // ── パーツ配置・組み合わせ ──
-  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, condition:'洋室も和室も0個で完成',
-    pop:'部屋がなくても夢はある！', check:x=>x.n.youshitsu===0&&x.n.washitsu===0},
-  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, condition:'お風呂もトイレも0個で完成',
-    pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
-  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, condition:'和室＋洋室が合計5個以上',
-    pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
-  // ── パーツ配置・単独 ──
-  {title:'洋室おやすみ中', badge:'🛋️', rar:4, condition:'洋室0個で完成',
+  // ══ 物件情報面・複合（レア値の掛け算） ══
+  {title:'憧れの都会ライフ', badge:'✨', rar:3, condition:'築0〜5年または40年以上、かつ駅徒歩0〜5分または30分以上',
+    pop:'都会ライフに憧れる人へ！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&!rareRent(x.rent)},
+  {title:'腕利き間取りすと', badge:'🔨', rar:3, condition:'築0〜5年または40年以上、かつ家賃5〜9万円または50万円以上',
+    pop:'腕利きの自信作です！', check:x=>rareAge(x.age)&&rareRent(x.rent)&&!rareWalk(x.walk)},
+  {title:'立地こそ正義', badge:'📍', rar:3, condition:'駅徒歩0〜5分または30分以上、かつ家賃5〜9万円または50万円以上',
+    pop:'立地で選びたい人、必見！', check:x=>rareWalk(x.walk)&&rareRent(x.rent)&&!rareAge(x.age)},
+  {title:'伝説の間取りすと', badge:'🌈', rar:1, condition:'築（0〜5年または40年以上）・駅徒歩（0〜5分または30分以上）・家賃（5〜9万円または50万円以上）をすべて満たす',
+    pop:'これが伝説の間取りです…！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&rareRent(x.rent)},
+  // ══ パーツ配置面・単独 ══
+  {title:'洋室はおあずけ', badge:'🛋️', rar:4, condition:'洋室0個（和室はあり）で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
   {title:'フローリング王国', badge:'🪵', rar:4, condition:'洋室4個以上',
     pop:'フローリング好き、集まれ！', check:x=>x.n.youshitsu>=4},
-  {title:'畳は次の物件で', badge:'🪑', rar:4, condition:'和室0個で完成',
+  {title:'畳はおあずけ', badge:'🪑', rar:4, condition:'和室0個（洋室はあり）で完成',
     pop:'畳なし物件、あります！', check:x=>x.n.washitsu===0&&x.n.youshitsu>0},
   {title:'サザエさん家', badge:'🐟', rar:4, condition:'和室4個以上',
     pop:'大きな茶の間に憧れる人へ！', check:x=>x.n.washitsu>=4},
@@ -1519,11 +1558,11 @@ const ALL_TITLES_MASTER=[
     pop:'都会派なあなたへ！', check:x=>x.n.balcony===0},
   {title:'園芸師', badge:'🪴', rar:4, condition:'バルコニー4個以上',
     pop:'植物と暮らしたい人、必見！', check:x=>x.n.balcony>=4},
-  {title:'銭湯派', badge:'♨️', rar:4, condition:'お風呂0個で完成',
+  {title:'銭湯派', badge:'♨️', rar:4, condition:'お風呂0個（トイレはあり）で完成',
     pop:'銭湯めぐりが好きな人へ！', check:x=>x.n.bath===0&&x.n.toilet>0},
   {title:'圧倒的清潔感', badge:'🛁', rar:4, condition:'お風呂4個以上',
     pop:'いつでもピカピカでいたい人へ！', check:x=>x.n.bath>=4},
-  {title:'コンビニトイレの常連', badge:'🏪', rar:4, condition:'トイレ0個で完成',
+  {title:'コンビニトイレの常連', badge:'🏪', rar:4, condition:'トイレ0個（お風呂はあり）で完成',
     pop:'おおらかに暮らしたい人へ！', check:x=>x.n.toilet===0&&x.n.bath>0},
   {title:'1秒も待てない', badge:'🚽', rar:4, condition:'トイレ4個以上',
     pop:'順番待ちにサヨナラしたい人へ！', check:x=>x.n.toilet>=4},
@@ -1537,11 +1576,18 @@ const ALL_TITLES_MASTER=[
     pop:'家の中でお散歩したい人へ！', check:x=>x.n.roka>=5},
   {title:'ミニマリスト', badge:'🍃', rar:4, condition:'収納0マスで完成',
     pop:'ミニマリスト必見！', check:x=>x.st===0},
-  {title:'いつか使うかも', badge:'📦', rar:5, condition:'収納10マス以上',
+  {title:'いつか使うかも', badge:'📦', rar:5, condition:'収納10〜19マス',
     pop:'捨てられない人、安心です！', check:x=>x.st>=10&&x.st<20},
   {title:'トランクルーム', badge:'🗄️', rar:4, condition:'収納20マス以上',
     pop:'荷物が多い人、必見！', check:x=>x.st>=20},
-  // ── 救済 ──
+  // ══ パーツ配置面・複合 ══
+  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, condition:'洋室も和室も0個で完成',
+    pop:'部屋がなくても夢はある！', check:x=>x.n.youshitsu===0&&x.n.washitsu===0},
+  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, condition:'お風呂もトイレも0個で完成',
+    pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
+  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, condition:'和室＋洋室が合計5個以上',
+    pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
+  // ══ 救済 ══
   {title:'間取りすと見習い', badge:'📐', rar:6, condition:'はじめての物件を完成させる',
     pop:'記念すべき第一歩です！', check:null},
 ];
@@ -1562,16 +1608,16 @@ function renderTitlesPage(){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
   const owned=new Set(JSON.parse(localStorage.getItem('madori-titles')||'[]'));
-  const newSet=new Set(window._newTitles||[]);
+  // NEW＝獲得済みだが一覧でまだ見ていない称号（既読はmadori-titles-seenで管理）
+  const seen=new Set(JSON.parse(localStorage.getItem('madori-titles-seen')||'[]'));
+  const newSet=new Set([...owned].filter(t=>!seen.has(t)));
   title.textContent='称号一覧';
   if(ALL_TITLES_MASTER.length===0){
     body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
     return;
   }
-  const sorted=[
-    ...ALL_TITLES_MASTER.filter(m=>owned.has(m.title)),
-    ...ALL_TITLES_MASTER.filter(m=>!owned.has(m.title)),
-  ];
+  // 並びはマスター定義順（物件情報：単独→複合 → パーツ配置：単独→複合）で固定
+  const sorted=ALL_TITLES_MASTER;
   const isMobileW=window.innerWidth<=520;
   const perPage=isMobileW?6:8; // スマホ6件(2×3)・PC8件(4×2)
   const totalPages=Math.ceil(sorted.length/perPage);
@@ -1644,6 +1690,28 @@ function renderTitlesPage(){
     grid.appendChild(ph);
   }
   body.appendChild(grid);
+  // このページに表示した称号を既読にする（NEWは今回の表示が最後）
+  try{
+    let changed=false;
+    pageItems.forEach(m=>{
+      if(owned.has(m.title)&&!seen.has(m.title)){seen.add(m.title);changed=true;}
+    });
+    if(changed){
+      localStorage.setItem('madori-titles-seen',JSON.stringify([...seen]));
+      updateTitlesNewBadge();
+    }
+  }catch(e){}
+}
+
+// スタート画面「称号一覧」ボタンのNEW!バッジ（未読の獲得称号があれば表示）
+function updateTitlesNewBadge(){
+  const el=document.getElementById('titles-new-pop');
+  if(!el)return;
+  try{
+    const owned=JSON.parse(localStorage.getItem('madori-titles')||'[]');
+    const seen=new Set(JSON.parse(localStorage.getItem('madori-titles-seen')||'[]'));
+    el.style.display=owned.some(t=>!seen.has(t))?'inline-block':'none';
+  }catch(e){ el.style.display='none'; }
 }
 function closeModal(e){
   if(!e||e.target===document.getElementById('modal-overlay'))
@@ -1827,9 +1895,26 @@ function showResult(){
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
   const rent=rouletteValues[2]??'--';
-  document.getElementById('res-age').innerHTML=age+'<span class="result-spec-unit">年</span>';
-  document.getElementById('res-walk').innerHTML=walk+'<span class="result-spec-unit">分</span>';
-  document.getElementById('res-rent').innerHTML=rent+'<span class="result-spec-unit">万</span>';
+  // スペック3点（ガチャ準拠のレア色分け：金＝レア／紫＝逆レア／虹＝スーパーレア）
+  const setSpec=(id,val,unit,idx)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.innerHTML=val+'<span class="rsv-unit">'+unit+'</span>';
+    el.classList.remove('rare','niche','super');
+    const v=+val;
+    if(!isNaN(v)){
+      if(isSuperRare(idx,v)) el.classList.add('super');
+      else if(isRareGacha(idx,v)) el.classList.add('rare');
+      else if(isInverseRare(idx,v)) el.classList.add('niche');
+    }
+  };
+  setSpec('res-age',age,'年',0);
+  setSpec('res-walk',walk,'分',1);
+  setSpec('res-rent',rent,'万円',2);
+  // 情報公開日（完成日）と間取りすと名
+  const _d=new Date();
+  const dateStr=_d.getFullYear()+'/'+String(_d.getMonth()+1).padStart(2,'0')+'/'+String(_d.getDate()).padStart(2,'0');
+  const dEl=document.getElementById('res-date'); if(dEl)dEl.textContent=dateStr;
   const roomTypes=new Set(), counts={};
   if(gameScene&&gameScene.grid){
     const seenPids=new Set();
@@ -1848,11 +1933,11 @@ function showResult(){
     if(equipped){eqEl.textContent=equipped;eqEl.style.display='inline-block';}
     else{eqEl.style.display='none';}
   }
-  // 物件名
+  // 物件名（カード画像・履歴用に保持。画面では右下に小さく表示）
   const rawName=(window._playerName||localStorage.getItem('madori-player-name')||'').trim();
   const propName='間取りすと：'+(rawName||'とくめい');
-  const nameEl=document.getElementById('res-prop-name');
-  if(nameEl)nameEl.textContent=propName;
+  const n2=document.getElementById('res-name2');
+  if(n2)n2.textContent=(rawName||'とくめい');
   // 間取りラベル
   const roomLabel=countRoomLabel(roomTypes,counts);
   const ldkMatch=roomLabel.match(/^([^+]+)(.*)/);
@@ -2070,11 +2155,12 @@ function buildPropertyCard(){
 
     const dpr=Math.min(window.devicePixelRatio||1,2);
     const W=720;
-    const PADX=40; // 左右の内側余白
-    // 間取り画像サイズ（小さめ・確実に収まる）
+    const PADX=36; // 左右の内側余白
+    const SIDE_W=200; // 右カラム（物件情報3点）幅
+    // 間取り画像サイズ（右カラムの分を空けて左側に収める）
     let madoriW=0, madoriH=0;
     if(madoriSnapshot){
-      const maxMW=W-PADX*2-40, maxMH=420;
+      const maxMW=W-PADX*2-SIDE_W-26, maxMH=430;
       const sc=Math.min(maxMW/madoriSnapshot.width, maxMH/madoriSnapshot.height);
       madoriW=Math.round(madoriSnapshot.width*sc);
       madoriH=Math.round(madoriSnapshot.height*sc);
@@ -2096,19 +2182,21 @@ function buildPropertyCard(){
       if(line)tagLines.push(line);
     }
 
+    const NOTE_H=40;            // ゲーム画面注記バー
     const BAND_H=72;
-    let y=BAND_H+30;            // 帯の下から開始
+    let y=NOTE_H+BAND_H+28;     // 注記バー＋帯の下から開始
     const yPop=y; if(pop) y+=56; // 最レア称号POP
     const yEquip=y;
     if(equipped) y+=54;        // 装備称号
-    const yName=y; y+=52;      // 物件名
     const yTags=y; if(tagLines.length) y+=tagLines.length*34+10; // ハッシュタグ
     const yLabel=y; y+=58;     // 間取りラベル
-    const yMadori=y; if(madoriH>0) y+=madoriH+24+30; // 間取り画像（白枠込み）
-    const SPEC_H=120;
-    const ySpec=y; y+=SPEC_H+34; // スペック3列
-    const yFooter=y+10; y+=46;   // フッター
-    const H=y+20;
+    // メイン行：左＝間取り図（白枠込み）、右＝スペック縦3点＋公開日＋名前
+    const sideH=3*92+2*10+14+58; // スペック3箱＋間隔＋メタ2行
+    const rowH=Math.max(madoriH+20, sideH);
+    const yRow=y; y+=rowH+26;
+    const yPromo=y; y+=64;      // 宣伝2行
+    const yFooter=y+4; y+=40;   // フッター
+    const H=y+18;
 
     const cv=document.createElement('canvas');
     cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
@@ -2120,18 +2208,17 @@ function buildPropertyCard(){
     ctx.fillStyle='#f5f0e8'; ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='#8a7060'; ctx.lineWidth=6;
     ctx.strokeRect(12,12,W-24,H-24);
+    // ゲーム画面注記（独立バー・大きめ）
+    ctx.fillStyle='rgba(200,160,96,.18)';
+    ctx.fillRect(12,12,W-24,NOTE_H);
+    ctx.fillStyle='#7a5a30';
+    ctx.font="bold 19px 'Noto Sans JP',sans-serif";
+    ctx.fillText('※ こ れ は ゲ ー ム 画 面 で す', W/2, 12+NOTE_H/2+1);
     // 帯
-    ctx.fillStyle='#5a4a3a'; ctx.fillRect(12,12,W-24,BAND_H);
+    ctx.fillStyle='#5a4a3a'; ctx.fillRect(12,12+NOTE_H,W-24,BAND_H);
     ctx.fillStyle='#f5f0e8';
     ctx.font="bold 30px 'Noto Serif JP',serif";
-    ctx.fillText('賃 貸 物 件 情 報', W/2, 12+BAND_H/2);
-    // ゲーム画面注記（帯の左上）
-    ctx.save();
-    ctx.textAlign='left';
-    ctx.font="500 15px 'Noto Sans JP',sans-serif";
-    ctx.fillStyle='rgba(245,240,232,.9)';
-    ctx.fillText('※これはゲーム画面です', 24, 12+18);
-    ctx.restore();
+    ctx.fillText('賃 貸 物 件 情 報', W/2, 12+NOTE_H+BAND_H/2);
     // 最レア称号POP
     if(pop){
       ctx.font="bold 27px 'Noto Serif JP',serif";
@@ -2149,11 +2236,7 @@ function buildPropertyCard(){
       ctx.fillStyle='#fff';
       ctx.fillText(equipped, W/2, yEquip+20);
     }
-    // 物件名
-    ctx.fillStyle='#3a2a1a';
-    ctx.font="bold 36px 'Noto Serif JP',serif";
-    ctx.fillText(propName, W/2, yName+18);
-    // ハッシュタグ（物件名の下＝説明タグ風）
+    // ハッシュタグ（説明タグ風）
     if(tagLines.length){
       ctx.fillStyle='#6a8a50';
       ctx.font="500 22px 'Noto Sans JP',sans-serif";
@@ -2164,48 +2247,90 @@ function buildPropertyCard(){
     ctx.font="bold 30px 'Noto Serif JP',serif";
     ctx.fillText(r.label||'', W/2, yLabel+22);
 
-    // 間取り画像
+    // メイン行：左＝間取り画像
     if(madoriSnapshot && madoriW>0){
-      const mx=(W-madoriW)/2, my=yMadori;
+      const mx=PADX, my=yRow+Math.max(0,(rowH-(madoriH+20))/2)+10;
       ctx.fillStyle='#fff';
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.fill();
       ctx.strokeStyle='rgba(90,74,58,.15)'; ctx.lineWidth=1;
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.stroke();
       ctx.drawImage(madoriSnapshot, mx, my, madoriW, madoriH);
     }
-
-    // スペック3列（数字と単位を横に並べて重なり防止）
+    // メイン行：右＝スペック縦3点（ガチャ準拠のレア色）＋公開日＋名前
+    const sideX=W-PADX-SIDE_W;
     const specs=[
-      {label:'築年数', val:String(r.age??'--'), unit:'年'},
-      {label:'駅徒歩', val:String(r.walk??'--'), unit:'分'},
-      {label:'家賃',   val:String(r.rent??'--'), unit:'万円'},
+      {label:'築年数', val:String(r.age??'--'), unit:'年',  idx:0},
+      {label:'駅徒歩', val:String(r.walk??'--'), unit:'分',  idx:1},
+      {label:'家　賃', val:String(r.rent??'--'), unit:'万円', idx:2},
     ];
-    const gap=16, cardW=(W-PADX*2-gap*2)/3, sx0=PADX;
+    const BOXH=92, BGAP=10;
+    const rareFill=(kind)=>{
+      if(kind==='super'){
+        const gr=ctx.createLinearGradient(sideX,0,sideX+SIDE_W,0);
+        ['#ff3b3b','#ff9d00','#ffe600','#3bd16f','#3b8bff','#9b3bff'].forEach((c,i,a)=>gr.addColorStop(i/(a.length-1),c));
+        return gr;
+      }
+      if(kind==='rare'){
+        const gr=ctx.createLinearGradient(sideX,0,sideX+SIDE_W,0);
+        gr.addColorStop(0,'#c8860a');gr.addColorStop(.5,'#f5c842');gr.addColorStop(1,'#e8a020');
+        return gr;
+      }
+      if(kind==='niche'){
+        const gr=ctx.createLinearGradient(sideX,0,sideX+SIDE_W,0);
+        gr.addColorStop(0,'#7a5fa8');gr.addColorStop(.5,'#b9a3d9');gr.addColorStop(1,'#8c6fb5');
+        return gr;
+      }
+      return '#3a2a1a';
+    };
     specs.forEach((s,i)=>{
-      const cx=sx0+i*(cardW+gap);
+      const by=yRow+i*(BOXH+BGAP);
       ctx.fillStyle='#fff';
-      _roundRect(ctx,cx,ySpec,cardW,SPEC_H,12); ctx.fill();
-      ctx.strokeStyle='rgba(90,74,58,.1)'; ctx.lineWidth=1;
-      _roundRect(ctx,cx,ySpec,cardW,SPEC_H,12); ctx.stroke();
-      // ラベル
-      ctx.fillStyle='#8a7060';
-      ctx.font="500 17px 'Noto Sans JP',sans-serif";
-      ctx.fillText(s.label, cx+cardW/2, ySpec+28);
-      // 数字＋単位（横並び・中央寄せ）
-      ctx.fillStyle='#3a2a1a';
-      const numFont="bold 42px 'Noto Serif JP',serif";
-      const unitFont="500 16px 'Noto Sans JP',sans-serif";
+      _roundRect(ctx,sideX,by,SIDE_W,BOXH,12); ctx.fill();
+      ctx.strokeStyle='rgba(90,74,58,.12)'; ctx.lineWidth=1;
+      _roundRect(ctx,sideX,by,SIDE_W,BOXH,12); ctx.stroke();
+      // ラベル（はっきり濃く）
+      ctx.fillStyle='#4a3a2a';
+      ctx.font="bold 18px 'Noto Serif JP',serif";
+      ctx.fillText(s.label, sideX+SIDE_W/2, by+24);
+      // 値（レア色分け）＋単位
+      const v=+s.val;
+      let kind='';
+      if(!isNaN(v)){
+        if(isSuperRare(s.idx,v))kind='super';
+        else if(isRareGacha(s.idx,v))kind='rare';
+        else if(isInverseRare(s.idx,v))kind='niche';
+      }
+      const numFont="bold 40px 'Noto Serif JP',serif";
+      const unitFont="bold 15px 'Noto Sans JP',sans-serif";
       ctx.font=numFont; const nw=ctx.measureText(s.val).width;
       ctx.font=unitFont; const uw=ctx.measureText(s.unit).width;
-      const totalW=nw+4+uw;
-      const startX=cx+cardW/2-totalW/2;
+      const startX=sideX+SIDE_W/2-(nw+4+uw)/2;
       ctx.textAlign='left';
-      ctx.fillStyle='#3a2a1a'; ctx.font=numFont;
-      ctx.fillText(s.val, startX, ySpec+78);
-      ctx.fillStyle='#8a7060'; ctx.font=unitFont;
-      ctx.fillText(s.unit, startX+nw+4, ySpec+88);
+      ctx.fillStyle=rareFill(kind); ctx.font=numFont;
+      ctx.fillText(s.val, startX, by+62);
+      ctx.fillStyle='#6a5a4a'; ctx.font=unitFont;
+      ctx.fillText(s.unit, startX+nw+4, by+70);
       ctx.textAlign='center';
     });
+    // 公開日と間取りすと名（スペックの下）
+    const metaY=yRow+3*BOXH+2*BGAP+18;
+    const _d=new Date();
+    const dateStr=_d.getFullYear()+'/'+String(_d.getMonth()+1).padStart(2,'0')+'/'+String(_d.getDate()).padStart(2,'0');
+    ctx.save();
+    ctx.textAlign='left';
+    ctx.fillStyle='#5a4a3a';
+    ctx.font="500 16px 'Noto Sans JP',sans-serif";
+    ctx.fillText('情報公開日　'+dateStr, sideX+4, metaY);
+    ctx.fillText('間取りすと　'+(rawName||'とくめい'), sideX+4, metaY+26);
+    ctx.restore();
+
+    // 宣伝（フッターロゴの上）
+    ctx.fillStyle='#5a4a3a';
+    ctx.font="bold 22px 'Noto Serif JP',serif";
+    ctx.fillText('間取りゲームは「間取りすと」で検索！', W/2, yPromo+12);
+    ctx.fillStyle='#7a5a30';
+    ctx.font="500 17px 'Noto Sans JP',sans-serif";
+    ctx.fillText('X・Instagram・TikTok｜@madori_st', W/2, yPromo+42);
 
     // フッター
     ctx.fillStyle='#b0a090';
@@ -3779,6 +3904,7 @@ function startPhaserGame(){
 
 // 起動時プロフィール表示
 updateStartProfile();
+updateTitlesNewBadge();
 
 // リロード時：進行中のゲームがあれば続きから再開（無ければスタート画面のまま）
 function tryResumeGame(){
