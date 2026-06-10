@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>間取りすと</title>
+<!-- アイコン：image/favicon.png（タブ用）と image/icon-180.png（iPhoneホーム画面用）を配置すると表示される -->
+<link rel="icon" type="image/png" href="image/favicon.png?v=1">
+<link rel="apple-touch-icon" href="image/icon-180.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
@@ -317,6 +320,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 @keyframes titleBtnPulse{0%,100%{box-shadow:0 0 0 0 rgba(58,42,26,0),0 4px 14px rgba(58,42,26,.22);}60%{box-shadow:0 0 0 6px rgba(58,42,26,.12),0 4px 14px rgba(58,42,26,.22);}}
 .btn-roulette-next{margin-top:32px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;padding:16px 56px;border:none;border-radius:4px;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;}
 .btn-roulette-next.visible{opacity:1;pointer-events:auto;}
+/* 「獲得称号を確認」と「物件完成」を画面下の同じ位置に固定（⑦） */
+#btn-rou-next,#title-next-btn{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(26px + env(safe-area-inset-bottom));
+  margin-top:0;z-index:40;white-space:nowrap;
+}
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
 /* ── ④ 結果 ── */
@@ -516,7 +525,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* 称号発表：名前を大きく＋獲得条件を併記 */
 .title-reveal-text{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
 .title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.1em;line-height:1.2;}
-.title-reveal-cond{font-size:12px;font-weight:400;letter-spacing:.03em;line-height:1.35;opacity:.8;}
+.title-reveal-cond{font-size:15px;font-weight:400;letter-spacing:.03em;line-height:1.4;opacity:.85;}
 .title-owned-chip.is-reveal{display:flex !important;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:12px 20px;border-radius:6px;background:rgba(90,74,58,.08);color:var(--brown-dark);}
 .title-owned-chip.is-reveal .title-reveal-name{font-size:19px;color:var(--brown-dark);}
 .title-owned-chip.is-reveal .title-reveal-cond{color:var(--brown-light);}
@@ -677,7 +686,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div class="reroll-pop">再抽選で高級確定！</div>
     </div>
   </div>
-  <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoTitles()">物 件 完 成 →</button>
+  <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoTitles()">獲得称号を確認 →</button>
   <div style="font-size:10px;color:var(--brown-light);margin-top:8px;letter-spacing:.06em;text-align:center;">
     ※ 再抽選は広告視聴で無料（実装予定）
   </div>
@@ -903,13 +912,14 @@ function captureMadoriSnapshot(){
   clone.getContext('2d').drawImage(canvas,0,0);
   madoriSnapshot=clone;
 }
-function showMadoriBg(visible){
+function showMadoriBg(visible,srcCanvas){
   const bg=document.getElementById('madori-bg');
-  if(visible&&madoriSnapshot){
+  const src=srcCanvas||madoriSnapshot;
+  if(visible&&src){
     bg.innerHTML='';
     const c=document.createElement('canvas');
-    c.width=madoriSnapshot.width; c.height=madoriSnapshot.height;
-    c.getContext('2d').drawImage(madoriSnapshot,0,0);
+    c.width=src.width; c.height=src.height;
+    c.getContext('2d').drawImage(src,0,0);
     bg.appendChild(c);
     requestAnimationFrame(()=>bg.classList.add('visible'));
   }else{
@@ -992,6 +1002,28 @@ function gotoStart(){
   updateStartProfile();
   showScreen('screen-start');
   try{ localStorage.removeItem('madori-game-state'); }catch(e){}
+}
+
+// 進行状態をlocalStorageへ保存（画面名つき。リロードでその画面から再開するため）
+function persistFlow(screen){
+  try{
+    const gs=gameScene;
+    const st={
+      v:2, screen,
+      land:(typeof window._landIndex==='number')?window._landIndex:0,
+      rv:(typeof rouletteValues!=='undefined')?rouletteValues.slice():[null,null,null],
+      rl:(typeof rouletteLocked!=='undefined')?rouletteLocked.slice():[false,false,false]
+    };
+    if(gs&&gs.grid){
+      st.grid=gs.grid;
+      st.queue=(gs.queue||[]).map(d=>d&&d.type);
+      st.currentType=gs.currentDef&&gs.currentDef.type;
+      st.holdType=gs.holdDef?gs.holdDef.type:null;
+      st.rotation=gs.rotation; st.partCount=gs.partCount;
+      st.holdUsed=!!gs.holdUsed; st.curC=gs.curC; st.curR=gs.curR;
+    }
+    localStorage.setItem('madori-game-state', JSON.stringify(st));
+  }catch(e){}
 }
 
 // ────────────────────────────────────────
@@ -1202,18 +1234,31 @@ function onCompleteBtn(){
       showMadoriBg(true);
       showScreen('screen-roulette');
       startRoulette();
+      persistFlow('screen-roulette');
     });
   });
 }
 function gotoTitles(){
-  showMadoriBg(false);
+  showMadoriBg(true);
   showScreen('screen-titles');
   showTitlesReveal();
+  // 背景を「物件完成画面（カード）」の薄い透過に差し替え
+  try{
+    showResult(); // 結果データ＆カード素材を先に確定（履歴は重複保存されない）
+    buildPropertyCard().then(cv=>{
+      // まだ称号画面にいる時だけ反映
+      if(document.getElementById('screen-titles').classList.contains('active')){
+        showMadoriBg(true,cv);
+      }
+    }).catch(()=>{});
+  }catch(e){}
+  persistFlow('screen-titles');
 }
 function gotoResult(){
   showMadoriBg(false);
   showScreen('screen-result');
   showResult();
+  persistFlow('screen-result');
 }
 
 // 称号を1つずつ表示するアニメーション
@@ -1309,6 +1354,24 @@ function showTitlesReveal(){
   }, totalDelay);
 }
 
+// 画像をタップで拡大表示（どこをタップしても閉じる）
+function showImageZoom(src){
+  let ov=document.getElementById('img-zoom-overlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='img-zoom-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(58,42,26,.82);display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;';
+    ov.onclick=()=>{ov.style.display='none';ov.innerHTML='';};
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML='';
+  const im=document.createElement('img');
+  im.src=src;
+  im.style.cssText='max-width:92vw;max-height:84vh;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.4);background:#f5f0e8;';
+  ov.appendChild(im);
+  ov.style.display='flex';
+}
+
 function renderSavesList(){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
@@ -1323,10 +1386,13 @@ function renderSavesList(){
   list.forEach((s)=>{
     const row=document.createElement('div');
     row.style.cssText='display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(90,74,58,.1);';
-    // サムネイル
+    // サムネイル（タップで拡大）
     const thumb=document.createElement(s.img?'img':'div');
-    thumb.style.cssText='width:72px;height:54px;object-fit:contain;border-radius:6px;border:1px solid rgba(90,74,58,.12);flex-shrink:0;background:#f5f0e8;';
-    if(s.img) thumb.src=s.img;
+    thumb.style.cssText='width:118px;height:92px;object-fit:contain;border-radius:8px;border:1px solid rgba(90,74,58,.12);flex-shrink:0;background:#f5f0e8;'+(s.img?'cursor:zoom-in;':'');
+    if(s.img){
+      thumb.src=s.img;
+      thumb.onclick=()=>showImageZoom(s.img);
+    }
     // 情報
     const info=document.createElement('div');
     info.style.cssText='flex:1;min-width:0;';
@@ -1575,6 +1641,36 @@ function lockRoulette(idx){
       }
     }
   }
+  persistFlow('screen-roulette');
+}
+
+// リロード復帰用：確定済みスロットの値と見た目を再現（紙吹雪等の演出なし）
+function restoreRouletteLocks(rv,rl){
+  let cnt=0;
+  for(let i=0;i<3;i++){
+    if(!rl[i]||rv[i]===null||rv[i]===undefined)break; // 確定は必ず先頭から連続
+    clearInterval(rouletteIntervals[i]);
+    rouletteValues[i]=rv[i]; rouletteLocked[i]=true; cnt++;
+    const el=document.getElementById('rou-'+i);
+    document.getElementById('rou-val-'+i).textContent=rv[i]+rouletteUnits[i];
+    document.getElementById('rou-val-'+i).classList.remove('spinning');
+    el.classList.remove('active-slot');
+    el.classList.add('locked');
+    if(isSuperRare(i,rv[i])) el.classList.add('rare','super-rare');
+    else if(isRareGacha(i,rv[i])) el.classList.add('rare');
+    else if(isInverseRare(i,rv[i])) el.classList.add('niche');
+  }
+  lockedCount=cnt;
+  // 次のアクティブスロット
+  document.querySelectorAll('.roulette-item.active-slot').forEach(e=>e.classList.remove('active-slot'));
+  if(cnt<3) document.getElementById('rou-'+cnt).classList.add('active-slot');
+  if(cnt===3){
+    document.getElementById('btn-rou-next').classList.add('visible');
+    for(let i=0;i<3;i++){
+      const rb=document.getElementById('reroll-btn-'+i);
+      if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
+    }
+  }
 }
 
 // ────────────────────────────────────────
@@ -1716,6 +1812,15 @@ function saveHistory(list){
 // 現在の完成物件を履歴へ自動保存。古い非お気に入りから削除して最大30件。
 function autoSaveToHistory(){
   const r=window._lastResult||{};
+  // 重複防止：直前の保存と同じ物件（リロード復帰時など）は再保存しない
+  const list0=loadHistory();
+  if(list0[0]){
+    const p=list0[0];
+    if(p.propName===(r.propName||'間取りすと：とくめい')&&p.label===(r.label||'')&&p.age===r.age&&p.walk===r.walk&&p.rent===r.rent){
+      window._currentHistoryId=p.id;
+      return;
+    }
+  }
   let img='';
   if(madoriSnapshot){
     try{
@@ -1988,13 +2093,6 @@ function _roundRect(ctx,x,y,w,h,r){
 const ASSET_VER='1';
 const SVG_TEX={
   youshitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjY2ZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIwIiAgd2lkdGg9IjQ2IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NmUiLz4KPHJlY3QgeD0iNDYiIHk9IjAiICB3aWR0aD0iMzgiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2MiIvPgo8cmVjdCB4PSI4NCIgeT0iMCIgIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2VhNDcwIi8+CjxyZWN0IHg9IjAiICB5PSI4IiAgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGEwNmEiLz4KPHJlY3QgeD0iMzAiIHk9IjgiICB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2M0OWE2MCIvPgo8cmVjdCB4PSI4MCIgeT0iOCIgIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNDZjIi8+CjxyZWN0IHg9IjAiICB5PSIxNiIgd2lkdGg9IjM4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjODllNjQiLz4KPHJlY3QgeD0iMzgiIHk9IjE2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI4MiIgeT0iMTYiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzI5ODYwIi8+CjxyZWN0IHg9IjAiICB5PSIyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NiIvPgo8cmVjdCB4PSI2OCIgeT0iMjQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIzMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjIiLz4KPHJlY3QgeD0iMzYiIHk9IjMyIiB3aWR0aD0iNDYiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI4MiIgeT0iMzIiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMDZhIi8+CjxyZWN0IHg9IjAiICB5PSI0MCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMmE2NmUiLz4KPHJlY3QgeD0iNTIiIHk9IjQwIiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M2OWM2NiIvPgo8cmVjdCB4PSI4MiIgeT0iNDAiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhYTcyIi8+CjxyZWN0IHg9IjAiICB5PSI0OCIgd2lkdGg9IjI2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjAiLz4KPHJlY3QgeD0iMjYiIHk9IjQ4IiB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI2NiIgeT0iNDgiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSI1NiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NzAiLz4KPHJlY3QgeD0iNDQiIHk9IjU2IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI4MCIgeT0iNTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcyIi8+CjxyZWN0IHg9IjAiICB5PSI2NCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMzAiIHk9IjY0IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTY2ZSIvPgo8cmVjdCB4PSI2NiIgeT0iNjQiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY0Ii8+CjxyZWN0IHg9IjAiICB5PSI3MiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iNDgiIHk9IjcyIiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2MyOTg2MCIvPgo8cmVjdCB4PSI4NCIgeT0iNzIiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI4MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EwNmEiLz4KPHJlY3QgeD0iMjIiIHk9IjgwIiB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI3MiIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxyZWN0IHg9IjAiICB5PSI4OCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGE0NmMiLz4KPHJlY3QgeD0iNDAiIHk9Ijg4IiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI3MCIgeT0iODgiIHdpZHRoPSI1MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI5NiIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iMzAiIHk9Ijk2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2Q0YTg3MCIvPgo8cmVjdCB4PSI3NCIgeT0iOTYiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSIxMDQiIHdpZHRoPSI0NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY2Ii8+CjxyZWN0IHg9IjQ0IiB5PSIxMDQiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjgwIiB5PSIxMDQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzg5ZTY0Ii8+CjxyZWN0IHg9IjAiICB5PSIxMTIiIHdpZHRoPSIzMiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjMyIiB5PSIxMTIiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNjZlIi8+CjxyZWN0IHg9Ijc4IiB5PSIxMTIiIHdpZHRoPSI0MiIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxsaW5lIHgxPSIwIiB5MT0iOCIgICB4Mj0iMTIwIiB5Mj0iOCIgICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxNiIgIHgyPSIxMjAiIHkyPSIxNiIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjI0IiAgeDI9IjEyMCIgeTI9IjI0IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMzIiICB4Mj0iMTIwIiB5Mj0iMzIiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgIHgyPSIxMjAiIHkyPSI0MCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjQ4IiAgeDI9IjEyMCIgeTI9IjQ4IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iNTYiICB4Mj0iMTIwIiB5Mj0iNTYiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI2NCIgIHgyPSIxMjAiIHkyPSI2NCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjcyIiAgeDI9IjEyMCIgeTI9IjcyIiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iODAiICB4Mj0iMTIwIiB5Mj0iODAiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI4OCIgIHgyPSIxMjAiIHkyPSI4OCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9Ijk2IiAgeDI9IjEyMCIgeTI9Ijk2IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMTA0IiB4Mj0iMTIwIiB5Mj0iMTA0IiBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxMTIiIHgyPSIxMjAiIHkyPSIxMTIiIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2E1MDIwIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
-  roka:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZThlMGQ0Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTA5MDcwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+",
-  toilet:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDQwIDgwIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZThmNGY4Ii8+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOGFiOGNjIiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iOCIgeT0iNSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjZmZmZmZmIiByeD0iMyIvPgo8cmVjdCB4PSI4IiB5PSI1IiB3aWR0aD0iMjQiIGhlaWdodD0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwZDhlNCIgc3Ryb2tlLXdpZHRoPSIxLjIiIHJ4PSIzIi8+CjxyZWN0IHg9IjI2IiB5PSI4IiB3aWR0aD0iNCIgaGVpZ2h0PSIzIiBmaWxsPSIjYzhkZGU4IiByeD0iMSIvPgo8cmVjdCB4PSIxMCIgeT0iMTkiIHdpZHRoPSIyMCIgaGVpZ2h0PSI3IiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjEwIiB5PSIxOSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwZDhlNCIgc3Ryb2tlLXdpZHRoPSIxIi8+CjxwYXRoIGQ9Ik05LDI2IFEyLDM2IDMsNTIgUTQsNjIgMjAsNjQgUTM2LDYyIDM3LDUyIFEzOCwzNiAzMSwyNiBaIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNjMGQ4ZTQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxsaW5lIHgxPSIxMCIgeTE9IjI4IiB4Mj0iMzAiIHkyPSIyOCIgc3Ryb2tlPSIjYzBkOGU0IiBzdHJva2Utd2lkdGg9IjEuMiIvPgo8L3N2Zz4=",
-  bath:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjYzhlOGY0Ii8+CjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNTg4OGE4IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iNCIgeT0iNiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjY4IiBmaWxsPSIjZThmNmZmIiByeD0iOCIvPgo8cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iNDQiIGhlaWdodD0iNjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzQ4NzhhMCIgc3Ryb2tlLXdpZHRoPSIyIiByeD0iOCIvPgo8Y2lyY2xlIGN4PSIyNiIgY3k9IjY3IiByPSIzLjUiIGZpbGw9IiM4YWI4ZDAiLz4KPGNpcmNsZSBjeD0iMjYiIGN5PSI2NyIgcj0iMiIgZmlsbD0iIzY4OThiMCIvPgo8bGluZSB4MT0iNjMiIHkxPSIxNCIgeDI9IjYzIiB5Mj0iMzAiIHN0cm9rZT0iIzQ4NzhhMCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8ZWxsaXBzZSBjeD0iNjMiIGN5PSIxMiIgcng9IjEwIiByeT0iNSIgZmlsbD0iIzY4OThiMCIvPgo8Y2lyY2xlIGN4PSI2MyIgY3k9IjYwIiByPSIxMCIgZmlsbD0iI2U4ZjRkOCIvPgo8Y2lyY2xlIGN4PSI2MyIgY3k9IjYwIiByPSIxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjODhhODY4IiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8L3N2Zz4=",
-  kitchen:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAxMjAgODAiPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZmMGUwIi8+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2MwODA0MCIgc3Ryb2tlLXdpZHRoPSIyIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNkOGQ4ZDgiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgeDI9IjEyMCIgeTI9IjQwIiBzdHJva2U9IiM5MDkwOTAiIHN0cm9rZS13aWR0aD0iMS41Ii8+CjxyZWN0IHg9IjEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2QwZDBkMCIgcng9IjIiLz4KPGNpcmNsZSBjeD0iMTUiIGN5PSIxMSIgcj0iNy41IiBmaWxsPSIjYjhiMGEwIiBzdHJva2U9IiM3MDcwNzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CjxjaXJjbGUgY3g9IjE1IiBjeT0iMTEiIHI9IjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzcwNzA3MCIgc3Ryb2tlLXdpZHRoPSIwLjkiLz4KPGNpcmNsZSBjeD0iNyIgY3k9IjMyIiByPSI3IiBmaWxsPSIjYjhiMGEwIiBzdHJva2U9IiM3MDcwNzAiIHN0cm9rZS13aWR0aD0iMS4yIi8+CjxjaXJjbGUgY3g9IjIzIiBjeT0iMzIiIHI9IjciIGZpbGw9IiNiOGIwYTAiIHN0cm9rZT0iIzcwNzA3MCIgc3Ryb2tlLXdpZHRoPSIxLjIiLz4KPHJlY3QgeD0iNjEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2M4YzhjOCIgcng9IjIiLz4KPHJlY3QgeD0iNjMiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2IwYjhiYyIgcng9IjQiLz4KPHJlY3QgeD0iOTEiIHk9IjEiIHdpZHRoPSIyOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2ZmZjBlMCIgcng9IjIiLz4KPHJlY3QgeD0iOTQiIHk9IjUiIHdpZHRoPSIyMiIgaGVpZ2h0PSIzMCIgZmlsbD0iI2ZmZmZmZiIgcng9IjIiLz4KPHJlY3QgeD0iMCIgeT0iNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYwZTAiLz4KPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjExOCIgaGVpZ2h0PSI3OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTg5NDNhIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
-  balcony:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxMjAgNDAiPjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IiNmZmYwOTAiLz48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjQwIiBmaWxsPSJub25lIiBzdHJva2U9IiNkNGIwMjAiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIwIiB5MT0iMjAiIHgyPSIxMjAiIHkyPSIyMCIgc3Ryb2tlPSIjZTBjMDMwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNSIvPjxsaW5lIHgxPSIyNCIgeTE9IjAiIHgyPSIyNCIgeTI9IjQwIiBzdHJva2U9IiNlMGMwMzAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC41Ii8+PGxpbmUgeDE9IjQ4IiB5MT0iMCIgeDI9IjQ4IiB5Mj0iNDAiIHN0cm9rZT0iI2UwYzAzMCIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjUiLz48bGluZSB4MT0iNzIiIHkxPSIwIiB4Mj0iNzIiIHkyPSI0MCIgc3Ryb2tlPSIjZTBjMDMwIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuNSIvPjxsaW5lIHgxPSI5NiIgeTE9IjAiIHgyPSI5NiIgeTI9IjQwIiBzdHJva2U9IiNlMGMwMzAiIHN0cm9rZS13aWR0aD0iMSIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+",
-  genkan:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRDRBODcwIi8+CjxyZWN0IHg9IjMiIHk9IjMiIHdpZHRoPSI3NCIgaGVpZ2h0PSI3NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTg2ODMwIiBzdHJva2Utd2lkdGg9IjMiLz4KPGxpbmUgeDE9IjMiIHkxPSI0MCIgeDI9Ijc3IiB5Mj0iNDAiIHN0cm9rZT0iIzk4NjgzMCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHRleHQgeD0iNDAiIHk9IjI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjEzIiBmaWxsPSIjNjA0MDEwIiBmb250LWZhbWlseT0iTWVpcnlvLHNhbnMtc2VyaWYiPuebruWuqTwvdGV4dD4KPC9zdmc+",
-  washitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI0M4RDhBMCIvPjwvc3ZnPg=="
 };
 
 const PARTS_DEF=[
@@ -2245,6 +2343,7 @@ class PuzzleGame extends Phaser.Scene{
         // SVGフォールバック（PNGが無い/読めない時）
         const useSvg=(reason)=>{
           console.warn('[tex] '+k+' → SVGフォールバック（'+reason+'）: '+imgPath);
+          if(!svgDataUrl){ console.warn('[tex] '+k+' はSVG予備なし。image/'+k+'.png を必ず配置してください'); resolve(); return; }
           svgToCanvas(svgDataUrl).then(cv=>{
             if(!cv){resolve();return;}
             if(this.textures.exists(k))this.textures.remove(k);
@@ -2275,8 +2374,9 @@ class PuzzleGame extends Phaser.Scene{
         img.src=imgPath;
       });
     };
-    const entries=Object.entries(SVG_TEX);
-    Promise.all(entries.map(([k,v])=>loadTexture(k,v))).then(()=>{
+    // 全パーツのテクスチャキー（PNGはimage/キー.png。SVGフォールバックは洋室のみ）
+    const TEX_KEYS=['youshitsu','washitsu','roka','kitchen','bath','toilet','balcony','genkan'];
+    Promise.all(TEX_KEYS.map(k=>loadTexture(k,SVG_TEX[k]))).then(()=>{
       if(this._sessionId!==sessionId)return;
       let restored=false;
       if(this._restorePayload){
@@ -2285,14 +2385,47 @@ class PuzzleGame extends Phaser.Scene{
       }
       this._restorePayload=null;
       if(restored){
-        // 復元済み：ビジュアル再構築のみ
+        // 復元済み：ビジュアル再構築
         Object.values(this.boardImgs).forEach(o=>{if(o&&o.destroy)o.destroy();});
         Object.values(this.boardLabels).forEach(o=>{if(o&&o.destroy)o.destroy();});
         this.boardImgs={}; this.boardLabels={};
         this.rebuildBoardVisuals();
         this.drawBoard();
         this.drawUI();
-        this.checkNoPlace();
+        const scr=this._restoreScreen||'screen-game';
+        if(scr==='screen-game'){
+          this.checkNoPlace();
+        }else{
+          // 完成後の画面へ復帰：収納→スナップショット→各画面
+          const rv=this._restoreRv, rl=this._restoreRl;
+          try{ this.fillEmptyAsStorage(); }catch(e){}
+          document.getElementById('btn-complete-overlay').classList.remove('visible');
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{
+            try{
+              captureMadoriSnapshot();
+              for(let i=0;i<3;i++){rouletteValues[i]=rv[i];}
+              if(scr==='screen-roulette'){
+                showMadoriBg(true);
+                showScreen('screen-roulette');
+                startRoulette();
+                restoreRouletteLocks(rv,rl);
+              }else{
+                // 称号・結果：称号データを再計算してから表示
+                showTitlesReveal();
+                if(scr==='screen-titles'){
+                  showMadoriBg(true);
+                  showScreen('screen-titles');
+                  persistFlow('screen-titles');
+                }else{
+                  showMadoriBg(false);
+                  showScreen('screen-result');
+                  showResult();
+                  persistFlow('screen-result');
+                }
+              }
+            }catch(e){ console.warn('[resume] 画面復帰失敗:',e); this.checkNoPlace(); }
+          }));
+        }
       }else{
         this.placeGenkan();
         // 既存ビジュアルを破棄して再構築（テクスチャロード後に確実に反映）
@@ -2311,7 +2444,7 @@ class PuzzleGame extends Phaser.Scene{
 
   // 保存済み状態を現在のシーンへ反映。成功でtrue
   _applyRestore(st){
-    if(!st||st.v!==1||!Array.isArray(st.grid)||st.grid.length!==ROWS)return false;
+    if(!st||(st.v!==1&&st.v!==2)||!Array.isArray(st.grid)||st.grid.length!==ROWS)return false;
     const byType=t=>PARTS_DEF.find(d=>d.type===t)||null;
     this.grid=st.grid.map(row=>row.map(cell=>cell?{...cell}:null));
     this.queue=(st.queue||[]).map(byType).filter(Boolean);
@@ -2326,6 +2459,10 @@ class PuzzleGame extends Phaser.Scene{
     this._anchorC=this.curC; this._anchorR=this.curR;
     this.undoStack=[];
     this._mPreviewShown=false; this._tapPreviewShown=false;
+    // 復帰先の画面とガチャ確定値
+    this._restoreScreen=st.screen||'screen-game';
+    this._restoreRv=Array.isArray(st.rv)?st.rv:[null,null,null];
+    this._restoreRl=Array.isArray(st.rl)?st.rl:[false,false,false];
     return true;
   }
 
@@ -2946,28 +3083,8 @@ class PuzzleGame extends Phaser.Scene{
     this._createCellVisual(this.grid[gr][gx]);
   }
 
-  // 進行中のゲームをlocalStorageへ保存（リロードで続きから再開するため）
-  _persist(){
-    try{
-      if(document.getElementById('btn-complete-overlay').classList.contains('visible')){
-        // 完成後は保存しない（再開対象は進行中のみ）
-        localStorage.removeItem('madori-game-state'); return;
-      }
-      const st={
-        v:1,
-        land:(typeof window._landIndex==='number')?window._landIndex:0,
-        grid:this.grid,
-        queue:this.queue.map(d=>d&&d.type),
-        currentType:this.currentDef&&this.currentDef.type,
-        holdType:this.holdDef?this.holdDef.type:null,
-        rotation:this.rotation,
-        partCount:this.partCount,
-        holdUsed:!!this.holdUsed,
-        curC:this.curC, curR:this.curR
-      };
-      localStorage.setItem('madori-game-state', JSON.stringify(st));
-    }catch(e){ /* 保存失敗は無視（ゲームは継続） */ }
-  }
+  // 進行中のゲームを保存（リロードで続きから再開するため）
+  _persist(){ persistFlow('screen-game'); }
   checkNoPlace(){
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
 
@@ -2994,7 +3111,7 @@ class PuzzleGame extends Phaser.Scene{
 
     // 全て置けない → 終了。まず「完成」表示を確実に出す
     document.getElementById('btn-complete-overlay').classList.add('visible');
-    try{ localStorage.removeItem('madori-game-state'); }catch(e){}
+    this._persist();
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
     try{ this.fillEmptyAsStorage(); }catch(e){ console.warn('[end] 収納描画スキップ:', e); }
@@ -3386,24 +3503,29 @@ class PuzzleGame extends Phaser.Scene{
         g.fillStyle(storageColor,0.9);
         g.fillRect(px,py,CS,CS);  // 隙間なし
       }
-      // 塊の重心を求め、塊内で最も重心に近いマスにラベルを置く（他パーツへのはみ出し防止）
+      // 重心（塊の中心）に配置。重心が塊の外（凹型）の時だけ最寄りの塊マスへ寄せる
       const cx=cells.reduce((s,[,c])=>s+this.sx(c)+CS/2,0)/cells.length;
       const cy=cells.reduce((s,[r])=>s+this.sy(r)+CS/2,0)/cells.length;
-      let lx=cx, ly=cy, bestD=Infinity;
-      for(const [r,c] of cells){
-        const ccx=this.sx(c)+CS/2, ccy=this.sy(r)+CS/2;
-        const d=(ccx-cx)*(ccx-cx)+(ccy-cy)*(ccy-cy);
-        if(d<bestD){bestD=d; lx=ccx; ly=ccy;}
+      let lx=cx, ly=cy;
+      const ccol=Math.floor(cx/CS), crow=Math.floor(cy/CS);
+      const inCluster=cells.some(([r,c])=>r===crow&&c===ccol);
+      if(!inCluster){
+        let bestD=Infinity;
+        for(const [r,c] of cells){
+          const ccx=this.sx(c)+CS/2, ccy=this.sy(r)+CS/2;
+          const d=(ccx-cx)*(ccx-cx)+(ccy-cy)*(ccy-cy);
+          if(d<bestD){bestD=d; lx=ccx; ly=ccy;}
+        }
       }
-      // 塊が大きいほど少し大きく（最小でも読める大きさを確保）
       // マス幅に必ず収まる上限に制限（隣のパーツへ文字がはみ出さないように）
       const fs=Math.min(23, Math.max(21, Math.floor(Math.sqrt(cells.length)*9)));
       const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-        fontFamily:'Meiryo,sans-serif',stroke:'#ffffff',strokeThickness:1,
+        fontFamily:'Meiryo,sans-serif',
         resolution:this._txtRes,
         wordWrap:{width:CS*2-4}
       }).setOrigin(0.5,0.5).setDepth(3);
+      t.setShadow(0,1,'rgba(255,255,255,0.55)',2,false,true);
       this._storageTexts.push(t);
     }
   }
@@ -3487,7 +3609,7 @@ function tryResumeGame(){
     const raw=localStorage.getItem('madori-game-state');
     if(!raw)return;
     const st=JSON.parse(raw);
-    if(!st||st.v!==1||!Array.isArray(st.grid)||st.grid.length!==ROWS)return;
+    if(!st||(st.v!==1&&st.v!==2)||!Array.isArray(st.grid)||st.grid.length!==ROWS)return;
     window._restoreState=st;
     gotoGame();
   }catch(e){ try{localStorage.removeItem('madori-game-state');}catch(_){} }
