@@ -83,7 +83,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-top-row1{max-width:620px;margin:0 auto;width:100%;}
 /* ☰メニュー */
 #game-menu-wrap{position:relative;flex-shrink:0;}
-#game-menu-btn{font-size:20px;line-height:1;padding:7px 13px;border:1px solid rgba(90,74,58,.25);border-radius:9px;background:#fff;color:var(--brown-dark);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#game-menu-wrap{align-self:flex-start;margin-top:2px;}
+#game-menu-btn{width:46px;height:46px;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;padding:0;border:1px solid rgba(90,74,58,.25);border-radius:10px;background:#fff;color:var(--brown-dark);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#game-menu button{font-size:15px;padding:13px 18px;letter-spacing:.05em;}
 #game-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid rgba(90,74,58,.2);border-radius:10px;box-shadow:0 6px 20px rgba(58,42,26,.18);z-index:80;min-width:160px;overflow:hidden;}
 #game-menu.open{display:block;}
 #game-menu button{display:block;width:100%;background:none;border:none;padding:12px 16px;font-size:14px;color:var(--brown-dark);text-align:left;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:.04em;}
@@ -375,8 +377,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.06em;
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
-.res-hashtags{flex-wrap:nowrap;overflow:hidden;justify-content:center;
-  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;
+.res-hashtags{
+  display:flex;flex-wrap:nowrap;overflow:hidden;gap:6px;justify-content:center;margin-bottom:12px;
 }
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
@@ -413,7 +415,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:2px 2px 0;}
 .res-promo{margin-top:12px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
-.res-pop{margin:14px 16px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;}
+.res-pop{margin:14px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
@@ -486,6 +488,19 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
+  /* ④パーツ数チップ：左に詰めてコンパクトに（☰の見切れ防止） */
+  #game-top-row1{padding:3px 4px 2px;gap:4px;}
+  #part-count-grid{gap:2px 4px;justify-content:start;}
+  .pc-item{padding:2px 5px;gap:2px;border-radius:6px;}
+  .pc-name{font-size:10px;letter-spacing:0;}
+  .pc-count{font-size:13px;}
+  .pc-unit{font-size:9px;}
+  #game-menu-btn{width:42px;height:42px;font-size:22px;}
+  /* ①完成画面：3項目は常に間取りの右（折り返さない） */
+  .res-main-row{flex-wrap:nowrap;gap:8px;}
+  .res-side{min-width:104px;}
+  .res-spec-v{padding:5px 8px;}
+  .rsv-val{font-size:21px;}
   #game-top-row2{padding:2px 6px 3px;gap:4px;}
   #current-piece-wrap{padding:2px 4px;}
   #hold-col,#next-col{padding:2px 5px;}
@@ -615,6 +630,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   <div class="start-sub-btns">
     <button class="btn-sub" onclick="openModal('saves')">間取り保存一覧</button>
     <button class="btn-sub" onclick="openModal('titles')">称号一覧<span id="titles-new-pop" class="titles-new-pop" style="display:none;">NEW!</span></button>
+    <button class="btn-sub" onclick="openSoundSettings()">♪ 音</button>
   </div>
 </div>
 
@@ -645,9 +661,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
-          <button onclick="toggleGameMenu();if(gameScene)gameScene.forceComplete()">🏁　ここで完成にする</button>
-          <button onclick="toggleGameMenu();gotoGame()">↻　リトライ</button>
-          <button onclick="toggleGameMenu();gotoStart()">🏠　タイトルへ</button>
+          <button onclick="toggleGameMenu();if(gameScene)gameScene.forceComplete()">ここで完成にする</button>
+          <button onclick="toggleGameMenu();gotoGame()">リトライ</button>
+          <button onclick="toggleGameMenu();openSoundSettings()">音の設定</button>
+          <button onclick="toggleGameMenu();gotoStart()">タイトルへ戻る</button>
         </div>
       </div>
     </div>
@@ -782,8 +799,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div class="res-card-band">賃 貸 物 件 情 報</div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
-      <!-- 装備称号 -->
-      <div id="res-equipped-title" class="res-equipped" style="display:none;"></div>
       <!-- ハッシュタグ（物件説明一言タグ風） -->
       <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
       <!-- 間取りラベル -->
@@ -840,6 +855,115 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 </div>
 
 <script>
+// ────────────────────────────────────────
+// サウンド管理（SE / BGM）
+// ────────────────────────────────────────
+const SND_DIR='SE.BGM/';      // 音源フォルダ
+const SOUND={                 // 「呼び名 : ファイル名」。使う音だけ書けばOK
+  grab:     'grab.mp3',       // パーツを掴む
+  place:    'place.mp3',      // パーツを置く
+  rotate:   'rotate.mp3',     // パーツを回転
+  hold:     'hold.mp3',       // 保留
+  spin:     'spin.mp3',       // ガチャ回転
+  lock:     'lock.mp3',       // ガチャ確定
+  rare:     'rare.mp3',       // レア
+  'gyaku-rare':'gyaku-rare.mp3', // 逆レア
+  title:    'title.mp3',      // 称号獲得画面
+  complete: 'complete.mp3',   // 物件完成
+  tap:      'tap.mp3',        // ボタン
+  page:     'page.mp3',       // 称号一覧・保存一覧を開く
+};
+const BGM_FILE='ゆったりお散歩.mp3'; // ★BGMはここを差し替えるだけでOK（SE.BGM/内）
+let seVol =parseFloat(localStorage.getItem('madori-se-vol') ??'0.7');
+let bgmVol=parseFloat(localStorage.getItem('madori-bgm-vol')??'0.4');
+if(isNaN(seVol))seVol=0.7; if(isNaN(bgmVol))bgmVol=0.4;
+const _seCache={};
+function playSE(name){
+  if(seVol<=0)return;
+  const f=SOUND[name]; if(!f)return;
+  try{
+    let base=_seCache[name];
+    if(!base){ base=new Audio(encodeURI(SND_DIR+f)); base.preload='auto'; _seCache[name]=base; }
+    const a=base.cloneNode();     // 連打しても重ねて鳴らせる
+    a.volume=seVol;
+    a.play().catch(()=>{});       // ファイルが無い・再生不可なら静かに無視
+  }catch(e){}
+}
+let _bgm=null;
+function startBGM(){
+  if(_bgm||bgmVol<=0)return;
+  try{
+    const a=new Audio(encodeURI(SND_DIR+BGM_FILE));
+    a.loop=true; a.volume=bgmVol;
+    a.onerror=()=>{ if(_bgm===a)_bgm=null; };
+    a.play().then(()=>{}).catch(()=>{ if(_bgm===a)_bgm=null; });
+    _bgm=a;
+  }catch(e){ _bgm=null; }
+}
+function setSeVol(v){
+  seVol=Math.max(0,Math.min(1,v));
+  try{ localStorage.setItem('madori-se-vol',String(seVol)); }catch(e){}
+}
+function setBgmVol(v){
+  bgmVol=Math.max(0,Math.min(1,v));
+  try{ localStorage.setItem('madori-bgm-vol',String(bgmVol)); }catch(e){}
+  if(bgmVol<=0){ if(_bgm){_bgm.pause();_bgm=null;} }
+  else if(_bgm){ _bgm.volume=bgmVol; }
+  else startBGM();
+}
+// ブラウザの自動再生制限：最初のタップでBGMを開始
+document.addEventListener('pointerdown',function _bgmKick(){
+  document.removeEventListener('pointerdown',_bgmKick);
+  startBGM();
+});
+// ボタン共通のタップ音（専用SEがあるボタンは除外）
+document.addEventListener('click',(e)=>{
+  const b=e.target&&e.target.closest?e.target.closest('button'):null;
+  if(!b)return;
+  if(b.classList.contains('btn-rotate-new'))return;              // 回転音が鳴る
+  if(b.id&&b.id.indexOf('reroll-btn')===0)return;                // スピン音が鳴る
+  const oc=b.getAttribute('onclick')||'';
+  if(oc.indexOf('openModal')!==-1)return;                        // ページ音が鳴る
+  playSE('tap');
+},true);
+// 音量設定モーダル
+function openSoundSettings(){
+  let ov=document.getElementById('sound-overlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='sound-overlay';
+    ov.className='modal-overlay';
+    ov.innerHTML=
+      '<div class="modal-box" style="max-width:340px;padding:26px 24px 24px;" onclick="event.stopPropagation()">'+
+      '<button class="modal-close" onclick="closeSoundSettings()">✕</button>'+
+      '<div class="modal-title">♪ 音の設定</div>'+
+      '<div style="margin:18px 0 6px;font-size:13px;color:var(--brown-dark);font-weight:700;">効果音（SE）　<span id="se-vol-label"></span></div>'+
+      '<input id="se-vol-slider" type="range" min="0" max="100" step="5" style="width:100%;accent-color:var(--accent);">'+
+      '<div style="margin:20px 0 6px;font-size:13px;color:var(--brown-dark);font-weight:700;">BGM　<span id="bgm-vol-label"></span></div>'+
+      '<input id="bgm-vol-slider" type="range" min="0" max="100" step="5" style="width:100%;accent-color:var(--accent);">'+
+      '<div style="margin-top:14px;font-size:11px;color:var(--brown-light);">0にすると消音になります</div>'+
+      '</div>';
+    ov.onclick=()=>closeSoundSettings();
+    document.body.appendChild(ov);
+    const se=ov.querySelector('#se-vol-slider');
+    const bg=ov.querySelector('#bgm-vol-slider');
+    const seL=ov.querySelector('#se-vol-label');
+    const bgL=ov.querySelector('#bgm-vol-label');
+    se.oninput=()=>{ setSeVol(se.value/100); seL.textContent=se.value+'%'; };
+    se.onchange=()=>playSE('tap'); // 確認用に1回鳴らす
+    bg.oninput=()=>{ setBgmVol(bg.value/100); bgL.textContent=bg.value+'%'; };
+  }
+  const se=ov.querySelector('#se-vol-slider');
+  const bg=ov.querySelector('#bgm-vol-slider');
+  se.value=Math.round(seVol*100);  ov.querySelector('#se-vol-label').textContent=se.value+'%';
+  bg.value=Math.round(bgmVol*100); ov.querySelector('#bgm-vol-label').textContent=bg.value+'%';
+  ov.classList.add('active');
+}
+function closeSoundSettings(){
+  const ov=document.getElementById('sound-overlay');
+  if(ov)ov.classList.remove('active');
+}
+
 // ────────────────────────────────────────
 // ゲーム風 トースト / 確認ダイアログ
 // ────────────────────────────────────────
@@ -950,6 +1074,12 @@ function showGameAlert(msg){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // 前の画面のスクロール位置を引きずらない（タイトルに戻ると上にズレる問題の対策）
+  try{
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+  }catch(e){}
   const bar=document.getElementById('game-bottom-bar');
   const topBar=document.getElementById('game-top-bar');
   if(id==='screen-game'){
@@ -1011,8 +1141,20 @@ function openNameEdit(mode){
   if(!ov)return;
   const inp=document.getElementById('player-name-input');
   if(inp) inp.value=localStorage.getItem('madori-player-name')||'';
-  const titles=JSON.parse(localStorage.getItem('madori-titles')||'[]');
-  const sel=localStorage.getItem('madori-selected-title')||'';
+  // 改定前の旧称号を一覧から除外（保存データも掃除する）
+  const masterSet=new Set(ALL_TITLES_MASTER.map(m=>m.title));
+  let titles=JSON.parse(localStorage.getItem('madori-titles')||'[]');
+  const cleaned=titles.filter(t=>masterSet.has(t));
+  if(cleaned.length!==titles.length){
+    titles=cleaned;
+    try{ localStorage.setItem('madori-titles',JSON.stringify(cleaned)); }catch(e){}
+  }
+  let sel=localStorage.getItem('madori-selected-title')||'';
+  if(sel&&!masterSet.has(sel)){
+    sel='';
+    try{ localStorage.setItem('madori-selected-title',''); }catch(e){}
+    updateStartProfile();
+  }
   const listEl=document.getElementById('name-edit-title-list');
   if(listEl){
     listEl.innerHTML='';
@@ -1224,6 +1366,7 @@ function updateRerollBtnSlot(idx){
 
 function doRerollSlot(idx){
   if(isRerollUsed(idx))return;
+  playSE('spin');
   rerollDone[idx]=true;  // 再抽選済みフラグ
   const item=document.getElementById('rou-'+idx);
   const valEl=document.getElementById('rou-val-'+idx);
@@ -1269,9 +1412,11 @@ function lockRerollSlot(idx){
   if(isSuperRare(idx,val)){
     document.getElementById('rou-'+idx).classList.add('rare','super-rare');
     fireConfetti(idx);
+    playSE('rare');
   }
-  else if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
-  else if(isInverseRare(idx,val)) document.getElementById('rou-'+idx).classList.add('niche');
+  else if(isRareGacha(idx,val)){ document.getElementById('rou-'+idx).classList.add('rare'); playSE('rare'); }
+  else if(isInverseRare(idx,val)){ document.getElementById('rou-'+idx).classList.add('niche'); playSE('gyaku-rare'); }
+  else playSE('lock');
   // 再抽選後は自スロットのPOPを消す
   const pop2=document.querySelector('#rou-'+idx+' .reroll-pop');
   if(pop2) pop2.classList.remove('visible');
@@ -1341,6 +1486,7 @@ function gotoTitles(){
   persistFlow('screen-titles');
 }
 function gotoResult(){
+  playSE('complete');
   showMadoriBg(false);
   showScreen('screen-result');
   showResult();
@@ -1349,6 +1495,7 @@ function gotoResult(){
 
 // 称号を1つずつ表示するアニメーション
 function showTitlesReveal(){
+  playSE('title');
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
   const rent=rouletteValues[2]??'--';
@@ -1477,8 +1624,9 @@ function renderSavesList(){
     if(s.img){
       thumb=document.createElement('img');
       thumb.src=s.img;
+      thumb.dataset.hid=s.id;
       thumb.style.cssText='display:block;width:100%;max-width:340px;margin:0 auto;border-radius:10px;border:1px solid rgba(90,74,58,.15);cursor:zoom-in;box-shadow:0 2px 10px rgba(58,42,26,.08);';
-      thumb.onclick=()=>showImageZoom(s.img);
+      thumb.onclick=()=>{ const cur=loadHistory().find(x=>x.id===s.id); showImageZoom((cur&&cur.img)||s.img); };
     }else{
       // 旧形式や生成前のフォールバック：テキスト表示
       thumb=document.createElement('div');
@@ -1532,6 +1680,54 @@ function renderSavesList(){
     row.appendChild(info);
     body.appendChild(row);
   });
+  upgradeHistoryCards();
+}
+
+// 旧形式の履歴（間取り図だけの画像）を、現在のシェアカード形式に1件ずつ作り直す
+const _upgradedIds=new Set(); // 同一セッションでの再試行ループ防止
+function upgradeHistoryCards(){
+  const list=loadHistory();
+  const target=list.find(s=>s.img&&s.kind!=='card'&&!_upgradedIds.has(s.id));
+  if(!target)return;
+  _upgradedIds.add(target.id);
+  const finish=(cv)=>{
+    try{
+      const sc=Math.min(1, 520/cv.width);
+      const sm=document.createElement('canvas');
+      sm.width=Math.round(cv.width*sc); sm.height=Math.round(cv.height*sc);
+      const c2=sm.getContext('2d');
+      c2.fillStyle='#f5f0e8'; c2.fillRect(0,0,sm.width,sm.height);
+      c2.imageSmoothingQuality='high';
+      c2.drawImage(cv,0,0,sm.width,sm.height);
+      const data=sm.toDataURL('image/jpeg',0.8);
+      const cur=loadHistory();
+      const i=cur.findIndex(x=>x.id===target.id);
+      if(i!==-1){
+        cur[i].img=data; cur[i].kind='card';
+        saveHistory(cur);
+        // 一覧を開いていればその場で差し替え
+        const el=document.querySelector('img[data-hid="'+target.id+'"]');
+        if(el)el.src=data;
+      }
+    }catch(e){}
+    setTimeout(upgradeHistoryCards,60); // 次の旧エントリへ
+  };
+  const build=(snap)=>{
+    buildPropertyCard({
+      age:target.age, walk:target.walk, rent:target.rent,
+      label:target.labelRaw||target.label||'',
+      equipped:target.equipped||'',
+      titles:target.titles||[],
+      name:(target.propName||'').replace(/^間取りすと：/,''),
+      dateStr:target.date||'',
+      snapshot:snap,
+    }).then(finish).catch(()=>{});
+  };
+  // 旧画像（間取り図）をカード内の間取り部分として再利用
+  const im=new Image();
+  im.onload=()=>build(im);
+  im.onerror=()=>build(null);
+  im.src=target.img;
 }
 
 // ────────────────────────────────────────
@@ -1628,6 +1824,7 @@ const ALL_TITLES_MASTER=[
 ];
 
 function openModal(type){
+  playSE('page');
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
   if(type==='saves'){
@@ -1763,6 +1960,7 @@ const rouletteUnits=['年','分','万円'];
 let rouletteIntervals=[null,null,null];
 let lockedCount=0;
 function startRoulette(){
+  playSE('spin');
   lockedCount=0;
   rerollDone[0]=rerollDone[1]=rerollDone[2]=false;
   for(let i=0;i<3;i++){
@@ -1804,11 +2002,13 @@ function lockRoulette(idx){
   if(isSuperRare(idx,val)){
     document.getElementById('rou-'+idx).classList.add('rare','super-rare');
     fireConfetti(idx);
+    playSE('rare');
   }
   // レア演出（プレミアム）
-  else if(isRareGacha(idx,val)) document.getElementById('rou-'+idx).classList.add('rare');
+  else if(isRareGacha(idx,val)){ document.getElementById('rou-'+idx).classList.add('rare'); playSE('rare'); }
   // 逆レア演出（ニッチ・珍しさ）
-  else if(isInverseRare(idx,val)) document.getElementById('rou-'+idx).classList.add('niche');
+  else if(isInverseRare(idx,val)){ document.getElementById('rou-'+idx).classList.add('niche'); playSE('gyaku-rare'); }
+  else playSE('lock');
   // 次のスロットをアクティブに
   if(idx+1<3) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
   if(++lockedCount===3){
@@ -1962,13 +2162,8 @@ function showResult(){
       }
     }));
   }
-  // 装備称号
+  // 装備称号（画面には出さないが履歴データには残す）
   const equipped=localStorage.getItem('madori-selected-title')||'';
-  const eqEl=document.getElementById('res-equipped-title');
-  if(eqEl){
-    if(equipped){eqEl.textContent=equipped;eqEl.style.display='inline-block';}
-    else{eqEl.style.display='none';}
-  }
   // 物件名（カード画像・履歴用に保持。画面では右下に小さく表示）
   const rawName=(window._playerName||localStorage.getItem('madori-player-name')||'').trim();
   const propName='間取りすと：'+(rawName||'とくめい');
@@ -1989,7 +2184,7 @@ function showResult(){
   const picked=[
     ...allEarned.filter(t=>newTitles.includes(t.title)),
     ...allEarned.filter(t=>!newTitles.includes(t.title)),
-  ].slice(0,3).map(t=>t.title);
+  ].slice(0,2).map(t=>t.title); // タグは最大2つ（1段に収める）
   window._shareTags=picked; // カード画像・シェア文面と共通
   const tagWrap=document.getElementById('res-hashtags');
   if(tagWrap){
@@ -2003,6 +2198,14 @@ function showResult(){
         tagWrap.appendChild(span);
       });
       tagWrap.style.display='flex';
+      // 1段に入りきらないタグは後ろから外す（_shareTagsも実表示に合わせる）
+      requestAnimationFrame(()=>{
+        let guard=6;
+        while(tagWrap.scrollWidth>tagWrap.clientWidth+1 && tagWrap.children.length>1 && guard-->0){
+          tagWrap.removeChild(tagWrap.lastChild);
+          window._shareTags=picked.slice(0,tagWrap.children.length);
+        }
+      });
     } else {
       tagWrap.style.display='none';
     }
@@ -2011,7 +2214,17 @@ function showResult(){
   const popEl=document.getElementById('res-pop');
   if(popEl){
     const top=(window._earnedTitles||[])[0];
-    if(top&&top.pop){ popEl.textContent='＼ '+top.pop+' ／'; popEl.style.display='block'; }
+    if(top&&top.pop){
+      popEl.textContent='＼ '+top.pop+' ／'; popEl.style.display='block';
+      // 1段に収まるまで文字を縮小（最小13px）
+      popEl.style.fontSize='18px';
+      requestAnimationFrame(()=>{
+        let fs=18, guard=8;
+        while(popEl.scrollWidth>popEl.clientWidth+1 && fs>13 && guard-->0){
+          fs--; popEl.style.fontSize=fs+'px';
+        }
+      });
+    }
     else popEl.style.display='none';
   }
   // 間取り図プレビュー（小さめ・高DPI対応でくっきり）
@@ -2019,7 +2232,9 @@ function showResult(){
   if(prevEl&&madoriSnapshot){
     prevEl.innerHTML='';
     const cv=document.createElement('canvas');
-    const maxW=Math.min(300,window.innerWidth-80), maxH=260;
+    // 右カラム（3項目＋メタ）が横に並ぶ分の幅を確保してから間取りサイズを決める
+    const sideRoom=(window.innerWidth<=600)?230:80;
+    const maxW=Math.max(130, Math.min(300, window.innerWidth-sideRoom)), maxH=260;
     const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
     const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
     const dpr=Math.min(3,window.devicePixelRatio||1);
@@ -2034,7 +2249,7 @@ function showResult(){
     name:window._playerName||'とくめい',
     propName, label:roomLabel,
     labelRaw:roomLabel, age, walk, rent,
-    titles:earnedTitles,
+    titles:(window._earnedTitles||[]).map(t=>t.title),
     equipped,
     date:new Date().toLocaleDateString('ja-JP'),
   };
@@ -2054,7 +2269,19 @@ function loadHistory(){
   catch(e){ return []; }
 }
 function saveHistory(list){
-  try{ localStorage.setItem(HISTORY_KEY,JSON.stringify(list)); }catch(e){}
+  try{ localStorage.setItem(HISTORY_KEY,JSON.stringify(list)); return true; }
+  catch(e){
+    // 容量オーバー：古い非お気に入りの画像から順に外して再挑戦
+    try{
+      for(let i=list.length-1;i>=0;i--){
+        if(!list[i].fav&&list[i].img){
+          list[i].img=''; delete list[i].kind;
+          try{ localStorage.setItem(HISTORY_KEY,JSON.stringify(list)); return true; }catch(_){}
+        }
+      }
+    }catch(_){}
+    return false;
+  }
 }
 // 現在の完成物件を履歴へ自動保存。古い非お気に入りから削除して最大30件。
 function autoSaveToHistory(){
@@ -2103,7 +2330,7 @@ function autoSaveToHistory(){
       const data=sm.toDataURL('image/jpeg',0.8);
       const cur=loadHistory();
       const i=cur.findIndex(x=>x.id===entry.id);
-      if(i!==-1){ cur[i].img=data; saveHistory(cur); }
+      if(i!==-1){ cur[i].img=data; cur[i].kind='card'; saveHistory(cur); }
     }).catch(()=>{});
   }catch(e){}
 }
@@ -2186,15 +2413,29 @@ function titleToHashtag(t){
   return '#'+String(t).replace(/[\s　・！!？?]/g,'');
 }
 // カードを1枚のcanvasに描画して返す（Promise<canvas>）
-function buildPropertyCard(){
+function buildPropertyCard(opt){
+  opt=opt||{};
   return new Promise((resolve)=>{
     const r=window._lastResult||{};
-    const equipped=localStorage.getItem('madori-selected-title')||'';
-    const rawName=(window._playerName||localStorage.getItem('madori-player-name')||'').trim();
+    const rawName=(opt.name!==undefined)?String(opt.name||'').trim():((window._playerName||localStorage.getItem('madori-player-name')||'').trim());
     const propName='間取りすと：'+(rawName||'とくめい');
-    const earned=(window._earnedTitles||[]).map(t=>t.title);
-    const tags=(window._shareTags||earned.slice(0,3)).map(titleToHashtag);
-    const pop=((window._earnedTitles||[])[0]||{}).pop||'';
+    // 称号タグ：opt指定 > シェア用選抜 > 獲得称号（文字列/オブジェクト両対応）
+    const _titleNames=(arr)=>(arr||[]).map(t=>typeof t==='string'?t:(t&&t.title)||'').filter(Boolean);
+    const earned=opt.titles?_titleNames(opt.titles):_titleNames(window._earnedTitles);
+    const tags=(opt.titles?earned.slice(0,3):(window._shareTags||earned.slice(0,3))).map(titleToHashtag);
+    const newTagSet=new Set((opt.titles?[]:(window._newTitles||[])).map(titleToHashtag));
+    let pop=(opt.titles?'':(((window._earnedTitles||[])[0]||{}).pop||''));
+    if(opt.titles&&earned[0]){
+      const m=ALL_TITLES_MASTER.find(x=>x.title===earned[0]);
+      if(m&&m.pop)pop=m.pop;
+    }
+    // スペック値：結果 > ガチャ確定値 > '--'
+    const _rv=(typeof rouletteValues!=='undefined')?rouletteValues:[null,null,null];
+    const vAge =(opt.age !==undefined)?opt.age :(r.age ??_rv[0]??'--');
+    const vWalk=(opt.walk!==undefined)?opt.walk:(r.walk??_rv[1]??'--');
+    const vRent=(opt.rent!==undefined)?opt.rent:(r.rent??_rv[2]??'--');
+    const cardLabel=(opt.label!==undefined)?opt.label:(r.label||'');
+    const snapshot=(opt.snapshot!==undefined)?opt.snapshot:madoriSnapshot;
 
     const dpr=Math.min(window.devicePixelRatio||1,2);
     const W=720;
@@ -2202,36 +2443,35 @@ function buildPropertyCard(){
     const SIDE_W=200; // 右カラム（物件情報3点）幅
     // 間取り画像サイズ（右カラムの分を空けて左側に収める）
     let madoriW=0, madoriH=0;
-    if(madoriSnapshot){
+    const snapW=snapshot?(snapshot.width||snapshot.naturalWidth||0):0;
+    const snapH=snapshot?(snapshot.height||snapshot.naturalHeight||0):0;
+    if(snapshot&&snapW>0&&snapH>0){
       const maxMW=W-PADX*2-SIDE_W-26, maxMH=430;
-      const sc=Math.min(maxMW/madoriSnapshot.width, maxMH/madoriSnapshot.height);
-      madoriW=Math.round(madoriSnapshot.width*sc);
-      madoriH=Math.round(madoriSnapshot.height*sc);
+      const sc=Math.min(maxMW/snapW, maxMH/snapH);
+      madoriW=Math.round(snapW*sc);
+      madoriH=Math.round(snapH*sc);
     }
 
     // ── 高さを順に積み上げて算出（崩れ防止） ──
-    // 一時contextでタグ行数を測る
+    // タグは必ず1段：入りきらなければ文字を縮小→それでも溢れたら末尾を落とす
     const tmp=document.createElement('canvas').getContext('2d');
-    tmp.font="500 22px 'Noto Sans JP',sans-serif";
     const tagMaxW=W-PADX*2;
-    let tagLines=[];
-    if(tags.length){
-      let line='';
-      tags.forEach(tag=>{
-        const test=line?line+'　'+tag:tag;
-        if(tmp.measureText(test).width>tagMaxW && line){ tagLines.push(line); line=tag; }
-        else line=test;
-      });
-      if(line)tagLines.push(line);
+    const TAG_PAD=16, TAG_GAP=10; // ピル内左右余白／ピル間
+    let tagFont=22, tagList=tags.slice();
+    const _tagsWidth=(list,fs)=>{
+      tmp.font='500 '+fs+"px 'Noto Sans JP',sans-serif";
+      return list.reduce((s,t)=>s+tmp.measureText(t).width+TAG_PAD*2,0)+Math.max(0,list.length-1)*TAG_GAP;
+    };
+    while(tagList.length&&_tagsWidth(tagList,tagFont)>tagMaxW){
+      if(tagFont>16){tagFont--;continue;}
+      tagList.pop(); // 最小サイズでも溢れる→数を減らす（1段死守）
     }
 
     const NOTE_H=40;            // ゲーム画面注記バー
     const BAND_H=72;
     let y=NOTE_H+BAND_H+28;     // 注記バー＋帯の下から開始
-    const yPop=y; if(pop) y+=56; // 最レア称号POP
-    const yEquip=y;
-    if(equipped) y+=54;        // 装備称号
-    const yTags=y; if(tagLines.length) y+=tagLines.length*34+10; // ハッシュタグ
+    const yPop=y; if(pop) y+=52; // 最レア称号POP（装備称号の段は廃止）
+    const yTags=y; if(tagList.length) y+=44+8; // ハッシュタグ（必ず1段・ピル型）
     const yLabel=y; y+=58;     // 間取りラベル
     // メイン行：左＝間取り図（白枠込み）、右＝スペック縦3点＋公開日＋名前
     const sideH=3*92+2*10+14+58; // スペック3箱＋間隔＋メタ2行
@@ -2262,52 +2502,58 @@ function buildPropertyCard(){
     ctx.fillStyle='#f5f0e8';
     ctx.font="bold 30px 'Noto Serif JP',serif";
     ctx.fillText('賃 貸 物 件 情 報', W/2, 12+NOTE_H+BAND_H/2);
-    // 最レア称号POP
+    // 最レア称号POP（必ず1段：入りきらなければ文字を縮小）
     if(pop){
-      ctx.font="bold 27px 'Noto Serif JP',serif";
+      let pfs=27;
+      const popText='＼ '+pop+' ／';
+      ctx.font='bold '+pfs+"px 'Noto Serif JP',serif";
+      while(ctx.measureText(popText).width>W-PADX*2 && pfs>16){
+        pfs--; ctx.font='bold '+pfs+"px 'Noto Serif JP',serif";
+      }
       ctx.fillStyle='#b03a2e';
-      ctx.fillText('＼ '+pop+' ／', W/2, yPop+22);
+      ctx.fillText(popText, W/2, yPop+22);
     }
-
-    // 装備称号
-    if(equipped){
-      ctx.font="bold 22px 'Noto Serif JP',serif";
-      const tw=ctx.measureText(equipped).width;
-      const bw=tw+44, bx=(W-bw)/2;
-      ctx.fillStyle='#c8a060';
-      _roundRect(ctx,bx,yEquip,bw,40,20); ctx.fill();
-      ctx.fillStyle='#fff';
-      ctx.fillText(equipped, W/2, yEquip+20);
-    }
-    // ハッシュタグ（説明タグ風）
-    if(tagLines.length){
-      ctx.fillStyle='#6a8a50';
-      ctx.font="500 22px 'Noto Sans JP',sans-serif";
-      tagLines.forEach((ln,i)=>{ ctx.fillText(ln, W/2, yTags+16+i*34); });
+    // ハッシュタグ（画面と同じピル型・必ず1段）
+    if(tagList.length){
+      ctx.font='500 '+tagFont+"px 'Noto Sans JP',sans-serif";
+      const totalW=_tagsWidth(tagList,tagFont);
+      let tx=(W-totalW)/2;
+      const pillH=Math.round(tagFont*1.7);
+      const pillY=yTags+16-pillH/2+6;
+      tagList.forEach(tag=>{
+        const tw=ctx.measureText(tag).width;
+        const pw=tw+TAG_PAD*2;
+        const isNew=newTagSet.has(tag);
+        ctx.fillStyle=isNew?'#6a8a50':'rgba(106,138,80,.13)';
+        _roundRect(ctx,tx,pillY,pw,pillH,pillH/2); ctx.fill();
+        ctx.fillStyle=isNew?'#ffffff':'#6a8a50';
+        ctx.fillText(tag, tx+pw/2, pillY+pillH/2+1);
+        tx+=pw+TAG_GAP;
+      });
     }
     // 間取りラベル
     ctx.fillStyle='#8a7060';
     ctx.font="bold 30px 'Noto Serif JP',serif";
-    ctx.fillText(r.label||'', W/2, yLabel+22);
+    ctx.fillText(cardLabel||'', W/2, yLabel+22);
 
     // メイン行：間取り図＋右カラムをひとかたまりで中央寄せ（間延び防止）
     const GAPX=18;
     const groupW=(madoriW>0?(madoriW+20)+GAPX:0)+SIDE_W;
     const gx=Math.round((W-groupW)/2);
     const sideX=gx+(madoriW>0?(madoriW+20)+GAPX:0);
-    if(madoriSnapshot && madoriW>0){
+    if(snapshot && madoriW>0){
       const mx=gx+10, my=yRow+Math.max(0,(rowH-(madoriH+20))/2)+10;
       ctx.fillStyle='#fff';
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.fill();
       ctx.strokeStyle='rgba(90,74,58,.15)'; ctx.lineWidth=1;
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.stroke();
-      ctx.drawImage(madoriSnapshot, mx, my, madoriW, madoriH);
+      ctx.drawImage(snapshot, mx, my, madoriW, madoriH);
     }
     // メイン行：右＝スペック縦3点（ガチャ準拠のレア色）＋公開日＋名前
     const specs=[
-      {label:'築年数', val:String(r.age??'--'), unit:'年',  idx:0},
-      {label:'駅徒歩', val:String(r.walk??'--'), unit:'分',  idx:1},
-      {label:'家　賃', val:String(r.rent??'--'), unit:'万円', idx:2},
+      {label:'築年数', val:String(vAge), unit:'年',  idx:0},
+      {label:'駅徒歩', val:String(vWalk), unit:'分',  idx:1},
+      {label:'家　賃', val:String(vRent), unit:'万円', idx:2},
     ];
     const BOXH=92, BGAP=10;
     const rareFill=(kind)=>{
@@ -2360,8 +2606,11 @@ function buildPropertyCard(){
     });
     // 公開日と間取りすと名（スペックの下）
     const metaY=yRow+3*BOXH+2*BGAP+18;
-    const _d=new Date();
-    const dateStr=_d.getFullYear()+'/'+String(_d.getMonth()+1).padStart(2,'0')+'/'+String(_d.getDate()).padStart(2,'0');
+    let dateStr=opt.dateStr;
+    if(!dateStr){
+      const _d=new Date();
+      dateStr=_d.getFullYear()+'/'+String(_d.getMonth()+1).padStart(2,'0')+'/'+String(_d.getDate()).padStart(2,'0');
+    }
     ctx.save();
     ctx.textAlign='left';
     ctx.fillStyle='#5a4a3a';
@@ -2917,6 +3166,7 @@ class PuzzleGame extends Phaser.Scene{
       // 枠(wrap)からは、配置検討中(プレビュー表示中)は再取得しない
       // 土地(canvas)からは、プレビューを掴んで動かせるので許可
       if(this._previewActive&&!fromCanvas)return;
+      playSE('grab');
       this._dragging=true;
       this._justDropped=false;
       const g=toGame(cx,cy);
@@ -3247,6 +3497,7 @@ class PuzzleGame extends Phaser.Scene{
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
+    playSE('rotate');
     this.rotation=(this.rotation+dir+4)%4;
     const newShape=this.getShape(this.currentDef,this.rotation);
     // アンカー（補正前の希望位置）から毎回算出 → 端での押し戻しが累積しない
@@ -3267,6 +3518,7 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.currentDef)return;
     // 完成後は交換不可
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    playSE('hold');
     if(this.holdDef){[this.holdDef,this.currentDef]=[this.currentDef,this.holdDef];}
     else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
     this.rotation=0; this.holdUsed=false;
@@ -3457,6 +3709,7 @@ class PuzzleGame extends Phaser.Scene{
     return true;
   }
   placePiece(def,shape,c,r){
+    playSE('place');
     this.undoStack.push({
       grid:this.grid.map(row=>row.map(cell=>cell?{...cell}:null)),
       currentDef:def,rotation:this.rotation,queue:this.queue.slice(),
