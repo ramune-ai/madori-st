@@ -89,7 +89,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #game-menu button{display:block;width:100%;background:none;border:none;padding:12px 16px;font-size:14px;color:var(--brown-dark);text-align:left;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:.04em;}
 #game-menu button:hover{background:rgba(200,160,96,.12);}
 /* スタート画面プロフィールカード */
-.start-profile{margin:14px auto 4px;background:#fff;border:1px solid rgba(90,74,58,.18);border-radius:12px;padding:10px 18px 8px;cursor:pointer;max-width:300px;animation:fadeDown .6s ease both;box-shadow:0 2px 10px rgba(58,42,26,.06);}
+.start-profile{margin:8px auto 30px;background:#fff;border:1px solid rgba(90,74,58,.18);border-radius:12px;padding:11px 16px;max-width:300px;animation:fadeDown .6s ease both;box-shadow:0 2px 10px rgba(58,42,26,.06);}
+.sp-cap{font-size:10px;color:var(--brown-light);letter-spacing:.1em;}
+.sp-sep{height:1px;background:rgba(90,74,58,.12);margin:8px 0;}
+.sp-row{cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .sp-row{display:flex;align-items:center;gap:10px;justify-content:center;}
 .sp-ico{font-size:22px;}
 .sp-main{text-align:left;min-width:110px;}
@@ -99,9 +102,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .sp-hint{font-size:11px;color:var(--brown-light);margin-top:5px;text-align:center;letter-spacing:.03em;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
-.pc-item{display:flex;align-items:center;gap:3px;white-space:nowrap;}
-.pc-name{color:var(--brown-light);font-size:9px;min-width:3em;}
-.pc-count{color:var(--brown-dark);font-weight:700;font-size:11px;min-width:1.4em;text-align:right;}
+.pc-item{display:flex;align-items:baseline;gap:4px;white-space:nowrap;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 9px;}
+.pc-name{color:var(--brown-dark);font-size:12px;letter-spacing:.02em;}
+.pc-count{color:var(--brown-dark);font-weight:700;font-size:15px;font-family:'Noto Serif JP',serif;}
+.pc-unit{color:var(--brown-light);font-size:10px;}
+.pc-item.pc-storage{background:rgba(200,160,96,.18);border-color:rgba(200,160,96,.5);}
 /* ナビボタン */
 #game-nav-btns{display:flex;gap:5px;flex-shrink:0;}
 .btn-nav{background:none;border:1px solid rgba(90,74,58,.2);color:var(--brown-light);
@@ -370,7 +375,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.06em;
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
-.res-hashtags{
+.res-hashtags{flex-wrap:nowrap;overflow:hidden;justify-content:center;
   display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;
 }
 .res-hashtag{
@@ -399,6 +404,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .rsv-val.niche{background:linear-gradient(135deg,#7a5fa8,#b9a3d9,#8c6fb5,#b9a3d9);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShine 2.4s linear infinite;}
 .rsv-val.super{background:linear-gradient(90deg,#ff3b3b,#ff9d00,#ffe600,#3bd16f,#3b8bff,#9b3bff,#ff3bd1,#ff3b3b);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbowFlow 2.2s linear infinite;}
 .rsv-val.rare .rsv-unit,.rsv-val.niche .rsv-unit,.rsv-val.super .rsv-unit{-webkit-text-fill-color:#6a5a4a;}
+/* シェア画面ではアニメせず、いちばん発色のよい位置で固定 */
+.rsv-val.rare,.rsv-val.niche{animation:none;background-position:40% center;}
+.rsv-val.super{animation:none;background-position:18% center;}
+/* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
+#screen-titles{overflow-y:auto;}
+#title-reveal-list{padding-bottom:150px;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:2px 2px 0;}
 .res-promo{margin-top:12px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
@@ -580,17 +591,25 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <div class="logo-title">間取りすと</div>
     <div class="logo-sub">MADORI-ST</div>
   </div>
-  <!-- プロフィール（名前＋表示称号）。タップで編集 -->
-  <div id="start-profile" class="start-profile" onclick="openNameEdit()" title="タップで名前と称号を設定">
-    <div class="sp-row">
+  <!-- プロフィール：名前と称号をそれぞれ編集 -->
+  <div id="start-profile" class="start-profile">
+    <div class="sp-row" onclick="openNameEdit('name')" title="名前を編集">
       <span class="sp-ico">👤</span>
       <div class="sp-main">
-        <div id="start-profile-title" class="sp-title"></div>
+        <div class="sp-cap">マドリスト名</div>
         <div class="sp-name"><span id="start-name-text">名前未設定</span></div>
       </div>
       <span class="sp-edit">✎ 編集</span>
     </div>
-    <div class="sp-hint">マドリスト名と表示称号を設定できます</div>
+    <div class="sp-sep"></div>
+    <div class="sp-row" onclick="openNameEdit('title')" title="表示称号を変更">
+      <span class="sp-ico">🏅</span>
+      <div class="sp-main">
+        <div class="sp-cap">表示称号</div>
+        <div class="sp-name"><span id="start-profile-title">なし</span></div>
+      </div>
+      <span class="sp-edit">✎ 変更</span>
+    </div>
   </div>
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <div class="start-sub-btns">
@@ -603,11 +622,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 <div class="modal-overlay" id="name-edit-overlay" onclick="closeNameEdit(event)">
   <div class="modal-box" style="max-height:auto;padding:28px 28px 24px;">
     <button class="modal-close" onclick="closeNameEdit()">✕</button>
-    <div class="modal-title">マドリスト名を設定</div>
+    <div class="modal-title" id="name-edit-modal-title">マドリスト名を設定</div>
     <input id="player-name-input" type="text" maxlength="12" placeholder="名前を入力（最大12文字）"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
-    <div style="font-size:11px;color:var(--brown-light);margin-bottom:16px;">称号を選んで名前の上に表示できます</div>
+    <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:16px;">称号を選んで名前と一緒に表示できます</div>
     <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
     <button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:13px 0;border:none;border-radius:4px;cursor:pointer;">決　定</button>
   </div>
@@ -626,6 +645,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
+          <button onclick="toggleGameMenu();if(gameScene)gameScene.forceComplete()">🏁　ここで完成にする</button>
           <button onclick="toggleGameMenu();gotoGame()">↻　リトライ</button>
           <button onclick="toggleGameMenu();gotoStart()">🏠　タイトルへ</button>
         </div>
@@ -677,12 +697,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
     <!-- 中央：回転ユニット -->
     <div id="rotate-unit">
       <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" title="左回転（Z）">
-        <span class="rot-icon">↺</span>
+        <span class="rot-icon"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 A 8 8 0 0 0 4 12"/><polyline points="1.5,9.5 4,12.6 7,10"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4" stroke-width="1.8" opacity=".55"/></svg></span>
         <span class="rot-label">左回転</span>
       </button>
       <div id="rotate-divider"></div>
       <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="右回転（X / 右クリック）">
-        <span class="rot-icon">↻</span>
+        <span class="rot-icon"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 A 8 8 0 0 1 20 12"/><polyline points="22.5,9.5 20,12.6 17,10"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4" stroke-width="1.8" opacity=".55"/></svg></span>
         <span class="rot-label">右回転</span>
       </button>
     </div>
@@ -982,10 +1002,11 @@ function updateStartProfile(){
   const nameEl=document.getElementById('start-name-text');
   const titleEl=document.getElementById('start-profile-title');
   if(nameEl) nameEl.textContent=name||'名前未設定';
-  if(titleEl) titleEl.textContent=titleSel;
+  if(titleEl) titleEl.textContent=titleSel||'なし';
   window._playerName=name;
 }
-function openNameEdit(){
+function openNameEdit(mode){
+  window._nameEditMode=mode||'both';
   const ov=document.getElementById('name-edit-overlay');
   if(!ov)return;
   const inp=document.getElementById('player-name-input');
@@ -1010,6 +1031,15 @@ function openNameEdit(){
       listEl.appendChild(btn);
     });
   }
+  // モードによる出し分け（name=名前のみ／title=称号のみ）
+  const emode=mode||'both';
+  const mt=document.getElementById('name-edit-modal-title');
+  const hint=document.getElementById('name-edit-hint');
+  const list2=document.getElementById('name-edit-title-list');
+  if(inp) inp.style.display=(emode==='title')?'none':'';
+  if(hint) hint.style.display=(emode==='name')?'none':'';
+  if(list2) list2.style.display=(emode==='name')?'none':'flex';
+  if(mt) mt.textContent=(emode==='title')?'表示称号を変更':(emode==='name')?'マドリスト名を編集':'マドリスト名を設定';
   ov.classList.add('active');
 }
 function selectTitleChip(val){
@@ -1441,26 +1471,31 @@ function renderSavesList(){
   body.innerHTML=`<div style="font-size:11px;color:var(--brown-light);margin-bottom:12px;letter-spacing:.04em;">完成した物件を自動保存（最新30件）　★お気に入り：${favCount}件（解除するまで自動削除されません）</div>`;
   list.forEach((s)=>{
     const row=document.createElement('div');
-    row.style.cssText='display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(90,74,58,.1);';
-    // サムネイル（タップで拡大）
-    const thumb=document.createElement(s.img?'img':'div');
-    thumb.style.cssText='width:118px;height:92px;object-fit:contain;border-radius:8px;border:1px solid rgba(90,74,58,.12);flex-shrink:0;background:#f5f0e8;'+(s.img?'cursor:zoom-in;':'');
+    row.style.cssText='padding:14px 0 12px;border-bottom:1px solid rgba(90,74,58,.12);';
+    // カード画像（タップで拡大）。1件＝この1枚に全情報入り
+    let thumb;
     if(s.img){
+      thumb=document.createElement('img');
       thumb.src=s.img;
+      thumb.style.cssText='display:block;width:100%;max-width:340px;margin:0 auto;border-radius:10px;border:1px solid rgba(90,74,58,.15);cursor:zoom-in;box-shadow:0 2px 10px rgba(58,42,26,.08);';
       thumb.onclick=()=>showImageZoom(s.img);
+    }else{
+      // 旧形式や生成前のフォールバック：テキスト表示
+      thumb=document.createElement('div');
+      thumb.style.cssText='text-align:center;padding:14px;background:#fff;border-radius:10px;border:1px solid rgba(90,74,58,.12);';
+      thumb.innerHTML=`<div style="font-family:'Noto Serif JP',serif;font-size:14px;color:var(--brown-dark);font-weight:700;">${s.labelRaw||s.label||'--'}</div>
+        <div style="font-size:11px;color:var(--brown-light);margin-top:3px;">築${s.age??'--'}年　駅${s.walk??'--'}分　${s.rent??'--'}万円</div>`;
     }
-    // 情報
+    // 下段：日付＋ボタン
     const info=document.createElement('div');
-    info.style.cssText='flex:1;min-width:0;';
-    const tagsHtml=(s.titles&&s.titles.length)
-      ? `<div style="font-size:10px;color:#6a8a50;margin-top:3px;">${s.titles.map(t=>titleToHashtag(t)).join(' ')}</div>` : '';
-    info.innerHTML=`
-      <div style="font-family:'Noto Serif JP',serif;font-size:13px;color:var(--brown-dark);font-weight:700;margin-bottom:2px;">${s.propName||'間取りすと：とくめい'}</div>
-      <div style="font-family:'Noto Serif JP',serif;font-size:15px;color:var(--brown-dark);font-weight:700;margin-bottom:3px;">${s.labelRaw||s.label||'--'}</div>
-      <div style="font-size:11px;color:var(--brown-light);letter-spacing:.04em;">築${s.age??'--'}年　駅${s.walk??'--'}分　${s.rent??'--'}万円</div>
-      <div style="font-size:10px;color:var(--brown-light);margin-top:2px;opacity:.7;">${s.date||''}</div>
-      ${tagsHtml}
-    `;
+    info.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:340px;margin:7px auto 0;';
+    const dateEl=document.createElement('div');
+    dateEl.style.cssText='font-size:11px;color:var(--brown-light);letter-spacing:.04em;';
+    dateEl.textContent=s.date||'';
+    info.appendChild(dateEl);
+    const btnWrap=document.createElement('div');
+    btnWrap.style.cssText='display:flex;gap:6px;align-items:center;';
+    info.appendChild(btnWrap);
     // お気に入りボタン
     const favBtn=document.createElement('button');
     favBtn.textContent=s.fav?'★':'☆';
@@ -1491,10 +1526,10 @@ function renderSavesList(){
       saveHistory(cur.filter(x=>x.id!==s.id));
       renderSavesList();
     };
+    btnWrap.appendChild(favBtn);
+    btnWrap.appendChild(delBtn);
     row.appendChild(thumb);
     row.appendChild(info);
-    row.appendChild(favBtn);
-    row.appendChild(delBtn);
     body.appendChild(row);
   });
 }
@@ -1546,11 +1581,11 @@ const ALL_TITLES_MASTER=[
   {title:'伝説の間取りすと', badge:'🌈', rar:1, condition:'築（0〜5年または40年以上）・駅徒歩（0〜5分または30分以上）・家賃（5〜9万円または50万円以上）をすべて満たす',
     pop:'これが伝説の間取りです…！', check:x=>rareAge(x.age)&&rareWalk(x.walk)&&rareRent(x.rent)},
   // ══ パーツ配置面・単独 ══
-  {title:'洋室はおあずけ', badge:'🛋️', rar:4, condition:'洋室0個（和室はあり）で完成',
+  {title:'洋室はおあずけ', badge:'🛋️', rar:4, condition:'洋室0個で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
   {title:'フローリング王国', badge:'🪵', rar:4, condition:'洋室4個以上',
     pop:'フローリング好き、集まれ！', check:x=>x.n.youshitsu>=4},
-  {title:'畳はおあずけ', badge:'🪑', rar:4, condition:'和室0個（洋室はあり）で完成',
+  {title:'畳はおあずけ', badge:'🪑', rar:4, condition:'和室0個で完成',
     pop:'畳なし物件、あります！', check:x=>x.n.washitsu===0&&x.n.youshitsu>0},
   {title:'サザエさん家', badge:'🐟', rar:4, condition:'和室4個以上',
     pop:'大きな茶の間に憧れる人へ！', check:x=>x.n.washitsu>=4},
@@ -1558,11 +1593,11 @@ const ALL_TITLES_MASTER=[
     pop:'都会派なあなたへ！', check:x=>x.n.balcony===0},
   {title:'園芸師', badge:'🪴', rar:4, condition:'バルコニー4個以上',
     pop:'植物と暮らしたい人、必見！', check:x=>x.n.balcony>=4},
-  {title:'銭湯派', badge:'♨️', rar:4, condition:'お風呂0個（トイレはあり）で完成',
+  {title:'銭湯派', badge:'♨️', rar:4, condition:'お風呂0個で完成',
     pop:'銭湯めぐりが好きな人へ！', check:x=>x.n.bath===0&&x.n.toilet>0},
   {title:'圧倒的清潔感', badge:'🛁', rar:4, condition:'お風呂4個以上',
     pop:'いつでもピカピカでいたい人へ！', check:x=>x.n.bath>=4},
-  {title:'コンビニトイレの常連', badge:'🏪', rar:4, condition:'トイレ0個（お風呂はあり）で完成',
+  {title:'コンビニトイレの常連', badge:'🏪', rar:4, condition:'トイレ0個で完成',
     pop:'おおらかに暮らしたい人へ！', check:x=>x.n.toilet===0&&x.n.bath>0},
   {title:'1秒も待てない', badge:'🚽', rar:4, condition:'トイレ4個以上',
     pop:'順番待ちにサヨナラしたい人へ！', check:x=>x.n.toilet>=4},
@@ -1708,9 +1743,10 @@ function updateTitlesNewBadge(){
   const el=document.getElementById('titles-new-pop');
   if(!el)return;
   try{
+    const masterSet=new Set(ALL_TITLES_MASTER.map(m=>m.title));
     const owned=JSON.parse(localStorage.getItem('madori-titles')||'[]');
     const seen=new Set(JSON.parse(localStorage.getItem('madori-titles-seen')||'[]'));
-    el.style.display=owned.some(t=>!seen.has(t))?'inline-block':'none';
+    el.style.display=owned.some(t=>masterSet.has(t)&&!seen.has(t))?'inline-block':'none';
   }catch(e){ el.style.display='none'; }
 }
 function closeModal(e){
@@ -1947,14 +1983,19 @@ function showResult(){
     const sub=ldkMatch?ldkMatch[2]:'';
     heroEl.innerHTML=main+(sub?`<span style="font-size:22px;color:var(--brown-dark);letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
   }
-  // ハッシュタグ（称号→#タグ。物件説明一言タグ風に上部表示）
+  // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
   const newTitles=window._newTitles||[];
-  const earnedTitles=(window._earnedTitles||[]).map(t=>t.title);
+  const allEarned=window._earnedTitles||[]; // 既にレア度順
+  const picked=[
+    ...allEarned.filter(t=>newTitles.includes(t.title)),
+    ...allEarned.filter(t=>!newTitles.includes(t.title)),
+  ].slice(0,3).map(t=>t.title);
+  window._shareTags=picked; // カード画像・シェア文面と共通
   const tagWrap=document.getElementById('res-hashtags');
   if(tagWrap){
     tagWrap.innerHTML='';
-    if(earnedTitles.length>0){
-      earnedTitles.forEach(t=>{
+    if(picked.length>0){
+      picked.forEach(t=>{
         const isNew=newTitles.includes(t);
         const span=document.createElement('span');
         span.className='res-hashtag'+(isNew?' new':'');
@@ -2027,22 +2068,8 @@ function autoSaveToHistory(){
       return;
     }
   }
-  let img='';
-  if(madoriSnapshot){
-    try{
-      const cv=document.createElement('canvas');
-      // 拡大表示に耐える解像度で保存（JPEG圧縮で容量は抑える）
-      const sc=Math.min(1, 720/madoriSnapshot.width, 640/madoriSnapshot.height);
-      cv.width=Math.round(madoriSnapshot.width*sc);
-      cv.height=Math.round(madoriSnapshot.height*sc);
-      const ctx=cv.getContext('2d');
-      ctx.fillStyle='#f5f0e8';            // 透過部分がJPEGで黒くならないよう下地を塗る
-      ctx.fillRect(0,0,cv.width,cv.height);
-      ctx.imageSmoothingQuality='high';
-      ctx.drawImage(madoriSnapshot,0,0,cv.width,cv.height);
-      img=cv.toDataURL('image/jpeg',0.85);
-    }catch(e){}
-  }
+  // 画像はシェアカード（物件情報カード）を非同期生成して後から差し込む
+  const img='';
   const entry={
     id:'m'+Date.now(),
     propName:r.propName||'間取りすと：とくめい',
@@ -2063,6 +2090,22 @@ function autoSaveToHistory(){
   const keepIds=new Set([...favs.map(e=>e.id), ...keepNonfav.map(e=>e.id)]);
   list=list.filter(e=>keepIds.has(e.id));
   saveHistory(list);
+  // シェアカード画像を生成して、この履歴に差し込む（容量節約のため幅520pxのJPEG）
+  try{
+    buildPropertyCard().then(cv=>{
+      const sc=Math.min(1, 520/cv.width);
+      const sm=document.createElement('canvas');
+      sm.width=Math.round(cv.width*sc); sm.height=Math.round(cv.height*sc);
+      const c2=sm.getContext('2d');
+      c2.fillStyle='#f5f0e8'; c2.fillRect(0,0,sm.width,sm.height);
+      c2.imageSmoothingQuality='high';
+      c2.drawImage(cv,0,0,sm.width,sm.height);
+      const data=sm.toDataURL('image/jpeg',0.8);
+      const cur=loadHistory();
+      const i=cur.findIndex(x=>x.id===entry.id);
+      if(i!==-1){ cur[i].img=data; saveHistory(cur); }
+    }).catch(()=>{});
+  }catch(e){}
 }
 function refreshFavButton(){
   const btn=document.getElementById('res-fav-btn');
@@ -2090,7 +2133,7 @@ async function saveAndShare(){
   if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
   const cv=await buildPropertyCard();
   const r=window._lastResult||{};
-  const tags=(r.titles||[]).map(titleToHashtag);
+  const tags=(window._shareTags||(r.titles||[]).slice(0,3)).map(titleToHashtag);
   // シェア文面：固定文＋間取り＋固定タグ＋称号タグ
   const titleTags=tags.join(' ');
   const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #madori_st #間取りゲーム'+(titleTags?' '+titleTags:'');
@@ -2150,7 +2193,7 @@ function buildPropertyCard(){
     const rawName=(window._playerName||localStorage.getItem('madori-player-name')||'').trim();
     const propName='間取りすと：'+(rawName||'とくめい');
     const earned=(window._earnedTitles||[]).map(t=>t.title);
-    const tags=earned.map(titleToHashtag);
+    const tags=(window._shareTags||earned.slice(0,3)).map(titleToHashtag);
     const pop=((window._earnedTitles||[])[0]||{}).pop||'';
 
     const dpr=Math.min(window.devicePixelRatio||1,2);
@@ -2247,9 +2290,13 @@ function buildPropertyCard(){
     ctx.font="bold 30px 'Noto Serif JP',serif";
     ctx.fillText(r.label||'', W/2, yLabel+22);
 
-    // メイン行：左＝間取り画像
+    // メイン行：間取り図＋右カラムをひとかたまりで中央寄せ（間延び防止）
+    const GAPX=18;
+    const groupW=(madoriW>0?(madoriW+20)+GAPX:0)+SIDE_W;
+    const gx=Math.round((W-groupW)/2);
+    const sideX=gx+(madoriW>0?(madoriW+20)+GAPX:0);
     if(madoriSnapshot && madoriW>0){
-      const mx=PADX, my=yRow+Math.max(0,(rowH-(madoriH+20))/2)+10;
+      const mx=gx+10, my=yRow+Math.max(0,(rowH-(madoriH+20))/2)+10;
       ctx.fillStyle='#fff';
       _roundRect(ctx,mx-10,my-10,madoriW+20,madoriH+20,12); ctx.fill();
       ctx.strokeStyle='rgba(90,74,58,.15)'; ctx.lineWidth=1;
@@ -2257,7 +2304,6 @@ function buildPropertyCard(){
       ctx.drawImage(madoriSnapshot, mx, my, madoriW, madoriH);
     }
     // メイン行：右＝スペック縦3点（ガチャ準拠のレア色）＋公開日＋名前
-    const sideX=W-PADX-SIDE_W;
     const specs=[
       {label:'築年数', val:String(r.age??'--'), unit:'年',  idx:0},
       {label:'駅徒歩', val:String(r.walk??'--'), unit:'分',  idx:1},
@@ -2575,6 +2621,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     this._storageGfx=null;
     this._storageTexts=[];
+    this._endStorage=null;
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
     this.boardImgs={};
     this.boardLabels={};
@@ -3254,6 +3301,7 @@ class PuzzleGame extends Phaser.Scene{
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
     document.getElementById('btn-complete-overlay').classList.remove('visible');
+    this._endStorage=null;
     this.checkNoPlace();
     this._persist();
   }
@@ -3314,7 +3362,7 @@ class PuzzleGame extends Phaser.Scene{
     if(labelText){
       const labelFs=this._labelFontSize(pw,ph);
       const lbl=this.add.text(px+pw/2, py+ph/2, labelText,
-        this._labelStyle(labelFs, cell.fixed?'#604010':'#2a1a0a', pw));
+        this._labelStyle(labelFs, cell.fixed?'#604010':'#6a4e2e', pw));
       lbl.setShadow(0,1,'rgba(255,255,255,0.6)',2,false,true);
       lbl.setOrigin(0.5,0.5).setDepth(5);
       this.boardLabels[pid]=lbl;
@@ -3378,12 +3426,24 @@ class PuzzleGame extends Phaser.Scene{
     const shouldEnd = !curOk && !swapOk;
     if(!shouldEnd)return;
 
-    // 全て置けない → 終了。まず「完成」表示を確実に出す
+    // 全て置けない → 終了
+    this._doComplete();
+  }
+  // 完成処理（自動判定・手動「ここで完成」共通）
+  _doComplete(){
     document.getElementById('btn-complete-overlay').classList.add('visible');
     this._persist();
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
     try{ this.fillEmptyAsStorage(); }catch(e){ console.warn('[end] 収納描画スキップ:', e); }
+    // 収納マス数を集計して上部バーに表示
+    try{ this._endStorage=collectMadoriStats().st; this._updateTopBar(); }catch(e){}
+  }
+  // ☰メニューの「ここで完成にする」（自動判定が拾えないケースの保険）
+  forceComplete(){
+    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.partCount<=0)return; // 何も置いていない時は無効
+    this._doComplete();
   }
   canPlace(shape,c,r){
     for(let dr=0;dr<shape.length;dr++)
@@ -3510,9 +3570,16 @@ class PuzzleGame extends Phaser.Scene{
       PARTS_DEF.forEach(d=>{
         const item=document.createElement('div');
         item.className='pc-item';
-        item.innerHTML=`<span class="pc-name">${labels[d.type]||d.name}</span><span class="pc-count">${counts[d.type]||0}</span>`;
+        item.innerHTML=`<span class="pc-name">${labels[d.type]||d.name}</span><span class="pc-count">${counts[d.type]||0}</span><span class="pc-unit">コ</span>`;
         grid.appendChild(item);
       });
+      // 完成後は収納マス数も表示
+      if(this._endStorage!==null&&this._endStorage!==undefined){
+        const st=document.createElement('div');
+        st.className='pc-item pc-storage';
+        st.innerHTML=`<span class="pc-name">収納</span><span class="pc-count">${this._endStorage}</span><span class="pc-unit">マス</span>`;
+        grid.appendChild(st);
+      }
     }
 
     // ── 次/次次/保留 canvas（次系は小さめ、今・保留は大きめ）──
@@ -3734,7 +3801,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     const previewFs=this._labelFontSize(pw,ph);
     const lbl=this.add.text(px+pw/2,py+ph/2,this.currentDef.label||this.currentDef.name,
-      this._labelStyle(previewFs,'#2a1a0a',pw));
+      this._labelStyle(previewFs,'#6a4e2e',pw));
     lbl.setShadow(0,1,'rgba(255,255,255,0.6)',2,false,true);
     lbl.setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.6);
     if(!this._previewLabels)this._previewLabels=[];
