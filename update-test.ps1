@@ -20,4 +20,4 @@ git add -A
 git commit -m "test: $num"
 git push
 
-Write-Host "完了 → https://ramune-ai.github.io/madori-st/test.html?v=$num" -ForegroundColor Green
+Write-Host "完了 → https://ramune-ai-cpu.github.io/madori-st/test.html?v=$num" -ForegroundColor Green
