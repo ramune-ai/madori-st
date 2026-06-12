@@ -3389,8 +3389,10 @@ class PuzzleGame extends Phaser.Scene{
     // ── ユーティリティ ──
     const toGame=(cx,cy)=>{
       const r=canvas.getBoundingClientRect();
-      const bx=(cx-r.left)*(CANVAS_W/canvas.offsetWidth);
-      const by=(cy-r.top )*(CANVAS_H/canvas.offsetHeight);
+      // offsetWidthではなく実際の表示矩形(r.width/height)で換算する：
+      // 拡大の方式（CSSサイズ/transform）に関わらず常に正確
+      const bx=(cx-r.left)*(CANVAS_W/r.width);
+      const by=(cy-r.top )*(CANVAS_H/r.height);
       // 土地のすぐ外側まではドラッグ有効とみなす（端でプレビューが消えないようマージンCS分）
       const M=CS;
       const ok = bx>=-M && by>=-M && bx<=CANVAS_W+M && by<=CANVAS_H+M;
@@ -4547,20 +4549,29 @@ function startPhaserGame(){
   }
 }
 
-// ウィンドウサイズが変わったら盤の拡大率を再計算（PCで上下が見切れる問題の対策）
+// ウィンドウサイズが変わったら盤の表示サイズを再計算（PCで上下が見切れる問題の対策）
+// ※Phaser内部のzoomは触らず、canvasの見た目サイズ（CSS）だけを変える。
+//   内部を触ると描画崩れ（黒枠）やタップ座標のずれが起きるため。
+let _rzLastW=window.innerWidth, _rzLastH=window.innerHeight;
 window.addEventListener('resize',()=>{
   clearTimeout(window._rzTimer);
   window._rzTimer=setTimeout(()=>{
-    const g=window._phaserGame;
+    // スマホのアドレスバー出し入れ程度（高さの小変動）は無視
+    const dw=Math.abs(window.innerWidth-_rzLastW);
+    const dh=Math.abs(window.innerHeight-_rzLastH);
+    if(dw<40&&dh<120)return;
+    _rzLastW=window.innerWidth; _rzLastH=window.innerHeight;
     const container=document.getElementById('game-container');
-    if(!g||!g.scale||!container)return;
+    const canvas=container?container.querySelector('canvas'):null;
+    if(!container||!canvas)return;
     const cH=container.clientHeight, cW=container.clientWidth;
     if(!cH||!cW)return;
     const isMobile=(window.innerWidth||400)<600;
     const MARGIN=isMobile?0.86:0.98;
     const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,1.0);
     window._gameScaleRatio=ratio;
-    try{ g.scale.setZoom(ratio); }catch(e){}
+    canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
+    canvas.style.height=Math.round(CANVAS_H*ratio)+'px';
   },150);
 });
 
