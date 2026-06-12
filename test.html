@@ -12,6 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 :root{
   --cream:#f5f0e8;
   --warm:#e8ddd0;
@@ -402,7 +403,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:36px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.04em;}
+.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:44px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.04em;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -430,9 +431,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;}
-.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:2px 2px 0;max-width:160px;}
-.res-meta>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#res-meta-title span{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12.5px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:6px 2px 0;max-width:170px;}
+.res-meta-name{font-weight:700;word-break:break-word;margin-bottom:3px;}
+.res-meta-date{color:#8a7060;font-size:11.5px;}
+#res-meta-title span{white-space:normal;word-break:break-word;line-height:1.5;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:16px 8px 0;}
 .res-promo{margin-top:14px;padding-bottom:4px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
@@ -485,7 +487,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 /* ── モーダル ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,42,26,.6);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.active{display:flex;}
-.modal-box{background:var(--cream);border-radius:12px;padding:24px 20px 28px;width:92%;max-width:480px;max-height:80vh;overflow-y:auto;overscroll-behavior:contain;}
+.modal-box{background:var(--cream);border-radius:12px;padding:24px 20px 28px;width:92%;max-width:480px;max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;}
 .modal-title{font-family:'Noto Serif JP',serif;font-size:18px;color:var(--brown-dark);margin-bottom:20px;letter-spacing:.1em;}
 .modal-close{float:right;background:none;border:none;font-size:20px;color:var(--brown-light);cursor:pointer;margin-top:-4px;}
 .modal-empty{font-size:13px;color:var(--brown-light);text-align:center;padding:24px 0;line-height:2;}
@@ -838,9 +840,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
           <div class="res-spec-v"><div class="rsv-label">駅徒歩</div><div class="rsv-val" id="res-walk">--<span class="rsv-unit">分</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">家　賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
           <div class="res-meta" id="res-meta">
-            <div style="white-space:nowrap;">情報公開日　<span id="res-date">--</span></div>
-            <div id="res-meta-title" style="display:none;"><span style="display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:11px;letter-spacing:.05em;padding:3px 12px;border-radius:13px;margin:3px 0 2px;"></span></div>
-            <div>マドリスト　<span id="res-name2">とくめい</span></div>
+            <div id="res-meta-title" style="display:none;"><span style="display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:12px;letter-spacing:.05em;padding:3px 12px;border-radius:13px;margin:0 0 3px;"></span></div>
+            <div class="res-meta-name">マドリスト　<span id="res-name2">とくめい</span></div>
+            <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
           </div>
         </div>
       </div>
@@ -1754,7 +1756,7 @@ function renderSavesList(){
 
   // めくりステージ
   const stage=document.createElement('div');
-  stage.style.cssText='position:relative;touch-action:none;overscroll-behavior:contain;perspective:900px;min-height:140px;display:flex;align-items:center;justify-content:center;';
+  stage.style.cssText='position:relative;touch-action:none;overscroll-behavior:contain;overflow:hidden;perspective:900px;min-height:140px;display:flex;align-items:center;justify-content:center;';
   const pageEl=document.createElement('div');
   pageEl.style.cssText='transition:transform .26s ease,opacity .26s ease;will-change:transform;';
   stage.appendChild(pageEl);
@@ -1846,6 +1848,7 @@ function renderSavesList(){
     pageEl.style.transform='translateX('+(-dir*110)+'%) rotate('+(-dir*6)+'deg)';
     pageEl.style.opacity='0';
     setTimeout(()=>{
+      pageEl.style.visibility='hidden';
       _savesIdx=(_savesIdx+dir+list.length)%list.length;
       // 差し替え中は完全に隠す（古い画像や黒のチラ見え防止）
       pageEl.style.transition='none';
@@ -2055,8 +2058,6 @@ function openModal(type){
   document.getElementById('modal-overlay').classList.add('active');
 }
 // 称号一覧（ページ制）
-let _pagerLast=0;
-function _pagerBusy(){ const t=Date.now(); if(t-_pagerLast<260)return true; _pagerLast=t; return false; }
 function renderTitlesPage(){
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
@@ -2087,7 +2088,7 @@ function renderTitlesPage(){
   header.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
   const prog=document.createElement('div');
   prog.style.cssText='font-size:17px;color:var(--brown);letter-spacing:.06em;font-weight:700;font-family:"Noto Serif JP",serif;';
-  prog.textContent=`獲得 ${ownedCount} / ${ALL_TITLES_MASTER.length}`;
+  prog.textContent=`獲得数 ${ownedCount} / ${ALL_TITLES_MASTER.length}`;
   header.appendChild(prog);
   if(totalPages>1){
     const pager=document.createElement('div');
@@ -2095,14 +2096,14 @@ function renderTitlesPage(){
     const prev=document.createElement('button');
     prev.textContent='‹ 前へ';
     prev.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page===0?'opacity:.35;pointer-events:none;':'');
-    prev.onclick=()=>{ if(_pagerBusy())return; window._titlePage=page-1;renderTitlesPage();};
+    prev.onclick=()=>{ window._titlePage=Math.max(0,page-1);renderTitlesPage();};
     const ind=document.createElement('div');
     ind.style.cssText='font-size:14px;color:var(--brown);letter-spacing:.06em;font-weight:700;min-width:42px;text-align:center;';
     ind.textContent=`${page+1} / ${totalPages}`;
     const next=document.createElement('button');
     next.textContent='次へ ›';
     next.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--brown-dark);cursor:pointer;font-family:"Noto Serif JP",serif;'+(page>=totalPages-1?'opacity:.35;pointer-events:none;':'');
-    next.onclick=()=>{ if(_pagerBusy())return; window._titlePage=page+1;renderTitlesPage();};
+    next.onclick=()=>{ window._titlePage=page+1;renderTitlesPage();};
     pager.appendChild(prev); pager.appendChild(ind); pager.appendChild(next);
     header.appendChild(pager);
   }
@@ -2423,7 +2424,7 @@ function showResult(){
   if(heroEl){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
-    heroEl.innerHTML=main+(sub?`<span style="font-size:22px;color:var(--brown-dark);letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
+    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
   }
   // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
   const newTitles=window._newTitles||[];
@@ -2721,12 +2722,12 @@ function buildPropertyCard(opt){
     let y=NOTE_H+BAND_H+28;     // 注記バー＋帯の下から開始
     const yPop=y; if(pop) y+=52; // 最レア称号POP（装備称号の段は廃止）
     const yTags=y; if(tagList.length) y+=44+8; // ハッシュタグ（必ず1段・ピル型）
-    const yLabel=y; y+=58;     // 間取りラベル
+    const yLabel=y; y+=66;     // 間取りラベル（〇LDK大）
     // メイン行：左＝間取り図（白枠込み）、右＝スペック縦3点＋公開日＋名前
-    const sideH=3*92+2*10+14+96; // スペック3箱＋間隔＋メタ（公開日・称号ピル・名前）
+    const sideH=3*92+2*10+14+128; // スペック3箱＋間隔＋メタ（称号・名前・公開日／折り返し余裕）
     const rowH=Math.max(madoriH+20, sideH);
     const yRow=y; y+=rowH+26;
-    const yPromo=y; y+=64;      // 宣伝2行
+    const yPromo=y; y+=76;      // 宣伝2行（大きめ）
     const yFooter=y+4; y+=40;   // フッター
     const H=y+18;
 
@@ -2780,10 +2781,22 @@ function buildPropertyCard(opt){
         tx+=pw+TAG_GAP;
       });
     }
-    // 間取りラベル（画面と同じ大きさ・濃さ）
-    ctx.fillStyle='#3a2a1a';
-    ctx.font="bold 46px 'Noto Serif JP',serif";
-    ctx.fillText(cardLabel||'', W/2, yLabel+26);
+    // 間取りラベル：〇LDK（大）＋ +WC+B（小）に分けて中央寄せ（画面と同じ見た目）
+    {
+      const lm=(cardLabel||'').match(/^([0-9]*[A-Z]+[²³⁴⁵⁶]?)(.*)$/);
+      const mainT=lm?lm[1]:(cardLabel||'');
+      const subT=lm?lm[2]:'';
+      const mainFont="bold 52px 'Noto Serif JP',serif";
+      const subFont="bold 30px 'Noto Serif JP',serif";
+      ctx.fillStyle='#3a2a1a';
+      ctx.font=mainFont; const mw=ctx.measureText(mainT).width;
+      ctx.font=subFont;  const sw=ctx.measureText(subT).width;
+      const totalW=mw+sw, startX=(W-totalW)/2;
+      ctx.textAlign='left';
+      ctx.font=mainFont; ctx.fillText(mainT, startX, yLabel+30);
+      ctx.font=subFont;  ctx.fillText(subT, startX+mw, yLabel+30);
+      ctx.textAlign='center';
+    }
 
     // メイン行：間取り図＋右カラムをひとかたまりで中央寄せ（間延び防止）
     const GAPX=18;
@@ -2827,8 +2840,8 @@ function buildPropertyCard(opt){
       _roundRect(ctx,sideX,by,SIDE_W,BOXH,12); ctx.stroke();
       // ラベル（はっきり濃く）
       ctx.fillStyle='#4a3a2a';
-      ctx.font="bold 18px 'Noto Serif JP',serif";
-      ctx.fillText(s.label, sideX+SIDE_W/2, by+24);
+      ctx.font="bold 22px 'Noto Serif JP',serif";
+      ctx.fillText(s.label, sideX+SIDE_W/2, by+26);
       // 値（レア色分け）＋単位
       const v=+s.val;
       let kind='';
@@ -2849,8 +2862,8 @@ function buildPropertyCard(opt){
       ctx.fillText(s.unit, startX+nw+4, by+70);
       ctx.textAlign='center';
     });
-    // 公開日と間取りすと名（スペックの下）
-    const metaY=yRow+3*BOXH+2*BGAP+18;
+    // スペックの下：称号→名前→公開日（全部表示・はみ出さないよう折り返し）
+    let metaY=yRow+3*BOXH+2*BGAP+22;
     let dateStr=opt.dateStr;
     if(!dateStr){
       const _d=new Date();
@@ -2858,34 +2871,43 @@ function buildPropertyCard(opt){
     }
     ctx.save();
     ctx.textAlign='left';
-    ctx.fillStyle='#5a4a3a';
-    ctx.font="500 16px 'Noto Sans JP',sans-serif";
-    ctx.fillText('情報公開日　'+dateStr, sideX+4, metaY);
-    // 右カラムに収まるよう、長い文字は…で省略
-    const colMaxW=SIDE_W-8;
-    const ellipsize=(text,font)=>{
+    const colMaxW=SIDE_W;
+    // 文字列を幅に合わせて複数行へ分割
+    const wrapText=(text,font,maxW)=>{
       ctx.font=font;
-      if(ctx.measureText(text).width<=colMaxW)return text;
-      let t=text;
-      while(t.length>1&&ctx.measureText(t+'…').width>colMaxW)t=t.slice(0,-1);
-      return t+'…';
+      const lines=[]; let line='';
+      for(const ch of text){
+        if(ctx.measureText(line+ch).width>maxW && line){ lines.push(line); line=ch; }
+        else line+=ch;
+      }
+      if(line)lines.push(line);
+      return lines;
     };
-    let nameY=metaY+26;
+    // 称号ピル（複数行対応）
     if(equippedTitle){
-      // 称号ピル（名前の上）：右カラム内に収める
       const pillFont="bold 15px 'Noto Serif JP',serif";
-      const labelText=ellipsize(equippedTitle,pillFont);
+      const lines=wrapText(equippedTitle,pillFont,colMaxW-24);
       ctx.font=pillFont;
-      const tw2=Math.min(ctx.measureText(labelText).width, colMaxW-26);
-      ctx.fillStyle='#c8a060';
-      _roundRect(ctx,sideX+4,metaY+12,tw2+26,28,14); ctx.fill();
-      ctx.fillStyle='#fff';
-      ctx.fillText(labelText, sideX+17, metaY+27);
-      nameY=metaY+62;
+      lines.forEach(ln=>{
+        const lw=ctx.measureText(ln).width;
+        ctx.fillStyle='#c8a060';
+        _roundRect(ctx,sideX,metaY,lw+22,28,14); ctx.fill();
+        ctx.fillStyle='#fff';
+        ctx.fillText(ln, sideX+11, metaY+15);
+        metaY+=33;
+      });
+      metaY+=4;
     }
-    ctx.fillStyle='#5a4a3a';
-    const nameFont="500 16px 'Noto Sans JP',sans-serif";
-    ctx.fillText(ellipsize('マドリスト　'+(rawName||'とくめい'),nameFont), sideX+4, nameY);
+    // マドリスト名（複数行対応）
+    ctx.fillStyle='#3a2a1a';
+    const nameFont="700 16px 'Noto Sans JP',sans-serif";
+    wrapText('マドリスト　'+(rawName||'とくめい'),nameFont,colMaxW).forEach(ln=>{
+      ctx.font=nameFont; ctx.fillText(ln, sideX, metaY+13); metaY+=24;
+    });
+    // 公開日
+    ctx.fillStyle='#8a7060';
+    ctx.font="500 14px 'Noto Sans JP',sans-serif";
+    ctx.fillText('情報公開日　'+dateStr, sideX, metaY+13);
     ctx.restore();
 
     // 宣伝の上に点線（宣伝部分の区切り）
@@ -2895,11 +2917,11 @@ function buildPropertyCard(opt){
     ctx.restore();
     // 宣伝（フッターロゴの上）
     ctx.fillStyle='#5a4a3a';
-    ctx.font="bold 22px 'Noto Serif JP',serif";
-    ctx.fillText('間取りゲームは「間取りすと」で検索！', W/2, yPromo+12);
+    ctx.font="bold 27px 'Noto Serif JP',serif";
+    ctx.fillText('間取りゲームは「間取りすと」で検索！', W/2, yPromo+16);
     ctx.fillStyle='#7a5a30';
-    ctx.font="500 17px 'Noto Sans JP',sans-serif";
-    ctx.fillText('X・Instagram・TikTok｜@madori_st', W/2, yPromo+42);
+    ctx.font="500 20px 'Noto Sans JP',sans-serif";
+    ctx.fillText('X・Instagram・TikTok｜@madori_st', W/2, yPromo+50);
 
     // フッター
     ctx.fillStyle='#b0a090';
@@ -3614,22 +3636,29 @@ class PuzzleGame extends Phaser.Scene{
       }
       // 動かさずクリック
       if(!insideGrid||!g.ok){
-        // 土地外をクリック → 何もしない（プレビュー維持 or 無視）
-        return;
+        return; // 土地外クリックは無視（プレビュー維持）
       }
-      let clickC=Phaser.Math.Clamp(Math.round(g.bx/CS-pw/2),0,COLS-pw);
-      let clickR=Phaser.Math.Clamp(Math.round(g.by/CS-ph/2),0,ROWS-ph);
-      const snapped=this._snapIntoLand(sh,clickC,clickR);
-      clickC=snapped.c; clickR=snapped.r;
-      if(this._mPreviewShown && this.curC===clickC && this.curR===clickR){
-        // 同じ位置を2回目クリック → 設置確定
+      const gc=Phaser.Math.Clamp(Math.floor(g.bx/CS),0,COLS-1);
+      const gr=Phaser.Math.Clamp(Math.floor(g.by/CS),0,ROWS-1);
+      // いまプレビュー中で、クリックしたマスがパーツの占有範囲の中なら確定
+      let insidePreview=false;
+      if(this._mPreviewShown&&this._previewActive){
+        for(let dr=0;dr<ph&&!insidePreview;dr++)
+          for(let dc=0;dc<pw;dc++){
+            if(sh[dr][dc]&&this.curR+dr===gr&&this.curC+dc===gc){ insidePreview=true; break; }
+          }
+      }
+      if(insidePreview){
         this.placeAtCursor();
         this._mPreviewShown=false;
       } else {
-        // 1回目クリック or 別位置クリック → プレビュー表示/移動
-        this.curC=clickC; this.curR=clickR;
-        this._anchorC=clickC; this._anchorR=clickR;
-        this.updatePreview(clickC,clickR,true);
+        // クリックしたマスがパーツの中に入るように配置してプレビュー
+        let clickC=Phaser.Math.Clamp(gc-Math.floor(pw/2),0,COLS-pw);
+        let clickR=Phaser.Math.Clamp(gr-Math.floor(ph/2),0,ROWS-ph);
+        const snapped=this._snapIntoLand(sh,clickC,clickR);
+        this.curC=snapped.c; this.curR=snapped.r;
+        this._anchorC=snapped.c; this._anchorR=snapped.r;
+        this.updatePreview(this.curC,this.curR,true);
         this._mPreviewShown=true;
       }
     };
