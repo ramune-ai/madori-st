@@ -427,8 +427,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .rsv-val.super{animation:none;background-position:18% center;}
 /* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
 #screen-titles{overflow-y:auto;}
+#screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
+.result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:2px 2px 0;}
+.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:12px 8px 0;}
 .res-promo{margin-top:8px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
 .res-pop{margin:8px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
@@ -835,10 +838,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
           <div class="res-meta" id="res-meta">
             <div style="white-space:nowrap;">情報公開日　<span id="res-date">--</span></div>
             <div id="res-meta-title" style="display:none;"><span style="display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:11px;letter-spacing:.05em;padding:3px 12px;border-radius:13px;margin:3px 0 2px;"></span></div>
-            <div>間取りすと　<span id="res-name2">とくめい</span></div>
+            <div>マドリスト　<span id="res-name2">とくめい</span></div>
           </div>
         </div>
       </div>
+      <div class="res-promo-sep"></div>
       <div class="res-promo">間取りゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@madori_st</span></div>
     </div>
 
@@ -1790,7 +1794,7 @@ function renderSavesList(){
       const img=document.createElement('img');
       img.src=s.img;
       img.dataset.hid=s.id;
-      img.style.cssText='display:block;width:100%;max-width:340px;margin:0 auto;border-radius:10px;border:1px solid rgba(90,74,58,.15);cursor:zoom-in;box-shadow:0 3px 14px rgba(58,42,26,.12);';
+      img.style.cssText='display:block;max-width:100%;max-height:48vh;width:auto;margin:0 auto;border-radius:10px;border:1px solid rgba(90,74,58,.15);cursor:zoom-in;box-shadow:0 3px 14px rgba(58,42,26,.12);object-fit:contain;';
       img.onclick=()=>{ const cur=loadHistory().find(x=>x.id===s.id); showImageZoom((cur&&cur.img)||s.img); };
       pageEl.appendChild(img);
     }else{
@@ -1835,6 +1839,7 @@ function renderSavesList(){
   function go(dir){
     if(list.length<2||busy)return;
     busy=true;
+    playSE('page');
     pageEl.style.transform='translateX('+(-dir*110)+'%) rotate('+(-dir*7)+'deg)';
     pageEl.style.opacity='0';
     setTimeout(()=>{
@@ -1966,12 +1971,12 @@ const ALL_TITLES_MASTER=[
   // ══ 物件情報面・複合（レア値の掛け算） ══
   {title:'憧れの都会ライフ', badge:'✨', rar:3, condition:'築0〜5年、かつ駅徒歩0〜5分',
     pop:'都会ライフに憧れる人へ！', check:x=>x.age<=5&&x.walk<=5&&!(x.rent>=50)},
-  {title:'腕利き間取りすと', badge:'🔨', rar:3, condition:'築0〜5年、かつ家賃50万円以上',
+  {title:'腕利きマドリスト', badge:'🔨', rar:3, condition:'築0〜5年、かつ家賃50万円以上',
     pop:'腕利きの自信作です！', check:x=>x.age<=5&&x.rent>=50&&!(x.walk<=5)},
   {title:'立地こそ正義', badge:'📍', rar:3, condition:'駅徒歩0〜5分、かつ家賃50万円以上',
     pop:'立地で選びたい人、必見！', check:x=>x.walk<=5&&x.rent>=50&&!(x.age<=5)},
-  {title:'伝説の間取りすと', badge:'🌈', rar:1, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
-    pop:'これが伝説の間取りです…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=50},
+  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
+    pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=50},
   // ══ パーツ配置面・単独 ══
   {title:'洋室はおあずけ', badge:'🛋️', rar:4, condition:'洋室0個で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
@@ -2014,9 +2019,19 @@ const ALL_TITLES_MASTER=[
     pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
   {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, condition:'和室＋洋室が合計5個以上',
     pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
-  // ══ 救済 ══
-  {title:'間取りすと見習い', badge:'📐', rar:6, condition:'はじめての物件を完成させる',
-    pop:'記念すべき第一歩です！', check:null},
+  // ══ 完成回数（プレイを重ねるほど昇格） ══
+  {title:'駆け出しマドリスト', badge:'📐', rar:6, condition:'はじめて物件を完成させる',
+    pop:'記念すべき第一歩です！', check:x=>x.cc>=1},
+  {title:'一人前マドリスト', badge:'🔑', rar:5, condition:'物件を10回完成させる',
+    pop:'もう一人前です！', check:x=>x.cc>=10},
+  {title:'ベテランマドリスト', badge:'🛠️', rar:4, condition:'物件を50回完成させる',
+    pop:'場数が違います！', check:x=>x.cc>=50},
+  {title:'カリスママドリスト', badge:'🌟', rar:3, condition:'物件を100回完成させる',
+    pop:'カリスマの風格…！', check:x=>x.cc>=100},
+  {title:'伝説のマドリスト', badge:'🏅', rar:2, condition:'物件を500回完成させる',
+    pop:'もはや伝説の域…！', check:x=>x.cc>=500},
+  {title:'神域のマドリスト', badge:'👑', rar:2, condition:'物件を1000回完成させる',
+    pop:'神の領域に到達…！', check:x=>x.cc>=1000},
 ];
 
 function openModal(type){
@@ -2291,16 +2306,20 @@ function collectMadoriStats(){
   return {n,st};
 }
 // 獲得称号を判定してレア順（rar昇順）で返す
+function getCompleteCount(){
+  return parseInt(localStorage.getItem('madori-complete-count')||'0',10)||0;
+}
 function generateTitles(age,walk,rent){
   const {n,st}=collectMadoriStats();
-  const x={age:+age,walk:+walk,rent:+rent,n,st};
+  const cc=getCompleteCount();
+  const x={age:+age,walk:+walk,rent:+rent,n,st,cc};
   const earned=[];
   for(const m of ALL_TITLES_MASTER){
     if(m.check&&m.check(x)) earned.push({title:m.title,pop:m.pop||'',rar:m.rar||9});
   }
   if(earned.length===0){
-    const beg=ALL_TITLES_MASTER.find(m=>m.title==='間取りすと見習い');
-    earned.push({title:beg.title,pop:beg.pop,rar:beg.rar});
+    const beg=ALL_TITLES_MASTER.find(m=>m.title==='駆け出しマドリスト');
+    if(beg)earned.push({title:beg.title,pop:beg.pop,rar:beg.rar});
   }
   earned.sort((a,b)=>a.rar-b.rar);
   return earned;
@@ -2452,8 +2471,9 @@ function showResult(){
     prevEl.innerHTML='';
     const cv=document.createElement('canvas');
     // 右カラム（3項目）が横に並ぶ分だけ確保し、残りはめいっぱい間取り図に使う
-    const sideRoom=(window.innerWidth<=600)?194:80;
-    const maxW=Math.max(150, Math.min(340, window.innerWidth-sideRoom)), maxH=300;
+    const isPC=window.innerWidth>600;
+    const sideRoom=isPC?80:194;
+    const maxW=Math.max(150, Math.min(isPC?300:340, window.innerWidth-sideRoom)), maxH=isPC?252:300;
     const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
     const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
     const dpr=Math.min(3,window.devicePixelRatio||1);
@@ -2751,10 +2771,10 @@ function buildPropertyCard(opt){
         tx+=pw+TAG_GAP;
       });
     }
-    // 間取りラベル（画面の見た目と同じ濃い色）
+    // 間取りラベル（画面と同じ大きさ・濃さ）
     ctx.fillStyle='#5a4a3a';
-    ctx.font="bold 34px 'Noto Serif JP',serif";
-    ctx.fillText(cardLabel||'', W/2, yLabel+22);
+    ctx.font="bold 46px 'Noto Serif JP',serif";
+    ctx.fillText(cardLabel||'', W/2, yLabel+26);
 
     // メイン行：間取り図＋右カラムをひとかたまりで中央寄せ（間延び防止）
     const GAPX=18;
@@ -2845,9 +2865,14 @@ function buildPropertyCard(opt){
       ctx.fillStyle='#5a4a3a';
       ctx.font="500 16px 'Noto Sans JP',sans-serif";
     }
-    ctx.fillText('間取りすと　'+(rawName||'とくめい'), sideX+4, nameY);
+    ctx.fillText('マドリスト　'+(rawName||'とくめい'), sideX+4, nameY);
     ctx.restore();
 
+    // 宣伝の上に点線（宣伝部分の区切り）
+    ctx.save();
+    ctx.strokeStyle='rgba(90,74,58,.35)'; ctx.lineWidth=1.5; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.moveTo(PADX, yPromo-14); ctx.lineTo(W-PADX, yPromo-14); ctx.stroke();
+    ctx.restore();
     // 宣伝（フッターロゴの上）
     ctx.fillStyle='#5a4a3a';
     ctx.font="bold 22px 'Noto Serif JP',serif";
@@ -3042,29 +3067,29 @@ const LAND_PRESETS=[
     '...#####',
     '...#####',
   ]),
-  // ④ L字（左上が欠ける）
+  // ④ 台形（左側面が斜め＝下にいくほど左が広がる）
   makeLand([
-    '#####...',
-    '#####...',
-    '#####...',
-    '#####...',
-    '#####...',
-    '########',
-    '########',
-    '########',
+    '....####',
+    '....####',
+    '...#####',
+    '...#####',
+    '..######',
+    '..######',
+    '.#######',
+    '.#######',
     '########',
     '########',
   ]),
-  // ⑤ L字（右上が欠ける）
+  // ⑤ 台形（右側面が斜め＝下にいくほど右が広がる）
   makeLand([
-    '...#####',
-    '...#####',
-    '...#####',
-    '...#####',
-    '...#####',
-    '########',
-    '########',
-    '########',
+    '####....',
+    '####....',
+    '#####...',
+    '#####...',
+    '######..',
+    '######..',
+    '#######.',
+    '#######.',
     '########',
     '########',
   ]),
@@ -3450,9 +3475,8 @@ class PuzzleGame extends Phaser.Scene{
           let tr=Phaser.Math.Clamp(Math.round(g.by/CS-shape.length/2),0,ROWS-shape.length);
           const snapped=this._snapIntoLand(shape,tc,tr);
           tc=snapped.c; tr=snapped.r;
-          if(this._tapPreviewShown && this.curC===tc && this.curR===tr){
-            // 同じ位置を2回目タップ → 確定
-            this.updatePreview(tc,tr,true);
+          if(this._tapPreviewShown && Math.abs(this.curC-tc)<=1 && Math.abs(this.curR-tr)<=1){
+            // 近い位置を2回目タップ → 今プレビュー中の位置でそのまま確定（指が少しずれてもOK）
             if(this._previewActive) this.placeAtCursor();
             this._tapPreviewShown=false;
           } else {
@@ -3913,7 +3937,10 @@ class PuzzleGame extends Phaser.Scene{
   }
   // 完成処理（自動判定・手動「ここで完成」共通）
   _doComplete(){
-    document.getElementById('btn-complete-overlay').classList.add('visible');
+    const _ov=document.getElementById('btn-complete-overlay');
+    if(_ov.classList.contains('visible'))return; // 二重完成カウント防止
+    _ov.classList.add('visible');
+    try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
     this._persist();
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
@@ -3975,13 +4002,16 @@ class PuzzleGame extends Phaser.Scene{
         g.fillRect(c*CS,r*CS,CS,CS);
       }
     }
-    // 内側の薄いグリッド線（土地マスのみ）※塗りつぶし方式＝環境差でにじまない
+    // 内側の薄いグリッド線：各マスの4辺すべてを1pxで描く（外周は後で外枠が上書き）
+    // ※隣接マスがある時だけ描く方式だと最下段・右端の線が欠けるため全辺方式にする
     g.fillStyle(0xd8cfc4,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(isLand(r,c+1)) g.fillRect(px+CS-1,py,1,CS);
-      if(isLand(r+1,c)) g.fillRect(px,py+CS-1,CS,1);
+      g.fillRect(px,py,CS,1);        // 上辺
+      g.fillRect(px,py+CS-1,CS,1);   // 下辺
+      g.fillRect(px,py,1,CS);        // 左辺
+      g.fillRect(px+CS-1,py,1,CS);   // 右辺
     }
     this.drawBorder();
   }
