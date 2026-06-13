@@ -14,8 +14,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 .title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
-.title-badge .tb-disc{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 1px rgba(58,42,26,.3);}
-.title-badge .tb-emoji{line-height:1;}
+.title-badge .tb-emoji{line-height:1;display:block;}
 .name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
@@ -402,14 +401,15 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .res-hashtags{
   display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
 }
-.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#7a5a30 !important;font-weight:700;font-family:'Noto Sans JP',sans-serif !important;font-size:13px;letter-spacing:.02em;}
+.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#7a5a30 !important;font-weight:700;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:anywhere;line-height:1.3;text-align:left;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:44px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.04em;}
+.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;}
+.ldk-legend{font-family:'Noto Sans JP',sans-serif;font-size:10px;font-weight:500;color:#8a7060;line-height:1.3;letter-spacing:0;text-align:left;white-space:nowrap;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -574,7 +574,7 @@ html,body{overflow-x:hidden;}
   font-size:13px;font-weight:700;
   color:var(--brown-dark);
   letter-spacing:.04em;line-height:1.35;
-  word-break:break-all;
+  word-break:keep-all;overflow-wrap:anywhere;
 }
 .title-grid-card.locked .title-grid-name{
   color:var(--brown-light);
@@ -1977,16 +1977,24 @@ const rareRent=r=>(r<=9||r>=50);
 // 称号マスター。一覧はこの並び順（物件情報：単独→複合 → パーツ配置：単独→複合）で表示。
 // rar=レア度（小さいほどレア。POP表示や獲得時の並びに使用）
 // check(x) … x={age,walk,rent,n:パーツ数,st:収納マス数}
+function fitToLines(el,maxLines,startFs,minFs){
+  if(!el)return;
+  el.style.fontSize=startFs+'px';
+  let fs=startFs, guard=40;
+  while(fs>minFs && guard-->0){
+    const lh=parseFloat(getComputedStyle(el).lineHeight)||fs*1.3;
+    if(el.scrollHeight<=lh*maxLines+1)break;
+    fs-=1; el.style.fontSize=fs+'px';
+  }
+}
 function titleTier(rar){ return rar<=1?'rainbow':(rar===2?'gold':(rar<=4?'silver':'bronze')); }
 function titleBadgeHTML(emoji,rar,size){
   size=size||30;
   const t=titleTier(rar);
-  const fs=Math.round(size*0.42);
-  const disc=Math.round(size*0.5);   // 白い丸の直径
-  const up=Math.round(size*0.12);     // 絵文字を上げる量
+  const fs=Math.round(size*0.40);
+  const up=Math.round(size*0.20);     // 絵文字を上げる量（白丸にのせる）
   return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;background-image:url(image/badge-'+t+'.png);">'+
-    '<span class="tb-disc" style="width:'+disc+'px;height:'+disc+'px;margin-top:-'+up+'px;">'+
-    '<span class="tb-emoji" style="font-size:'+fs+'px;">'+(emoji||'')+'</span></span></span>';
+    '<span class="tb-emoji" style="font-size:'+fs+'px;margin-top:-'+up+'px;">'+(emoji||'')+'</span></span>';
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
@@ -2182,6 +2190,10 @@ function renderTitlesPage(){
     grid.appendChild(ph);
   }
   body.appendChild(grid);
+  // 称号名を2行に収める（単語境界優先・はみ出すなら縮小）
+  requestAnimationFrame(()=>{
+    grid.querySelectorAll('.title-grid-name').forEach(el=>fitToLines(el,2,15,9));
+  });
   // このページに表示した称号を既読にする（NEWは今回の表示が最後）
   try{
     let changed=false;
@@ -2448,7 +2460,7 @@ function showResult(){
   if(heroEl){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
-    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
+    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'')+'<span class="ldk-legend">WC=トイレ<br>B=お風呂</span>';
   }
   // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
   const newTitles=window._newTitles||[];
@@ -2470,13 +2482,9 @@ function showResult(){
         tagWrap.appendChild(span);
       });
       tagWrap.style.display='flex';
-      // 1段に入りきらないタグは後ろから外す（_shareTagsも実表示に合わせる）
+      // 各タグを2行以内に縮小（単語境界優先）
       requestAnimationFrame(()=>{
-        let guard=6;
-        while(tagWrap.scrollWidth>tagWrap.clientWidth+1 && tagWrap.children.length>1 && guard-->0){
-          tagWrap.removeChild(tagWrap.lastChild);
-          window._shareTags=picked.slice(0,tagWrap.children.length);
-        }
+        tagWrap.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
       });
     } else {
       tagWrap.style.display='none';
@@ -2753,7 +2761,9 @@ function buildPropertyCard(opt){
     const yRow=y; y+=rowH+26;
     const yPromo=y; y+=76;      // 宣伝2行（大きめ）
     const yFooter=y+4; y+=40;   // フッター
-    const H=y+18;
+    let H=y+18;
+    const H57=Math.round(W*7/5);
+    if(H<H57)H=H57; // 確実に5:7（足りない分は下に余白）
 
     const cv=document.createElement('canvas');
     cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
