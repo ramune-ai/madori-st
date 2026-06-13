@@ -543,7 +543,7 @@ html,body{overflow-x:hidden;}
   .btn-rotate-new .rot-label{font-size:11px;}
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
-.title-grid-card{position:relative;
+.title-grid-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
   padding:12px 10px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
@@ -2149,8 +2149,7 @@ function renderTitlesPage(){
     card.className='title-grid-card '+(isOwned?'owned':'locked');
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
-    badgeEl.style.cssText='position:absolute;left:8px;top:8px;';
-    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,34);
+    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,40);
     const nameEl=document.createElement('div');
     nameEl.className='title-grid-name';
     nameEl.textContent=isOwned ? m.title : '？？？？';
@@ -2163,7 +2162,6 @@ function renderTitlesPage(){
     if(isNew){
       const nb=document.createElement('div');
       nb.className='title-grid-new-badge';
-      nb.style.cssText='position:absolute;right:8px;top:8px;';
       nb.textContent='NEW！';
       card.appendChild(nb);
     }
@@ -3420,11 +3418,12 @@ class PuzzleGame extends Phaser.Scene{
     const doPreview=(cx,cy)=>{
       const g=toGame(cx,cy); if(!g.ok||!this.currentDef)return;
       const sh=this.getShape(this.currentDef,this.rotation);
-      const gc=Math.floor(g.bx/CS), gr=Math.floor(g.by/CS);
+      const gc=Phaser.Math.Clamp(Math.floor(g.bx/CS),0,COLS-1);
+      const gr=Phaser.Math.Clamp(Math.floor(g.by/CS),0,ROWS-1);
       const c=Phaser.Math.Clamp(gc-Math.floor(sh[0].length/2),0,COLS-sh[0].length);
       const r=Phaser.Math.Clamp(gr-Math.floor(sh.length/2),0,ROWS-sh.length);
-      // ドラッグ中も土地内へスナップして表示（見えている位置にそのまま確定される）
-      const snapped=this._snapIntoLand(sh,c,r);
+      // 指したマスを必ず含む位置にスナップ（段の縁で指から外れない）
+      const snapped=this._snapCovering(sh,c,r,gc,gr);
       this.curC=snapped.c; this.curR=snapped.r;
       this._anchorC=snapped.c; this._anchorR=snapped.r;
       this.updatePreview(this.curC,this.curR,false);
@@ -4341,6 +4340,25 @@ class PuzzleGame extends Phaser.Scene{
       if(LAND_MAP[nr][nc]===null)return false; // グレー（土地外）に侵入
     }
     return true;
+  }
+  // 指したマス(gc,gr)を必ず含み、かつ最寄りの収まる位置へスナップ（段の縁で指から外れない）
+  _snapCovering(shape,c,r,gc,gr){
+    const covers=(nc,nr)=>{
+      for(let dr=0;dr<shape.length;dr++)for(let dc=0;dc<shape[0].length;dc++){
+        if(shape[dr][dc]&&nr+dr===gr&&nc+dc===gc)return true;
+      }
+      return false;
+    };
+    if(this._fitsInLand(shape,c,r)&&covers(c,r))return {c,r};
+    const maxC=COLS-shape[0].length, maxR=ROWS-shape.length;
+    let best=null,bestD=Infinity, bestCov=null,bestCovD=Infinity;
+    for(let nr=0;nr<=maxR;nr++)for(let nc=0;nc<=maxC;nc++){
+      if(!this._fitsInLand(shape,nc,nr))continue;
+      const d=(nc-c)*(nc-c)+(nr-r)*(nr-r);
+      if(d<bestD){bestD=d;best={c:nc,r:nr};}
+      if(covers(nc,nr)&&d<bestCovD){bestCovD=d;bestCov={c:nc,r:nr};}
+    }
+    return bestCov||best||{c,r}; // 指したマスを含む候補を最優先
   }
   // 指定位置がグレーにまたがるとき、元の位置にいちばん近い土地内へスナップ
   _snapIntoLand(shape,c,r){
