@@ -122,7 +122,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .title-new-right{position:absolute;right:12px;top:50%;left:auto;transform:translateY(-50%);}
 .title-new-item .title-reveal-text,
 .title-owned-chip .title-reveal-text{display:block;width:100%;text-align:center;padding:0 58px;box-sizing:border-box;}
-.title-reveal-cond{display:block;margin-top:4px;}
+.title-reveal-cond{display:block;margin-top:4px;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
 .pc-item{display:flex;align-items:baseline;gap:4px;white-space:nowrap;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 9px;}
@@ -401,15 +401,15 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .res-hashtags{
   display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
 }
-.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#7a5a30 !important;font-weight:900 !important;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:anywhere;line-height:1.3;text-align:left;}
+.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#7a5a30 !important;font-weight:900 !important;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;line-height:1.3;text-align:left;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;}
-.ldk-legend{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:#8a7060;line-height:1.4;letter-spacing:0;text-align:center;white-space:nowrap;}
+.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.02em;display:flex;align-items:flex-end;justify-content:center;gap:10px;flex-wrap:nowrap;}
+.ldk-legend{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:#8a7060;line-height:1.4;letter-spacing:0;text-align:right;white-space:nowrap;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -433,9 +433,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .rsv-val.rare,.rsv-val.niche{animation:none;background-position:40% center;}
 .rsv-val.super{animation:none;background-position:18% center;}
 /* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
-#screen-titles{overflow-y:auto;overflow-x:hidden;}
+#screen-titles{overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable both-edges;}
 html,body{overflow-x:hidden;}
-#screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
+#screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;scrollbar-gutter:stable both-edges;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
@@ -574,7 +574,7 @@ html,body{overflow-x:hidden;}
   font-size:13px;font-weight:700;
   color:var(--brown-dark);
   letter-spacing:.04em;line-height:1.35;
-  word-break:keep-all;overflow-wrap:anywhere;
+  word-break:keep-all;overflow-wrap:anywhere;line-break:strict;
 }
 .title-grid-card.locked .title-grid-name{
   color:var(--brown-light);
@@ -616,7 +616,7 @@ html,body{overflow-x:hidden;}
 .title-new-badge-inline{font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;letter-spacing:.08em;flex-shrink:0;}
 /* 称号発表：名前を大きく＋獲得条件を併記 */
 .title-reveal-text{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
-.title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.1em;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;}
+.title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.1em;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;}
 .title-reveal-cond{font-size:15px;font-weight:500;letter-spacing:.03em;line-height:1.4;opacity:1;}
 .title-owned-chip.is-reveal{display:flex !important;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:12px 20px;border-radius:6px;background:#ece3d3;color:var(--brown-dark);border:1px solid rgba(90,74,58,.18);}
 .title-owned-chip.is-reveal .title-reveal-name{font-size:19px;color:var(--brown-dark);}
@@ -1994,7 +1994,7 @@ function titleBadgeHTML(emoji,rar,size){
   size=size||30;
   const t=titleTier(rar);
   const fs=Math.round(size*0.38);
-  const up=Math.round(size*0.30);     // 絵文字を白丸の位置（上の方）へ
+  const up=Math.round(size*0.23);     // 絵文字を白丸の位置へ
   return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;background-image:url(image/badge-'+t+'.png);">'+
     '<span class="tb-emoji" style="font-size:'+fs+'px;transform:translateY(-'+up+'px);">'+(emoji||'')+'</span></span>';
 }
@@ -2462,7 +2462,7 @@ function showResult(){
   if(heroEl){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
-    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'')+'<span class="ldk-legend">WC=トイレ<br>B=お風呂</span>';
+    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;font-weight:700;">${sub}</span>`:'')+'<span class="ldk-legend">WC=トイレ<br>B=お風呂</span>';
   }
   // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
   const newTitles=window._newTitles||[];
