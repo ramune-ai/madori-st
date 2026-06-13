@@ -13,6 +13,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
+.title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;}
 :root{
   --cream:#f5f0e8;
   --warm:#e8ddd0;
@@ -113,11 +114,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
 .top-link{font-size:12px;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 12px;text-decoration:none;letter-spacing:.03em;box-shadow:0 1px 5px rgba(58,42,26,.07);-webkit-tap-highlight-color:transparent;}
 .top-link:active{background:rgba(200,160,96,.15);}
-/* 獲得称号の表示：NEW!は左上固定、称号名は中央（被り防止の左右余白）、条件は下の段 */
-.title-new-item{position:relative;}
-.title-new-item .title-new-badge-inline{position:absolute;left:10px;top:10px;transform:none;}
+/* 獲得称号：土台バッジ左端・NEW!右端・名前中央 */
+.title-new-item,.title-owned-chip.is-reveal{position:relative;}
+.title-reveal-badge{position:absolute;left:12px;top:50%;transform:translateY(-50%);}
+.title-new-right{position:absolute;right:12px;top:50%;left:auto;transform:translateY(-50%);}
 .title-new-item .title-reveal-text,
-.title-owned-chip .title-reveal-text{display:block;width:100%;text-align:center;padding:0 48px;box-sizing:border-box;}
+.title-owned-chip .title-reveal-text{display:block;width:100%;text-align:center;padding:0 58px;box-sizing:border-box;}
 .title-reveal-cond{display:block;margin-top:4px;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
@@ -436,12 +438,7 @@ html,body{overflow-x:hidden;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
 .res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:3px;}
 .res-name-text{white-space:nowrap;}
-.res-name-badge{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;
-  background:radial-gradient(circle at 50% 35%,#fff7e6 0%,#f3d790 55%,#d9a94a 100%);
-  border:2px solid #b8862f;
-  box-shadow:0 0 0 2px #fff, 0 2px 5px rgba(58,42,26,.3), inset 0 1px 2px rgba(255,255,255,.7);
-  font-size:15px;line-height:1;text-align:center;flex-shrink:0;}
-.res-name-badge>span{display:block;transform:translateY(.5px);}
+.res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:10px 8px 0;}
 .res-promo{margin-top:8px;padding-bottom:2px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.45;}
@@ -546,7 +543,7 @@ html,body{overflow-x:hidden;}
   .btn-rotate-new .rot-label{font-size:11px;}
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
-.title-grid-card{
+.title-grid-card{position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
   padding:12px 10px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
@@ -851,7 +848,7 @@ html,body{overflow-x:hidden;}
       </div>
       <!-- マドリスト名+称号バッジ → 公開日（中央） -->
       <div class="res-meta" id="res-meta">
-        <div class="res-meta-name"><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span><span class="res-name-badge" id="res-meta-title" style="display:none;"></span></div>
+        <div class="res-meta-name"><span class="res-name-badge" id="res-meta-title" style="display:none;"></span><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span></div>
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
@@ -1232,6 +1229,12 @@ function updateStartProfile(){
   const titleEl=document.getElementById('start-profile-title');
   if(nameEl) nameEl.textContent=name||'名前未設定';
   if(titleEl) titleEl.textContent=titleSel||'なし';
+  // 🏅アイコンを装備称号の土台バッジに
+  const icoEl=document.querySelector('#start-profile .sp-row[onclick*="title"] .sp-ico');
+  if(icoEl){
+    if(titleSel){ icoEl.innerHTML=titleBadgeHTML(titleBadgeOf(titleSel),titleRarOf(titleSel),26); }
+    else { icoEl.textContent='🏅'; }
+  }
   window._playerName=name;
 }
 function openNameEdit(mode){
@@ -1266,9 +1269,10 @@ function openNameEdit(mode){
     listEl.appendChild(noneBtn);
     titles.forEach(t=>{
       const btn=document.createElement('button');
-      btn.textContent=t; btn.dataset.val=t;
+      btn.dataset.val=t;
       const active=sel===t;
-      btn.style.cssText='padding:6px 14px;border-radius:20px;border:1.5px solid '+(active?'var(--brown-dark)':'rgba(90,74,58,.2)')+';background:'+(active?'var(--brown-dark)':'#fff')+';color:'+(active?'#f5f0e8':'var(--brown)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
+      btn.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 7px;border-radius:20px;border:1.5px solid '+(active?'var(--brown-dark)':'rgba(90,74,58,.2)')+';background:'+(active?'var(--brown-dark)':'#fff')+';color:'+(active?'#f5f0e8':'var(--brown)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
+      btn.innerHTML=titleBadgeHTML(titleBadgeOf(t),titleRarOf(t),22)+'<span>'+t+'</span>';
       btn.onclick=()=>selectTitleChip(t);
       listEl.appendChild(btn);
     });
@@ -1667,13 +1671,15 @@ function showTitlesReveal(){
     setTimeout(()=>{
       const el=document.createElement('div');
       const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${title}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
+      const rar=titleRarOf(title), emoji=titleBadgeOf(title);
+      const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,34)}</span>`;
       if(isNew){
         el.className='title-new-item';
-        el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${inner}`;
+        el.innerHTML=`${badge}${inner}<span class="title-new-badge-inline title-new-right">NEW！</span>`;
       } else {
         el.className='title-owned-chip is-reveal';
         el.style.marginBottom='8px';
-        el.innerHTML=inner;
+        el.innerHTML=`${badge}${inner}`;
       }
       el.style.opacity='0';
       el.style.transform='translateY(12px)';
@@ -1968,6 +1974,15 @@ const rareRent=r=>(r<=9||r>=50);
 // 称号マスター。一覧はこの並び順（物件情報：単独→複合 → パーツ配置：単独→複合）で表示。
 // rar=レア度（小さいほどレア。POP表示や獲得時の並びに使用）
 // check(x) … x={age,walk,rent,n:パーツ数,st:収納マス数}
+function titleTier(rar){ return rar<=1?'rainbow':(rar===2?'gold':(rar<=4?'silver':'bronze')); }
+function titleBadgeHTML(emoji,rar,size){
+  size=size||30;
+  const t=titleTier(rar);
+  const fs=Math.round(size*0.5);
+  return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;font-size:'+fs+'px;background-image:url(image/badge-'+t+'.png);">'+(emoji||'')+'</span>';
+}
+function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
+function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
 const ALL_TITLES_MASTER=[
   // ══ 物件情報面・単独 ══
   {title:'新築の香りソムリエ', badge:'🌸', rar:2, condition:'築0年',
@@ -2134,7 +2149,8 @@ function renderTitlesPage(){
     card.className='title-grid-card '+(isOwned?'owned':'locked');
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
-    badgeEl.textContent=m.badge;
+    badgeEl.style.cssText='position:absolute;left:8px;top:8px;';
+    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,34);
     const nameEl=document.createElement('div');
     nameEl.className='title-grid-name';
     nameEl.textContent=isOwned ? m.title : '？？？？';
@@ -2147,6 +2163,7 @@ function renderTitlesPage(){
     if(isNew){
       const nb=document.createElement('div');
       nb.className='title-grid-new-badge';
+      nb.style.cssText='position:absolute;right:8px;top:8px;';
       nb.textContent='NEW！';
       card.appendChild(nb);
     }
@@ -2414,7 +2431,7 @@ function showResult(){
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
     const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
-    if(tdef&&tdef.badge){ mtEl.innerHTML='<span>'+tdef.badge+'</span>'; mtEl.title=equipped; mtEl.style.display='grid'; }
+    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,28); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
@@ -3403,8 +3420,9 @@ class PuzzleGame extends Phaser.Scene{
     const doPreview=(cx,cy)=>{
       const g=toGame(cx,cy); if(!g.ok||!this.currentDef)return;
       const sh=this.getShape(this.currentDef,this.rotation);
-      const c=Phaser.Math.Clamp(Math.round(g.bx/CS-sh[0].length/2),0,COLS-sh[0].length);
-      const r=Phaser.Math.Clamp(Math.round(g.by/CS-sh.length/2),0,ROWS-sh.length);
+      const gc=Math.floor(g.bx/CS), gr=Math.floor(g.by/CS);
+      const c=Phaser.Math.Clamp(gc-Math.floor(sh[0].length/2),0,COLS-sh[0].length);
+      const r=Phaser.Math.Clamp(gr-Math.floor(sh.length/2),0,ROWS-sh.length);
       // ドラッグ中も土地内へスナップして表示（見えている位置にそのまま確定される）
       const snapped=this._snapIntoLand(sh,c,r);
       this.curC=snapped.c; this.curR=snapped.r;
