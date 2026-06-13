@@ -395,7 +395,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
 .res-hashtags{
-  display:flex;flex-wrap:nowrap;overflow:hidden;gap:6px;justify-content:center;margin:8px 0 8px;
+  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 10px;
 }
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
@@ -431,10 +431,11 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;}
-.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:12.5px;color:#5a4a3a;letter-spacing:.04em;text-align:left;line-height:1.7;padding:6px 2px 0;max-width:170px;}
-.res-meta-name{font-weight:700;word-break:break-word;margin-bottom:3px;}
-.res-meta-date{color:#8a7060;font-size:11.5px;}
-#res-meta-title span{white-space:normal;word-break:break-word;line-height:1.5;}
+.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.7;padding:12px 8px 0;max-width:100%;}
+.res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
+.res-name-text{white-space:nowrap;}
+.res-name-badge{display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:10px;white-space:nowrap;}
+.res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:16px 8px 0;}
 .res-promo{margin-top:14px;padding-bottom:4px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
@@ -828,8 +829,6 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
       <div class="res-card-band">賃 貸 物 件 情 報</div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
-      <!-- ハッシュタグ（物件説明一言タグ風） -->
-      <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
       <!-- 間取りラベル -->
       <div class="result-ldk-hero" id="res-room-label">---</div>
       <!-- 間取り図（左）＋ 物件情報3点・公開日・名前（右） -->
@@ -839,12 +838,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
           <div class="res-spec-v"><div class="rsv-label">築年数</div><div class="rsv-val" id="res-age">--<span class="rsv-unit">年</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">駅徒歩</div><div class="rsv-val" id="res-walk">--<span class="rsv-unit">分</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">家　賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
-          <div class="res-meta" id="res-meta">
-            <div id="res-meta-title" style="display:none;"><span style="display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:12px;letter-spacing:.05em;padding:3px 12px;border-radius:13px;margin:0 0 3px;"></span></div>
-            <div class="res-meta-name">マドリスト　<span id="res-name2">とくめい</span></div>
-            <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
-          </div>
         </div>
+      </div>
+      <!-- 家賃の下：ハッシュタグ → マドリスト名+称号バッジ → 公開日（中央） -->
+      <div class="res-meta" id="res-meta">
+        <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
+        <div class="res-meta-name"><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span><span class="res-name-badge" id="res-meta-title" style="display:none;"></span></div>
+        <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
       <div class="res-promo">間取りゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@madori_st</span></div>
@@ -2378,21 +2378,7 @@ function showResult(){
   const _d=new Date();
   const dateStr=_d.getFullYear()+'/'+String(_d.getMonth()+1).padStart(2,'0')+'/'+String(_d.getDate()).padStart(2,'0');
   const dEl=document.getElementById('res-date'); if(dEl)dEl.textContent=dateStr;
-  // スマホでは公開日・名前を間取り行の下へ（右カラムだと折り返してしまうため）
-  try{
-    const metaEl=document.getElementById('res-meta');
-    const mainRow=document.querySelector('.res-main-row');
-    const sideEl=document.querySelector('.res-side');
-    if(metaEl&&mainRow&&sideEl){
-      if(window.innerWidth<=600){
-        metaEl.classList.add('mobile-line');
-        mainRow.insertAdjacentElement('afterend',metaEl);
-      }else{
-        metaEl.classList.remove('mobile-line');
-        sideEl.appendChild(metaEl);
-      }
-    }
-  }catch(e){}
+
   const roomTypes=new Set(), counts={};
   if(gameScene&&gameScene.grid){
     const seenPids=new Set();
@@ -2411,8 +2397,7 @@ function showResult(){
   const propName='間取りすと：'+(rawName||'とくめい');
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
-    const sp=mtEl.querySelector('span');
-    if(equipped&&sp){ sp.textContent=equipped; mtEl.style.display='block'; }
+    if(equipped){ mtEl.textContent=equipped; mtEl.style.display='inline-block'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
@@ -3155,7 +3140,7 @@ class PuzzleGame extends Phaser.Scene{
     this._sessionId=(this._sessionId||0)+1;
     const sessionId=this._sessionId;
     // 盤面テキストの描画解像度（高DPI端末でも文字をくっきり）
-    this._txtRes=Math.min(3,Math.max(2,Math.round(window.devicePixelRatio||1)));
+    this._txtRes=Math.min(4,Math.max(3,Math.ceil(window.devicePixelRatio||1)+1));
     // リロード復元データ（あれば1回だけ消費）
     this._restorePayload=window._restoreState||null; window._restoreState=null;
     if(this._restorePayload && typeof this._restorePayload.land==='number' && LAND_PRESETS[this._restorePayload.land]){
@@ -3961,7 +3946,7 @@ class PuzzleGame extends Phaser.Scene{
   _labelFontSize(pw,ph){ return Math.min(23, Math.max(18, Math.floor(Math.min(pw,ph)*0.40))); }
   _labelStyle(fs,color,wrapW){
     return {fontSize:fs+'px',fill:color,align:'center',
-      fontFamily:'Meiryo,sans-serif',fontStyle:'bold',
+      fontFamily:"'Noto Sans JP',sans-serif",fontStyle:'bold',
       resolution:this._txtRes, wordWrap:{width:wrapW-8}};
   }
   // 進行中のゲームを保存（リロードで続きから再開するため）
@@ -4179,7 +4164,7 @@ class PuzzleGame extends Phaser.Scene{
       if(!def){
         if(canvasId==='canvas-hold'){
           ctx.fillStyle='rgba(90,74,58,.18)';
-          ctx.font='12px Meiryo,sans-serif';
+          ctx.font="12px 'Noto Sans JP',sans-serif";
           ctx.textAlign='center'; ctx.textBaseline='middle';
           ctx.fillText('なし',box/2,box/2);
         }
@@ -4234,7 +4219,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     const labelStr=def.label?def.label.split('\n')[0]:def.name;
     ctx.fillStyle='rgba(58,42,26,0.8)';
-    ctx.font=`bold ${Math.max(7,Math.min(10,csz*0.55))}px Meiryo,sans-serif`;
+    ctx.font=`bold ${Math.max(7,Math.min(10,csz*0.55))}px 'Noto Sans JP',sans-serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(labelStr, ox+sw*csz/2, oy+sh*csz/2);
   }
@@ -4263,7 +4248,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     const labelStr=def.label?def.label.split('\n')[0]:def.name;
     ctx.fillStyle='rgba(58,42,26,0.85)';
-    ctx.font=`bold ${Math.min(13,Math.floor(Math.min(pw,ph)*0.28))}px Meiryo,sans-serif`;
+    ctx.font=`bold ${Math.min(13,Math.floor(Math.min(pw,ph)*0.28))}px 'Noto Sans JP',sans-serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(labelStr, ox+pw/2, oy+ph/2);
   }
@@ -4467,7 +4452,7 @@ class PuzzleGame extends Phaser.Scene{
       if(colR.length) ly=clampInSeg(colR,ly,halfH,(r)=>this.sy(r));
       const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-        fontFamily:'Meiryo,sans-serif',fontStyle:'bold',
+        fontFamily:"'Noto Sans JP',sans-serif",fontStyle:'bold',
         resolution:this._txtRes,
         wordWrap:{width:CS*2-4}
       }).setOrigin(0.5,0.5).setDepth(3);
