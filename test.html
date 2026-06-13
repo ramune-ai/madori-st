@@ -108,8 +108,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .sp-edit{font-size:12px;color:var(--brown-light);border:1px solid rgba(90,74,58,.25);padding:3px 9px;border-radius:7px;white-space:nowrap;}
 .sp-hint{font-size:11px;color:var(--brown-light);margin-top:5px;text-align:center;letter-spacing:.03em;}
 /* スタート画面上部のリンク */
-.start-toplinks{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);right:12px;display:flex;gap:8px;z-index:5;}
-.start-toplinks-left{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);left:12px;display:flex;gap:8px;z-index:5;}
+.start-toplinks{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);right:max(12px, calc(50% - 230px));display:flex;gap:8px;z-index:5;}
+.start-toplinks-left{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);left:max(12px, calc(50% - 230px));display:flex;gap:8px;z-index:5;}
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
 .top-link{font-size:12px;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 12px;text-decoration:none;letter-spacing:.03em;box-shadow:0 1px 5px rgba(58,42,26,.07);-webkit-tap-highlight-color:transparent;}
 .top-link:active{background:rgba(200,160,96,.15);}
@@ -3480,7 +3480,9 @@ class PuzzleGame extends Phaser.Scene{
       this._dragging=true;
       this._justDropped=false;
       const g=toGame(cx,cy);
-      if(g.ok){
+      if(this._preTap&&this._preTap.inside){
+        // 既存プレビューの上を押した → 動かさず今の位置を保持（押した瞬間のチラつき防止）
+      } else if(g.ok){
         clearCC();
         doPreview(cx,cy);
       } else {
@@ -3490,6 +3492,7 @@ class PuzzleGame extends Phaser.Scene{
     };
 
     const moveDrag=(cx,cy)=>{
+      this._preTap=null; // 動かし始めたら通常の追従に戻す
       if(!this._dragging)return;
       if(holdCol){
         const h=holdCol.getBoundingClientRect();
