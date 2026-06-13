@@ -13,6 +13,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
+.title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
+.title-badge .tb-emoji{line-height:1;display:block;}
+.name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
   --warm:#e8ddd0;
@@ -113,11 +116,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
 .top-link{font-size:12px;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 12px;text-decoration:none;letter-spacing:.03em;box-shadow:0 1px 5px rgba(58,42,26,.07);-webkit-tap-highlight-color:transparent;}
 .top-link:active{background:rgba(200,160,96,.15);}
-/* 獲得称号の表示：NEW!は左上固定、称号名は中央（被り防止の左右余白）、条件は下の段 */
-.title-new-item{position:relative;}
-.title-new-item .title-new-badge-inline{position:absolute;left:10px;top:10px;transform:none;}
+/* 獲得称号：土台バッジ左端・NEW!右端・名前中央 */
+.title-new-item,.title-owned-chip.is-reveal{position:relative;}
+.title-reveal-badge{position:absolute;left:12px;top:50%;transform:translateY(-50%);}
+.title-new-right{position:absolute;right:12px;top:50%;left:auto;transform:translateY(-50%);}
 .title-new-item .title-reveal-text,
-.title-owned-chip .title-reveal-text{display:block;width:100%;text-align:center;padding:0 48px;box-sizing:border-box;}
+.title-owned-chip .title-reveal-text{display:block;width:100%;text-align:center;padding:0 58px;box-sizing:border-box;}
 .title-reveal-cond{display:block;margin-top:4px;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
@@ -395,15 +399,17 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
 .res-hashtags{
-  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 10px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
 }
+.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#7a5a30 !important;font-weight:700;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:anywhere;line-height:1.3;text-align:left;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:44px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.04em;}
+.result-ldk-hero{font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;}
+.ldk-legend{font-family:'Noto Sans JP',sans-serif;font-size:10px;font-weight:500;color:#8a7060;line-height:1.3;letter-spacing:0;text-align:left;white-space:nowrap;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -411,8 +417,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:8px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:7px 10px;}
-.res-main-row{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
+.res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:6px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:6px 10px;}
+.res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
 .res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
@@ -427,19 +433,20 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .rsv-val.rare,.rsv-val.niche{animation:none;background-position:40% center;}
 .rsv-val.super{animation:none;background-position:18% center;}
 /* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
-#screen-titles{overflow-y:auto;}
+#screen-titles{overflow-y:auto;overflow-x:hidden;}
+html,body{overflow-x:hidden;}
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
 .result-wrap{padding-bottom:40px;}
-#title-reveal-list{padding-bottom:150px;}
-.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.7;padding:12px 8px 0;max-width:100%;}
-.res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
+#title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
+.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
+.res-meta-name{font-family:'Noto Sans JP',sans-serif;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:3px;}
 .res-name-text{white-space:nowrap;}
-.res-name-badge{display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:10px;white-space:nowrap;}
+.res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
-.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:16px 8px 0;}
-.res-promo{margin-top:14px;padding-bottom:4px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
+.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:10px 8px 0;}
+.res-promo{margin-top:8px;padding-bottom:2px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.45;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
-.res-pop{margin:8px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
+.res-pop{margin:6px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
@@ -567,7 +574,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   font-size:13px;font-weight:700;
   color:var(--brown-dark);
   letter-spacing:.04em;line-height:1.35;
-  word-break:break-all;
+  word-break:keep-all;overflow-wrap:anywhere;
 }
 .title-grid-card.locked .title-grid-name{
   color:var(--brown-light);
@@ -666,15 +673,15 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 
 <!-- 名前編集モーダル -->
 <div class="modal-overlay" id="name-edit-overlay" onclick="closeNameEdit(event)">
-  <div class="modal-box" style="max-height:auto;padding:28px 28px 24px;">
+  <div class="modal-box name-edit-box" style="padding:28px 28px 0;display:flex;flex-direction:column;max-height:84vh;">
     <button class="modal-close" onclick="closeNameEdit()">✕</button>
     <div class="modal-title" id="name-edit-modal-title">マドリスト名を設定</div>
     <input id="player-name-input" type="text" maxlength="12" placeholder="名前を入力（最大12文字）"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
     <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:16px;">称号を選んで名前と一緒に表示できます</div>
-    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
-    <button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:13px 0;border:none;border-radius:4px;cursor:pointer;">決　定</button>
+    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;overflow-y:auto;flex:1;"></div>
+    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">決　定</button></div>
   </div>
 </div>
 
@@ -838,12 +845,13 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
           <div class="res-spec-v"><div class="rsv-label">築年数</div><div class="rsv-val" id="res-age">--<span class="rsv-unit">年</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">駅徒歩</div><div class="rsv-val" id="res-walk">--<span class="rsv-unit">分</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">家　賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
+          <!-- 家賃の下の空きスペースにハッシュタグ（列は左揃え・段は中央） -->
+          <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
         </div>
       </div>
-      <!-- 家賃の下：ハッシュタグ → マドリスト名+称号バッジ → 公開日（中央） -->
+      <!-- マドリスト名+称号バッジ → 公開日（中央） -->
       <div class="res-meta" id="res-meta">
-        <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
-        <div class="res-meta-name"><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span><span class="res-name-badge" id="res-meta-title" style="display:none;"></span></div>
+        <div class="res-meta-name"><span class="res-name-badge" id="res-meta-title" style="display:none;"></span><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span></div>
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
@@ -1224,6 +1232,12 @@ function updateStartProfile(){
   const titleEl=document.getElementById('start-profile-title');
   if(nameEl) nameEl.textContent=name||'名前未設定';
   if(titleEl) titleEl.textContent=titleSel||'なし';
+  // 🏅アイコンを装備称号の土台バッジに
+  const icoEl=document.querySelector('#start-profile .sp-row[onclick*="title"] .sp-ico');
+  if(icoEl){
+    if(titleSel){ icoEl.innerHTML=titleBadgeHTML(titleBadgeOf(titleSel),titleRarOf(titleSel),26); }
+    else { icoEl.textContent='🏅'; }
+  }
   window._playerName=name;
 }
 function openNameEdit(mode){
@@ -1258,9 +1272,10 @@ function openNameEdit(mode){
     listEl.appendChild(noneBtn);
     titles.forEach(t=>{
       const btn=document.createElement('button');
-      btn.textContent=t; btn.dataset.val=t;
+      btn.dataset.val=t;
       const active=sel===t;
-      btn.style.cssText='padding:6px 14px;border-radius:20px;border:1.5px solid '+(active?'var(--brown-dark)':'rgba(90,74,58,.2)')+';background:'+(active?'var(--brown-dark)':'#fff')+';color:'+(active?'#f5f0e8':'var(--brown)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
+      btn.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 7px;border-radius:20px;border:1.5px solid '+(active?'var(--brown-dark)':'rgba(90,74,58,.2)')+';background:'+(active?'var(--brown-dark)':'#fff')+';color:'+(active?'#f5f0e8':'var(--brown)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
+      btn.innerHTML=titleBadgeHTML(titleBadgeOf(t),titleRarOf(t),22)+'<span>'+t+'</span>';
       btn.onclick=()=>selectTitleChip(t);
       listEl.appendChild(btn);
     });
@@ -1659,13 +1674,15 @@ function showTitlesReveal(){
     setTimeout(()=>{
       const el=document.createElement('div');
       const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${title}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
+      const rar=titleRarOf(title), emoji=titleBadgeOf(title);
+      const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,34)}</span>`;
       if(isNew){
         el.className='title-new-item';
-        el.innerHTML=`<span class="title-new-badge-inline">NEW！</span>${inner}`;
+        el.innerHTML=`${badge}${inner}<span class="title-new-badge-inline title-new-right">NEW！</span>`;
       } else {
         el.className='title-owned-chip is-reveal';
         el.style.marginBottom='8px';
-        el.innerHTML=inner;
+        el.innerHTML=`${badge}${inner}`;
       }
       el.style.opacity='0';
       el.style.transform='translateY(12px)';
@@ -1756,9 +1773,9 @@ function renderSavesList(){
 
   // めくりステージ
   const stage=document.createElement('div');
-  stage.style.cssText='position:relative;touch-action:none;overscroll-behavior:contain;overflow:hidden;perspective:900px;min-height:140px;display:flex;align-items:center;justify-content:center;';
+  stage.style.cssText='position:relative;touch-action:none;overscroll-behavior:contain;perspective:900px;min-height:140px;display:flex;align-items:center;justify-content:center;padding:0 30px;';
   const pageEl=document.createElement('div');
-  pageEl.style.cssText='transition:transform .26s ease,opacity .26s ease;will-change:transform;';
+  pageEl.style.cssText='transition:transform .26s ease,opacity .26s ease;will-change:transform;width:100%;display:flex;justify-content:center;';
   stage.appendChild(pageEl);
   wrap.appendChild(stage);
 
@@ -1767,7 +1784,7 @@ function renderSavesList(){
     const b=document.createElement('button');
     b.textContent=label;
     b.setAttribute('aria-label',dir>0?'次の物件':'前の物件');
-    b.style.cssText='position:absolute;top:50%;'+(dir>0?'right:-6px;':'left:-6px;')+'transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(90,74,58,.25);background:rgba(255,255,255,.95);color:var(--brown-dark);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(58,42,26,.15);z-index:3;display:flex;align-items:center;justify-content:center;';
+    b.style.cssText='position:absolute;top:50%;'+(dir>0?'right:0;':'left:0;')+'transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(90,74,58,.25);background:rgba(255,255,255,.95);color:var(--brown-dark);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(58,42,26,.15);z-index:3;display:flex;align-items:center;justify-content:center;';
     b.onclick=(e)=>{ e.stopPropagation(); go(dir); };
     return b;
   };
@@ -1856,13 +1873,21 @@ function renderSavesList(){
       pageEl.style.opacity='0';
       renderPage();
       pageEl.style.transform='translateX('+(dir*110)+'%) rotate('+(dir*6)+'deg)';
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const newImg=pageEl.querySelector('img');
+      const showIn=()=>{
         pageEl.style.visibility='visible';
         pageEl.style.transition='transform .24s ease,opacity .24s ease';
         pageEl.style.transform='translateX(0) rotate(0deg)';
         pageEl.style.opacity='1';
         setTimeout(()=>{busy=false;},260);
-      }));
+      };
+      if(newImg && !newImg.complete){
+        newImg.addEventListener('load',()=>requestAnimationFrame(showIn),{once:true});
+        newImg.addEventListener('error',()=>requestAnimationFrame(showIn),{once:true});
+        setTimeout(showIn,450);
+      }else{
+        requestAnimationFrame(()=>requestAnimationFrame(showIn));
+      }
     },230);
   }
 
@@ -1952,6 +1977,27 @@ const rareRent=r=>(r<=9||r>=50);
 // 称号マスター。一覧はこの並び順（物件情報：単独→複合 → パーツ配置：単独→複合）で表示。
 // rar=レア度（小さいほどレア。POP表示や獲得時の並びに使用）
 // check(x) … x={age,walk,rent,n:パーツ数,st:収納マス数}
+function fitToLines(el,maxLines,startFs,minFs){
+  if(!el)return;
+  el.style.fontSize=startFs+'px';
+  let fs=startFs, guard=40;
+  while(fs>minFs && guard-->0){
+    const lh=parseFloat(getComputedStyle(el).lineHeight)||fs*1.3;
+    if(el.scrollHeight<=lh*maxLines+1)break;
+    fs-=1; el.style.fontSize=fs+'px';
+  }
+}
+function titleTier(rar){ return rar<=1?'rainbow':(rar===2?'gold':(rar<=4?'silver':'bronze')); }
+function titleBadgeHTML(emoji,rar,size){
+  size=size||30;
+  const t=titleTier(rar);
+  const fs=Math.round(size*0.40);
+  const up=Math.round(size*0.20);     // 絵文字を上げる量（白丸にのせる）
+  return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;background-image:url(image/badge-'+t+'.png);">'+
+    '<span class="tb-emoji" style="font-size:'+fs+'px;margin-top:-'+up+'px;">'+(emoji||'')+'</span></span>';
+}
+function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
+function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
 const ALL_TITLES_MASTER=[
   // ══ 物件情報面・単独 ══
   {title:'新築の香りソムリエ', badge:'🌸', rar:2, condition:'築0年',
@@ -2118,7 +2164,7 @@ function renderTitlesPage(){
     card.className='title-grid-card '+(isOwned?'owned':'locked');
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
-    badgeEl.textContent=m.badge;
+    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,40);
     const nameEl=document.createElement('div');
     nameEl.className='title-grid-name';
     nameEl.textContent=isOwned ? m.title : '？？？？';
@@ -2144,6 +2190,10 @@ function renderTitlesPage(){
     grid.appendChild(ph);
   }
   body.appendChild(grid);
+  // 称号名を2行に収める（単語境界優先・はみ出すなら縮小）
+  requestAnimationFrame(()=>{
+    grid.querySelectorAll('.title-grid-name').forEach(el=>fitToLines(el,2,15,9));
+  });
   // このページに表示した称号を既読にする（NEWは今回の表示が最後）
   try{
     let changed=false;
@@ -2397,7 +2447,8 @@ function showResult(){
   const propName='間取りすと：'+(rawName||'とくめい');
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
-    if(equipped){ mtEl.textContent=equipped; mtEl.style.display='inline-block'; }
+    const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
+    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,28); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
@@ -2409,7 +2460,7 @@ function showResult(){
   if(heroEl){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
-    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'');
+    heroEl.innerHTML=main+(sub?`<span style="font-size:26px;color:#3a2a1a;letter-spacing:.04em;vertical-align:middle;font-weight:700;">${sub}</span>`:'')+'<span class="ldk-legend">WC=トイレ<br>B=お風呂</span>';
   }
   // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
   const newTitles=window._newTitles||[];
@@ -2431,13 +2482,9 @@ function showResult(){
         tagWrap.appendChild(span);
       });
       tagWrap.style.display='flex';
-      // 1段に入りきらないタグは後ろから外す（_shareTagsも実表示に合わせる）
+      // 各タグを2行以内に縮小（単語境界優先）
       requestAnimationFrame(()=>{
-        let guard=6;
-        while(tagWrap.scrollWidth>tagWrap.clientWidth+1 && tagWrap.children.length>1 && guard-->0){
-          tagWrap.removeChild(tagWrap.lastChild);
-          window._shareTags=picked.slice(0,tagWrap.children.length);
-        }
+        tagWrap.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
       });
     } else {
       tagWrap.style.display='none';
@@ -2714,7 +2761,9 @@ function buildPropertyCard(opt){
     const yRow=y; y+=rowH+26;
     const yPromo=y; y+=76;      // 宣伝2行（大きめ）
     const yFooter=y+4; y+=40;   // フッター
-    const H=y+18;
+    let H=y+18;
+    const H57=Math.round(W*7/5);
+    if(H<H57)H=H57; // 確実に5:7（足りない分は下に余白）
 
     const cv=document.createElement('canvas');
     cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
@@ -3386,12 +3435,15 @@ class PuzzleGame extends Phaser.Scene{
     const doPreview=(cx,cy)=>{
       const g=toGame(cx,cy); if(!g.ok||!this.currentDef)return;
       const sh=this.getShape(this.currentDef,this.rotation);
-      const c=Phaser.Math.Clamp(Math.round(g.bx/CS-sh[0].length/2),0,COLS-sh[0].length);
-      const r=Phaser.Math.Clamp(Math.round(g.by/CS-sh.length/2),0,ROWS-sh.length);
-      this.curC=c; this.curR=r;
-      // ドラッグで位置が決まったら回転アンカーも更新
-      this._anchorC=c; this._anchorR=r;
-      this.updatePreview(c,r,false); // ドラッグ中はスナップせず指位置に描画
+      const gc=Phaser.Math.Clamp(Math.floor(g.bx/CS),0,COLS-1);
+      const gr=Phaser.Math.Clamp(Math.floor(g.by/CS),0,ROWS-1);
+      const c=Phaser.Math.Clamp(gc-Math.floor(sh[0].length/2),0,COLS-sh[0].length);
+      const r=Phaser.Math.Clamp(gr-Math.floor(sh.length/2),0,ROWS-sh.length);
+      // 指したマスを必ず含む位置にスナップ（段の縁で指から外れない）
+      const snapped=this._snapCovering(sh,c,r,gc,gr);
+      this.curC=snapped.c; this.curR=snapped.r;
+      this._anchorC=snapped.c; this._anchorR=snapped.r;
+      this.updatePreview(this.curC,this.curR,false);
     };
     const drawCC=()=>{
       if(!this.currentDef)return;
@@ -4306,18 +4358,36 @@ class PuzzleGame extends Phaser.Scene{
     }
     return true;
   }
-  // 指定位置がグレーにまたがるとき、近くの土地内に収まる位置へスナップ
+  // 指したマス(gc,gr)を必ず含み、かつ最寄りの収まる位置へスナップ（段の縁で指から外れない）
+  _snapCovering(shape,c,r,gc,gr){
+    const covers=(nc,nr)=>{
+      for(let dr=0;dr<shape.length;dr++)for(let dc=0;dc<shape[0].length;dc++){
+        if(shape[dr][dc]&&nr+dr===gr&&nc+dc===gc)return true;
+      }
+      return false;
+    };
+    if(this._fitsInLand(shape,c,r)&&covers(c,r))return {c,r};
+    const maxC=COLS-shape[0].length, maxR=ROWS-shape.length;
+    let best=null,bestD=Infinity, bestCov=null,bestCovD=Infinity;
+    for(let nr=0;nr<=maxR;nr++)for(let nc=0;nc<=maxC;nc++){
+      if(!this._fitsInLand(shape,nc,nr))continue;
+      const d=(nc-c)*(nc-c)+(nr-r)*(nr-r);
+      if(d<bestD){bestD=d;best={c:nc,r:nr};}
+      if(covers(nc,nr)&&d<bestCovD){bestCovD=d;bestCov={c:nc,r:nr};}
+    }
+    return bestCov||best||{c,r}; // 指したマスを含む候補を最優先
+  }
+  // 指定位置がグレーにまたがるとき、元の位置にいちばん近い土地内へスナップ
   _snapIntoLand(shape,c,r){
     if(this._fitsInLand(shape,c,r))return {c,r};
-    // 徐々に範囲を広げて最寄りの収まる位置を探す
-    for(let radius=1;radius<=Math.max(COLS,ROWS);radius++){
-      for(let dr=-radius;dr<=radius;dr++)for(let dc=-radius;dc<=radius;dc++){
-        const nc=Phaser.Math.Clamp(c+dc,0,COLS-shape[0].length);
-        const nr=Phaser.Math.Clamp(r+dr,0,ROWS-shape.length);
-        if(this._fitsInLand(shape,nc,nr))return {c:nc,r:nr};
-      }
+    let best=null,bestD=Infinity;
+    const maxC=COLS-shape[0].length, maxR=ROWS-shape.length;
+    for(let nr=0;nr<=maxR;nr++)for(let nc=0;nc<=maxC;nc++){
+      if(!this._fitsInLand(shape,nc,nr))continue;
+      const d=(nc-c)*(nc-c)+(nr-r)*(nr-r);
+      if(d<bestD){ bestD=d; best={c:nc,r:nr}; }
     }
-    return {c,r}; // 見つからなければそのまま
+    return best||{c,r};
   }
 
   updatePreview(c,r,snap=true){
