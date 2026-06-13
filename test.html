@@ -395,7 +395,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
 .res-hashtags{
-  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0 0 10px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:10px 0 0;flex:1;justify-content:center;
 }
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
@@ -412,7 +412,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
 .res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:8px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:7px 10px;}
-.res-main-row{display:flex;gap:12px;align-items:center;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
+.res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
 .res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
@@ -434,7 +434,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.7;padding:12px 8px 0;max-width:100%;}
 .res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
 .res-name-text{white-space:nowrap;}
-.res-name-badge{display:inline-block;background:#c8a060;color:#fff;font-family:'Noto Serif JP',serif;font-size:12px;font-weight:700;letter-spacing:.04em;padding:4px 12px;border-radius:10px;white-space:nowrap;}
+.res-name-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fff;border:1.5px solid #c8a060;border-radius:50%;font-size:15px;line-height:1;flex-shrink:0;box-shadow:0 1px 3px rgba(58,42,26,.12);}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:16px 8px 0;}
 .res-promo{margin-top:14px;padding-bottom:4px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
@@ -838,11 +838,12 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
           <div class="res-spec-v"><div class="rsv-label">築年数</div><div class="rsv-val" id="res-age">--<span class="rsv-unit">年</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">駅徒歩</div><div class="rsv-val" id="res-walk">--<span class="rsv-unit">分</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">家　賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
+          <!-- 家賃の下の空きスペースにハッシュタグ（列は左揃え・段は中央） -->
+          <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
         </div>
       </div>
-      <!-- 家賃の下：ハッシュタグ → マドリスト名+称号バッジ → 公開日（中央） -->
+      <!-- マドリスト名+称号バッジ → 公開日（中央） -->
       <div class="res-meta" id="res-meta">
-        <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
         <div class="res-meta-name"><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span><span class="res-name-badge" id="res-meta-title" style="display:none;"></span></div>
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
@@ -1756,9 +1757,9 @@ function renderSavesList(){
 
   // めくりステージ
   const stage=document.createElement('div');
-  stage.style.cssText='position:relative;touch-action:none;overscroll-behavior:contain;overflow:hidden;perspective:900px;min-height:140px;display:flex;align-items:center;justify-content:center;';
+  stage.style.cssText='position:relative;touch-action:none;overscroll-behavior:contain;perspective:900px;min-height:140px;display:flex;align-items:center;justify-content:center;padding:0 30px;';
   const pageEl=document.createElement('div');
-  pageEl.style.cssText='transition:transform .26s ease,opacity .26s ease;will-change:transform;';
+  pageEl.style.cssText='transition:transform .26s ease,opacity .26s ease;will-change:transform;width:100%;display:flex;justify-content:center;';
   stage.appendChild(pageEl);
   wrap.appendChild(stage);
 
@@ -1767,7 +1768,7 @@ function renderSavesList(){
     const b=document.createElement('button');
     b.textContent=label;
     b.setAttribute('aria-label',dir>0?'次の物件':'前の物件');
-    b.style.cssText='position:absolute;top:50%;'+(dir>0?'right:-6px;':'left:-6px;')+'transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(90,74,58,.25);background:rgba(255,255,255,.95);color:var(--brown-dark);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(58,42,26,.15);z-index:3;display:flex;align-items:center;justify-content:center;';
+    b.style.cssText='position:absolute;top:50%;'+(dir>0?'right:0;':'left:0;')+'transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid rgba(90,74,58,.25);background:rgba(255,255,255,.95);color:var(--brown-dark);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(58,42,26,.15);z-index:3;display:flex;align-items:center;justify-content:center;';
     b.onclick=(e)=>{ e.stopPropagation(); go(dir); };
     return b;
   };
@@ -2397,7 +2398,8 @@ function showResult(){
   const propName='間取りすと：'+(rawName||'とくめい');
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
-    if(equipped){ mtEl.textContent=equipped; mtEl.style.display='inline-block'; }
+    const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
+    if(tdef&&tdef.badge){ mtEl.textContent=tdef.badge; mtEl.title=equipped; mtEl.style.display='inline-flex'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
