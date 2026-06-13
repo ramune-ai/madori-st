@@ -13,7 +13,10 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
-.title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;}
+.title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
+.title-badge .tb-disc{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 1px rgba(58,42,26,.3);}
+.title-badge .tb-emoji{line-height:1;}
+.name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
   --warm:#e8ddd0;
@@ -399,7 +402,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .res-hashtags{
   display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
 }
-.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#5a8a50 !important;font-weight:700;}
+.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#7a5a30 !important;font-weight:700;font-family:'Noto Sans JP',sans-serif !important;font-size:13px;letter-spacing:.02em;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
@@ -434,9 +437,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 html,body{overflow-x:hidden;}
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
 .result-wrap{padding-bottom:40px;}
-#title-reveal-list{padding-bottom:150px;}
+#title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
-.res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:3px;}
+.res-meta-name{font-family:'Noto Sans JP',sans-serif;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:3px;}
 .res-name-text{white-space:nowrap;}
 .res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
@@ -670,15 +673,15 @@ html,body{overflow-x:hidden;}
 
 <!-- 名前編集モーダル -->
 <div class="modal-overlay" id="name-edit-overlay" onclick="closeNameEdit(event)">
-  <div class="modal-box" style="max-height:auto;padding:28px 28px 24px;">
+  <div class="modal-box name-edit-box" style="padding:28px 28px 0;display:flex;flex-direction:column;max-height:84vh;">
     <button class="modal-close" onclick="closeNameEdit()">✕</button>
     <div class="modal-title" id="name-edit-modal-title">マドリスト名を設定</div>
     <input id="player-name-input" type="text" maxlength="12" placeholder="名前を入力（最大12文字）"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
     <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:16px;">称号を選んで名前と一緒に表示できます</div>
-    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
-    <button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:13px 0;border:none;border-radius:4px;cursor:pointer;">決　定</button>
+    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;overflow-y:auto;flex:1;"></div>
+    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">決　定</button></div>
   </div>
 </div>
 
@@ -1978,8 +1981,12 @@ function titleTier(rar){ return rar<=1?'rainbow':(rar===2?'gold':(rar<=4?'silver
 function titleBadgeHTML(emoji,rar,size){
   size=size||30;
   const t=titleTier(rar);
-  const fs=Math.round(size*0.5);
-  return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;font-size:'+fs+'px;background-image:url(image/badge-'+t+'.png);">'+(emoji||'')+'</span>';
+  const fs=Math.round(size*0.42);
+  const disc=Math.round(size*0.5);   // 白い丸の直径
+  const up=Math.round(size*0.12);     // 絵文字を上げる量
+  return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;background-image:url(image/badge-'+t+'.png);">'+
+    '<span class="tb-disc" style="width:'+disc+'px;height:'+disc+'px;margin-top:-'+up+'px;">'+
+    '<span class="tb-emoji" style="font-size:'+fs+'px;">'+(emoji||'')+'</span></span></span>';
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
