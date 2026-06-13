@@ -395,8 +395,9 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
 .res-hashtags{
-  display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:10px 0 0;flex:1;justify-content:center;
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
 }
+.res-hashtags>*{background:none !important;border:none !important;padding:1px 0 !important;color:#5a8a50 !important;font-weight:700;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
@@ -427,7 +428,8 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .rsv-val.rare,.rsv-val.niche{animation:none;background-position:40% center;}
 .rsv-val.super{animation:none;background-position:18% center;}
 /* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
-#screen-titles{overflow-y:auto;}
+#screen-titles{overflow-y:auto;overflow-x:hidden;}
+html,body{overflow-x:hidden;}
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;}
@@ -3403,10 +3405,11 @@ class PuzzleGame extends Phaser.Scene{
       const sh=this.getShape(this.currentDef,this.rotation);
       const c=Phaser.Math.Clamp(Math.round(g.bx/CS-sh[0].length/2),0,COLS-sh[0].length);
       const r=Phaser.Math.Clamp(Math.round(g.by/CS-sh.length/2),0,ROWS-sh.length);
-      this.curC=c; this.curR=r;
-      // ドラッグで位置が決まったら回転アンカーも更新
-      this._anchorC=c; this._anchorR=r;
-      this.updatePreview(c,r,false); // ドラッグ中はスナップせず指位置に描画
+      // ドラッグ中も土地内へスナップして表示（見えている位置にそのまま確定される）
+      const snapped=this._snapIntoLand(sh,c,r);
+      this.curC=snapped.c; this.curR=snapped.r;
+      this._anchorC=snapped.c; this._anchorR=snapped.r;
+      this.updatePreview(this.curC,this.curR,false);
     };
     const drawCC=()=>{
       if(!this.currentDef)return;
@@ -4321,18 +4324,17 @@ class PuzzleGame extends Phaser.Scene{
     }
     return true;
   }
-  // 指定位置がグレーにまたがるとき、近くの土地内に収まる位置へスナップ
+  // 指定位置がグレーにまたがるとき、元の位置にいちばん近い土地内へスナップ
   _snapIntoLand(shape,c,r){
     if(this._fitsInLand(shape,c,r))return {c,r};
-    // 徐々に範囲を広げて最寄りの収まる位置を探す
-    for(let radius=1;radius<=Math.max(COLS,ROWS);radius++){
-      for(let dr=-radius;dr<=radius;dr++)for(let dc=-radius;dc<=radius;dc++){
-        const nc=Phaser.Math.Clamp(c+dc,0,COLS-shape[0].length);
-        const nr=Phaser.Math.Clamp(r+dr,0,ROWS-shape.length);
-        if(this._fitsInLand(shape,nc,nr))return {c:nc,r:nr};
-      }
+    let best=null,bestD=Infinity;
+    const maxC=COLS-shape[0].length, maxR=ROWS-shape.length;
+    for(let nr=0;nr<=maxR;nr++)for(let nc=0;nc<=maxC;nc++){
+      if(!this._fitsInLand(shape,nc,nr))continue;
+      const d=(nc-c)*(nc-c)+(nr-r)*(nr-r);
+      if(d<bestD){ bestD=d; best={c:nc,r:nr}; }
     }
-    return {c,r}; // 見つからなければそのまま
+    return best||{c,r};
   }
 
   updatePreview(c,r,snap=true){
