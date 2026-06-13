@@ -411,7 +411,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:8px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:7px 10px;}
+.res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:6px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:6px 10px;}
 .res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
@@ -431,15 +431,20 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;}
-.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.7;padding:12px 8px 0;max-width:100%;}
-.res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
+.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
+.res-meta-name{font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:3px;}
 .res-name-text{white-space:nowrap;}
-.res-name-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:#fff;border:1.5px solid #c8a060;border-radius:50%;font-size:15px;line-height:1;flex-shrink:0;box-shadow:0 1px 3px rgba(58,42,26,.12);}
+.res-name-badge{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;
+  background:radial-gradient(circle at 50% 35%,#fff7e6 0%,#f3d790 55%,#d9a94a 100%);
+  border:2px solid #b8862f;
+  box-shadow:0 0 0 2px #fff, 0 2px 5px rgba(58,42,26,.3), inset 0 1px 2px rgba(255,255,255,.7);
+  font-size:15px;line-height:1;text-align:center;flex-shrink:0;}
+.res-name-badge>span{display:block;transform:translateY(.5px);}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
-.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:16px 8px 0;}
-.res-promo{margin-top:14px;padding-bottom:4px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.6;}
+.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:10px 8px 0;}
+.res-promo{margin-top:8px;padding-bottom:2px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.45;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
-.res-pop{margin:8px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
+.res-pop{margin:6px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
@@ -1857,13 +1862,21 @@ function renderSavesList(){
       pageEl.style.opacity='0';
       renderPage();
       pageEl.style.transform='translateX('+(dir*110)+'%) rotate('+(dir*6)+'deg)';
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const newImg=pageEl.querySelector('img');
+      const showIn=()=>{
         pageEl.style.visibility='visible';
         pageEl.style.transition='transform .24s ease,opacity .24s ease';
         pageEl.style.transform='translateX(0) rotate(0deg)';
         pageEl.style.opacity='1';
         setTimeout(()=>{busy=false;},260);
-      }));
+      };
+      if(newImg && !newImg.complete){
+        newImg.addEventListener('load',()=>requestAnimationFrame(showIn),{once:true});
+        newImg.addEventListener('error',()=>requestAnimationFrame(showIn),{once:true});
+        setTimeout(showIn,450);
+      }else{
+        requestAnimationFrame(()=>requestAnimationFrame(showIn));
+      }
     },230);
   }
 
@@ -2399,7 +2412,7 @@ function showResult(){
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
     const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
-    if(tdef&&tdef.badge){ mtEl.textContent=tdef.badge; mtEl.title=equipped; mtEl.style.display='inline-flex'; }
+    if(tdef&&tdef.badge){ mtEl.innerHTML='<span>'+tdef.badge+'</span>'; mtEl.title=equipped; mtEl.style.display='grid'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
