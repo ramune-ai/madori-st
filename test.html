@@ -3464,6 +3464,18 @@ class PuzzleGame extends Phaser.Scene{
       // 枠(wrap)からは、配置検討中(プレビュー表示中)は再取得しない
       // 土地(canvas)からは、プレビューを掴んで動かせるので許可
       if(this._previewActive&&!fromCanvas)return;
+      // 押した瞬間のプレビュー状態を記録（確定判定はこの「押す前の位置」で行う）
+      this._preTap=null;
+      if(this._previewActive&&(this._tapPreviewShown||this._mPreviewShown)){
+        const g0=toGame(cx,cy);
+        const sh0=this.getShape(this.currentDef,this.rotation);
+        const gc0=Math.floor(g0.bx/CS), gr0=Math.floor(g0.by/CS);
+        let inside=false;
+        for(let dr=0;dr<sh0.length&&!inside;dr++)
+          for(let dc=0;dc<sh0[0].length;dc++)
+            if(sh0[dr][dc]&&this.curR+dr===gr0&&this.curC+dc===gc0){inside=true;break;}
+        this._preTap={c:this.curC,r:this.curR,inside};
+      }
       playSE('grab');
       this._dragging=true;
       this._justDropped=false;
@@ -3515,20 +3527,15 @@ class PuzzleGame extends Phaser.Scene{
         // タップ＝動かさず離した → 2段階（1回目プレビュー、2回目は「プレビューの上をタップ」で確定）
         if(g.ok){
           const shape=this.getShape(this.currentDef,this.rotation);
-          // タップしたマス
           const gc=Phaser.Math.Clamp(Math.floor(g.bx/CS),0,COLS-1);
           const gr=Phaser.Math.Clamp(Math.floor(g.by/CS),0,ROWS-1);
-          // いまプレビュー中で、タップしたマスがそのパーツの占有範囲の中なら確定
-          let insidePreview=false;
-          if(this._tapPreviewShown&&this._previewActive){
-            for(let dr=0;dr<shape.length&&!insidePreview;dr++)
-              for(let dc=0;dc<shape[0].length;dc++){
-                if(shape[dr][dc]&&this.curR+dr===gr&&this.curC+dc===gc){ insidePreview=true; break; }
-              }
-          }
-          if(insidePreview){
-            this.placeAtCursor();
+          if(this._preTap&&this._preTap.inside){
+            // 押す前に出ていたプレビューの上をタップ → その位置のまま確定
+            this.curC=this._preTap.c; this.curR=this._preTap.r;
+            this.updatePreview(this.curC,this.curR,true);
+            if(this._previewActive)this.placeAtCursor();
             this._tapPreviewShown=false;
+            this._preTap=null;
           } else {
             // 新しい位置にプレビュー：タップしたマスがパーツの中に入るように配置
             let tc=Phaser.Math.Clamp(gc-Math.floor(shape[0].length/2),0,COLS-shape[0].length);
@@ -3544,14 +3551,9 @@ class PuzzleGame extends Phaser.Scene{
           this._clearPreview(); this.drawUI(); this._tapPreviewShown=false;
         }
       } else {
-        // ドラッグして離した → どこで離しても必ず最寄りの土地内へスナップ
+        // ドラッグして離した → 指を離す瞬間の座標ブレは無視し、最後にプレビューしていた位置でスナップ
         const shape=this.getShape(this.currentDef,this.rotation);
-        // 離した位置をグリッド座標に変換（土地外でもClampで土地端に寄せる）
         let baseC=this.curC, baseR=this.curR;
-        if(g.ok){
-          baseC=Phaser.Math.Clamp(Math.round(g.bx/CS-shape[0].length/2),0,COLS-shape[0].length);
-          baseR=Phaser.Math.Clamp(Math.round(g.by/CS-shape.length/2),0,ROWS-shape.length);
-        }
         const snapped=this._snapIntoLand(shape,baseC,baseR);
         this.curC=snapped.c; this.curR=snapped.r;
         this._anchorC=snapped.c; this._anchorR=snapped.r;
@@ -3623,12 +3625,8 @@ class PuzzleGame extends Phaser.Scene{
       const insideGrid = e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
 
       if(_mMoved){
-        // ドラッグして離した → どこで離しても必ず最寄りの土地内へスナップ
+        // ドラッグして離した → 離す瞬間の座標ブレは無視し、最後のプレビュー位置でスナップ
         let baseC=this.curC, baseR=this.curR;
-        if(g.ok){
-          baseC=Phaser.Math.Clamp(Math.round(g.bx/CS-pw/2),0,COLS-pw);
-          baseR=Phaser.Math.Clamp(Math.round(g.by/CS-ph/2),0,ROWS-ph);
-        }
         const snapped=this._snapIntoLand(sh,baseC,baseR);
         this.curC=snapped.c; this.curR=snapped.r;
         this._anchorC=snapped.c; this._anchorR=snapped.r;
@@ -3642,17 +3640,13 @@ class PuzzleGame extends Phaser.Scene{
       }
       const gc=Phaser.Math.Clamp(Math.floor(g.bx/CS),0,COLS-1);
       const gr=Phaser.Math.Clamp(Math.floor(g.by/CS),0,ROWS-1);
-      // いまプレビュー中で、クリックしたマスがパーツの占有範囲の中なら確定
-      let insidePreview=false;
-      if(this._mPreviewShown&&this._previewActive){
-        for(let dr=0;dr<ph&&!insidePreview;dr++)
-          for(let dc=0;dc<pw;dc++){
-            if(sh[dr][dc]&&this.curR+dr===gr&&this.curC+dc===gc){ insidePreview=true; break; }
-          }
-      }
-      if(insidePreview){
-        this.placeAtCursor();
+      if(this._preTap&&this._preTap.inside){
+        // 押す前に出ていたプレビューの上をクリック → その位置のまま確定
+        this.curC=this._preTap.c; this.curR=this._preTap.r;
+        this.updatePreview(this.curC,this.curR,true);
+        if(this._previewActive)this.placeAtCursor();
         this._mPreviewShown=false;
+        this._preTap=null;
       } else {
         // クリックしたマスがパーツの中に入るように配置してプレビュー
         let clickC=Phaser.Math.Clamp(gc-Math.floor(pw/2),0,COLS-pw);
