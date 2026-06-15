@@ -62,7 +62,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   overflow:hidden;min-height:0;position:relative;
   background:#f5f0e8;
 }
-#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 8px 24px rgba(58,42,26,.13);}
+#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 4px 12px rgba(58,42,26,.12),0 12px 40px rgba(58,42,26,.18);}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -71,7 +71,6 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   position:relative;z-index:30;
   width:100%;max-width:100vw;overflow-x:hidden;
   min-height:215px;
-  box-shadow:0 2px 12px rgba(58,42,26,.08);
 }
 @media(min-width:600px){#game-top-bar{min-height:195px;}}
 /* 1段目：設置数 + ナビボタン */
@@ -215,7 +214,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   display:flex;flex-shrink:0;
   background:rgba(245,240,232,.97);
   z-index:50;
-  box-shadow:0 -2px 12px rgba(58,42,26,.08);
+
   padding:14px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
   align-items:center;justify-content:center;gap:16px;
 }
@@ -4161,16 +4160,15 @@ class PuzzleGame extends Phaser.Scene{
         g.fillRect(c*CS,r*CS,CS,CS);
       }
     }
-    // 内側の薄いグリッド線：各マスの4辺すべてを1pxで描く（外周は後で外枠が上書き）
-    // ※隣接マスがある時だけ描く方式だと最下段・右端の線が欠けるため全辺方式にする
-    g.fillStyle(0xe8e0d8,1);
+    // 内側の薄いグリッド線：隣のマスも土地の場合のみ描く（外枠との干渉を防ぐ）
+    g.fillStyle(0xe0d8d0,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      g.fillRect(px,py,CS,1);        // 上辺
-      g.fillRect(px,py+CS-1,CS,1);   // 下辺
-      g.fillRect(px,py,1,CS);        // 左辺
-      g.fillRect(px+CS-1,py,1,CS);   // 右辺
+      if(isLand(r-1,c)) g.fillRect(px,py,CS,1);        // 上辺
+      if(isLand(r+1,c)) g.fillRect(px,py+CS-1,CS,1);   // 下辺
+      if(isLand(r,c-1)) g.fillRect(px,py,1,CS);        // 左辺
+      if(isLand(r,c+1)) g.fillRect(px+CS-1,py,1,CS);   // 右辺
     }
     this.drawBorder();
   }
@@ -4179,28 +4177,38 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.borderGfx)return;
     const g=this.borderGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
-    const BW=5;
+    const BW=6;
+    // 外枠ソフトシャドウ（本体枠の外側1pxに半透明のにじみ）
+    g.fillStyle(0x3a2a1a,0.18);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(!isLand(r,c))continue;
+      const px=c*CS, py=r*CS;
+      if(!isLand(r-1,c)) g.fillRect(px-1,py-1,CS+2,1);
+      if(!isLand(r+1,c)) g.fillRect(px-1,py+CS,CS+2,1);
+      if(!isLand(r,c-1)) g.fillRect(px-1,py-1,1,CS+2);
+      if(!isLand(r,c+1)) g.fillRect(px+CS,py-1,1,CS+2);
+    }
     // 外枠メイン：濃いダークブラウン
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px,py,CS,BW);          // 上辺
-      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,BW);    // 下辺
-      if(!isLand(r,c-1)) g.fillRect(px,py,BW,CS);          // 左辺
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,BW,CS);    // 右辺
+      if(!isLand(r-1,c)) g.fillRect(px,py,CS,BW);
+      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,BW);
+      if(!isLand(r,c-1)) g.fillRect(px,py,BW,CS);
+      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,BW,CS);
     }
     // 内側ハイライト（二重線効果）：明るいブラウン1px
-    g.fillStyle(0xa08060,1);
+    g.fillStyle(0xb09070,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px+BW,py+BW,CS-BW*2,1);
-      if(!isLand(r+1,c)) g.fillRect(px+BW,py+CS-BW-1,CS-BW*2,1);
-      if(!isLand(r,c-1)) g.fillRect(px+BW,py+BW,1,CS-BW*2);
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW-1,py+BW,1,CS-BW*2);
+      if(!isLand(r-1,c)) g.fillRect(px+BW,py+BW-1,CS-BW*2,1);
+      if(!isLand(r+1,c)) g.fillRect(px+BW,py+CS-BW,CS-BW*2,1);
+      if(!isLand(r,c-1)) g.fillRect(px+BW-1,py+BW,1,CS-BW*2);
+      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py+BW,1,CS-BW*2);
     }
-    // L字土地の内側コーナーで欠ける交点（線の太さぶんの正方形）を埋める
+    // L字土地の内側コーナーで欠ける交点
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
       const tl=isLand(r-1,c-1), tr=isLand(r-1,c), bl=isLand(r,c-1), br=isLand(r,c);
@@ -4213,7 +4221,7 @@ class PuzzleGame extends Phaser.Scene{
       else g.fillRect(X-BW,Y-BW,BW,BW);
     }
     // ── 凸角（外側コーナー）を丸める ──
-    const RC=BW;
+    const RC=BW;  // 6px
     for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
       const tl2=isLand(r-1,c-1),tr2=isLand(r-1,c),bl2=isLand(r,c-1),br2=isLand(r,c);
       const cnt2=(tl2?1:0)+(tr2?1:0)+(bl2?1:0)+(br2?1:0);
@@ -4397,9 +4405,16 @@ class PuzzleGame extends Phaser.Scene{
       ctx.strokeRect(ox+1,oy+1,pw-2,ph-2);
     }
     const labelStr=def.label?def.label.split('\n')[0]:def.name;
-    ctx.fillStyle='rgba(58,42,26,0.85)';
-    ctx.font=`bold ${Math.min(13,Math.floor(Math.min(pw,ph)*0.28))}px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif`;
+    const _lfs=Math.max(9,Math.min(15,Math.floor(Math.min(pw,ph)*0.48)));
+    ctx.font=`bold ${_lfs}px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
+    const _lm=ctx.measureText(labelStr);
+    const _lbw=_lm.width+8, _lbh=_lfs+6;
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    const _lbx=ox+pw/2-_lbw/2, _lby=oy+ph/2-_lbh/2, _lbr=3;
+    _roundRect(ctx,_lbx,_lby,_lbw,_lbh,_lbr);
+    ctx.fill();
+    ctx.fillStyle='#3a2a1a';
     ctx.fillText(labelStr, ox+pw/2, oy+ph/2);
   }
 
