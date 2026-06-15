@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="image/favicon.png?v=2">
 <link rel="apple-touch-icon" href="image/icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -27,7 +27,7 @@ button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
   --green:#6a8a50;
   --blue:#5080a8;
 }
-body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;padding-top:env(safe-area-inset-top);}
+body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;padding-top:env(safe-area-inset-top);}
 
 /* ── 共通 ── */
 .screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px 24px;}
@@ -62,7 +62,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   overflow:hidden;min-height:0;position:relative;
   background:#f5f0e8;
 }
-#game-container canvas{display:block;background:#f5f0e8;}
+#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 8px 24px rgba(58,42,26,.13);}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -125,10 +125,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .title-reveal-cond{display:block;margin-top:4px;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
-.pc-item{display:flex;align-items:baseline;gap:4px;white-space:nowrap;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 9px;}
-.pc-name{color:var(--brown-dark);font-size:12px;letter-spacing:.02em;}
+.pc-item{display:flex;align-items:baseline;gap:4px;white-space:nowrap;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 9px;box-shadow:0 1px 4px rgba(58,42,26,.07);}
+.pc-name{color:var(--brown-dark);font-size:14px;font-weight:700;letter-spacing:.02em;}
 .pc-count{color:var(--brown-dark);font-weight:700;font-size:15px;font-family:'Noto Serif JP',serif;}
-.pc-unit{color:var(--brown-light);font-size:10px;}
+.pc-unit{color:var(--brown-light);font-size:11px;}
 .pc-item.pc-storage{background:rgba(200,160,96,.18);border-color:rgba(200,160,96,.5);}
 /* ナビボタン */
 #game-nav-btns{display:flex;gap:5px;flex-shrink:0;}
@@ -157,10 +157,10 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
 .next-sublabel.em{color:var(--brown);font-weight:700;}
 /* 操作ヒント共通デザイン（3つ統一） */
 .ui-hint{
-  font-size:11px;color:var(--brown-light);
+  font-size:12px;color:var(--brown-light);font-weight:500;
   letter-spacing:.04em;white-space:nowrap;text-align:center;
   border:1px solid rgba(90,74,58,.18);border-radius:6px;
-  padding:3px 10px;background:rgba(255,255,255,.5);
+  padding:3px 10px;background:rgba(255,255,255,.6);
 }
 /* PC専用：右クリック回転ヒント（スマホでは非表示） */
 #pc-rotate-hint{ display:none; }
@@ -171,6 +171,7 @@ body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;min-height:10
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   background:rgba(200,160,96,.08);border:2px solid var(--accent);border-radius:10px;
   padding:4px 6px;cursor:grab;user-select:none;
+  box-shadow:0 2px 8px rgba(200,160,96,.22);
   -webkit-tap-highlight-color:transparent;
   touch-action:none;
   position:relative;
@@ -4048,7 +4049,7 @@ class PuzzleGame extends Phaser.Scene{
   _labelFontSize(pw,ph){ return Math.min(23, Math.max(18, Math.floor(Math.min(pw,ph)*0.40))); }
   _labelStyle(fs,color,wrapW){
     return {fontSize:fs+'px',fill:color,align:'center',
-      fontFamily:"'Noto Sans JP',sans-serif",fontStyle:'bold',
+      fontFamily:"'M PLUS Rounded 1c','Noto Sans JP',sans-serif",fontStyle:'bold',
       resolution:this._txtRes, wordWrap:{width:wrapW-8}};
   }
   // 進行中のゲームを保存（リロードで続きから再開するため）
@@ -4133,11 +4134,20 @@ class PuzzleGame extends Phaser.Scene{
   drawBg(){
     const g=this.bgGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
-    // 欠け部分（土地外）をはっきりグレーで塗る → 範囲が一目で分かる
+    // 欠け部分（土地外）：建築図面風ハッチング
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(!isLand(r,c)){
-        g.fillStyle(0xcfc7bd,1);
-        g.fillRect(c*CS,r*CS,CS,CS);
+      if(isLand(r,c))continue;
+      const px=c*CS,py=r*CS;
+      g.fillStyle(0xeceae6,1);
+      g.fillRect(px,py,CS,CS);
+      g.lineStyle(1.5,0xc0b8b0,0.55);
+      const HSTEP=9;
+      for(let o=-(CS-1);o<CS;o+=HSTEP){
+        let x1=px,y1=py+o,x2=px+CS,y2=py+o+CS;
+        if(y1<py){const d=py-y1;x1+=d;y1=py;}
+        if(y2>py+CS){const d=y2-(py+CS);x2-=d;y2=py+CS;}
+        if(x1>=x2||y1>=y2)continue;
+        g.lineBetween(x1,y1,x2,y2);
       }
     }
     // 有効な土地マスを床色で塗る
@@ -4149,7 +4159,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     // 内側の薄いグリッド線：各マスの4辺すべてを1pxで描く（外周は後で外枠が上書き）
     // ※隣接マスがある時だけ描く方式だと最下段・右端の線が欠けるため全辺方式にする
-    g.fillStyle(0xd8cfc4,1);
+    g.fillStyle(0xe8e0d8,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
@@ -4165,9 +4175,9 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.borderGfx)return;
     const g=this.borderGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
-    const BW=4;
-    // 線（stroke）ではなく塗り（fill）で描く：レンダラー差による黒ずみ・角の欠けを防ぐ
-    g.fillStyle(0x8a7060,1);
+    const BW=5;
+    // 外枠メイン：濃いダークブラウン
+    g.fillStyle(0x5d4037,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
@@ -4176,8 +4186,18 @@ class PuzzleGame extends Phaser.Scene{
       if(!isLand(r,c-1)) g.fillRect(px,py,BW,CS);          // 左辺
       if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,BW,CS);    // 右辺
     }
+    // 内側ハイライト（二重線効果）：明るいブラウン1px
+    g.fillStyle(0xa08060,1);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(!isLand(r,c))continue;
+      const px=c*CS, py=r*CS;
+      if(!isLand(r-1,c)) g.fillRect(px+BW,py+BW,CS-BW*2,1);
+      if(!isLand(r+1,c)) g.fillRect(px+BW,py+CS-BW-1,CS-BW*2,1);
+      if(!isLand(r,c-1)) g.fillRect(px+BW,py+BW,1,CS-BW*2);
+      if(!isLand(r,c+1)) g.fillRect(px+CS-BW-1,py+BW,1,CS-BW*2);
+    }
     // L字土地の内側コーナーで欠ける交点（線の太さぶんの正方形）を埋める
-    g.fillStyle(0x8a7060,1);
+    g.fillStyle(0x5d4037,1);
     for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
       const tl=isLand(r-1,c-1), tr=isLand(r-1,c), bl=isLand(r,c-1), br=isLand(r,c);
       const cnt=(tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0);
@@ -4572,7 +4592,7 @@ class PuzzleGame extends Phaser.Scene{
       if(colR.length) ly=clampInSeg(colR,ly,halfH,(r)=>this.sy(r));
       const t=this.add.text(lx, ly, '収納', {
         fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-        fontFamily:"'Noto Sans JP',sans-serif",fontStyle:'bold',
+        fontFamily:"'M PLUS Rounded 1c','Noto Sans JP',sans-serif",fontStyle:'bold',
         resolution:this._txtRes,
         wordWrap:{width:CS*2-4}
       }).setOrigin(0.5,0.5).setDepth(3);
