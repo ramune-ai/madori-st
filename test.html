@@ -71,6 +71,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   position:relative;z-index:30;
   width:100%;max-width:100vw;overflow-x:hidden;
   min-height:215px;
+  box-shadow:0 2px 12px rgba(58,42,26,.08);
 }
 @media(min-width:600px){#game-top-bar{min-height:195px;}}
 /* 1段目：設置数 + ナビボタン */
@@ -88,7 +89,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* ☰メニュー */
 #game-menu-wrap{position:relative;flex-shrink:0;}
 #game-menu-wrap{align-self:flex-start;margin-top:2px;}
-#game-menu-btn{width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;padding:0;border:1px solid rgba(90,74,58,.25);border-radius:10px;background:#fff;color:var(--brown-dark);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+#game-menu-btn{width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;padding:0;border:1px solid rgba(90,74,58,.25);border-radius:10px;background:#fff;color:var(--brown-dark);cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(58,42,26,.1);}
 #game-menu button{font-size:15px;padding:13px 18px;letter-spacing:.05em;}
 #game-menu{display:none;position:fixed;background:#fff;border:1px solid rgba(90,74,58,.2);border-radius:12px;box-shadow:0 6px 20px rgba(58,42,26,.18);z-index:200;min-width:210px;overflow:hidden;padding:4px 0;}
 #game-menu.open{display:block;}
@@ -203,6 +204,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
   padding:4px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;
   min-width:48px;transition:background .15s,border-color .15s;
+  box-shadow:0 2px 8px rgba(200,160,96,.18);
 }
 #hold-col.drag-over{background:rgba(200,160,96,.3);border-color:var(--brown-dark);}
 #hold-col:active{background:rgba(200,160,96,.18);}
@@ -213,6 +215,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   display:flex;flex-shrink:0;
   background:rgba(245,240,232,.97);
   z-index:50;
+  box-shadow:0 -2px 12px rgba(58,42,26,.08);
   padding:14px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
   align-items:center;justify-content:center;gap:16px;
 }
@@ -223,7 +226,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   cursor:pointer;transition:all .15s;display:flex;flex-direction:column;
   align-items:center;gap:5px;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;user-select:none;
-  box-shadow:0 1px 4px rgba(90,74,58,.08);
+  box-shadow:0 2px 8px rgba(58,42,26,.15);
 }
 .btn-undo:active{background:rgba(90,74,58,.08);transform:scale(.93);}
 .btn-undo .undo-icon{font-size:26px;line-height:1.1;}
@@ -232,7 +235,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #rotate-unit{
   display:flex;align-items:center;gap:0;
   background:var(--brown-dark);border-radius:22px;
-  box-shadow:0 3px 10px rgba(58,42,26,.28);overflow:hidden;
+  box-shadow:0 4px 14px rgba(58,42,26,.35);overflow:hidden;
 }
 .btn-rotate-new{
   background:transparent;border:none;color:#f5f0e8;
@@ -3502,11 +3505,12 @@ class PuzzleGame extends Phaser.Scene{
       const cp=this._unifiedCellPx();
       const PAD=8;
       const BOX=3*cp+PAD;
-      cc.width=BOX; cc.height=BOX;
+      const _dDpr=Math.min(3,window.devicePixelRatio||1);
+      cc.width=Math.round(BOX*_dDpr); cc.height=Math.round(BOX*_dDpr);
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
       const ox=Math.floor((BOX-sw*cp)/2),oy=Math.floor((BOX-sr*cp)/2);
-      const ctx=cc.getContext('2d'); ctx.clearRect(0,0,BOX,BOX);
+      const ctx=cc.getContext('2d'); ctx.scale(_dDpr,_dDpr); ctx.clearRect(0,0,BOX,BOX);
       this._drawDefOnCanvasFixed(ctx,this.currentDef,ox,oy,sw*cp,sr*cp,this.rotation);
     };
     const clearCC=()=>{
@@ -4208,6 +4212,27 @@ class PuzzleGame extends Phaser.Scene{
       else if(!bl) g.fillRect(X,Y-BW,BW,BW);
       else g.fillRect(X-BW,Y-BW,BW,BW);
     }
+    // ── 凸角（外側コーナー）を丸める ──
+    const RC=BW;
+    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
+      const tl2=isLand(r-1,c-1),tr2=isLand(r-1,c),bl2=isLand(r,c-1),br2=isLand(r,c);
+      const cnt2=(tl2?1:0)+(tr2?1:0)+(bl2?1:0)+(br2?1:0);
+      if(cnt2!==1)continue;
+      const X2=c*CS,Y2=r*CS;
+      // 角の四角をハッチ下地色で塗って消す
+      g.fillStyle(0xeceae6,1);
+      if(br2)      g.fillRect(X2,Y2,RC,RC);
+      else if(bl2) g.fillRect(X2-RC,Y2,RC,RC);
+      else if(tr2) g.fillRect(X2,Y2-RC,RC,RC);
+      else         g.fillRect(X2-RC,Y2-RC,RC,RC);
+      // 扇形で丸角を描画
+      g.fillStyle(0x5d4037,1);
+      if(br2)      g.slice(X2+RC,Y2+RC,RC,Math.PI,1.5*Math.PI);
+      else if(bl2) g.slice(X2-RC,Y2+RC,RC,1.5*Math.PI,2*Math.PI);
+      else if(tr2) g.slice(X2+RC,Y2-RC,RC,0.5*Math.PI,Math.PI);
+      else         g.slice(X2-RC,Y2-RC,RC,0,0.5*Math.PI);
+      g.fillPath();
+    }
   }
   drawBoard(){
     const g=this.gridGfx; g.clear();
@@ -4277,16 +4302,18 @@ class PuzzleGame extends Phaser.Scene{
       {def:this.queue[0], canvasId:'canvas-next1', box:SMALL_BOX, px:smallPx},
       {def:this.holdDef,  canvasId:'canvas-hold',  box:BIG_BOX,   px:bigPx},
     ];
+    const _slotDpr=Math.min(3,window.devicePixelRatio||1);
     for(const {def,canvasId,box,px} of slots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
-      cv.width=box; cv.height=box;
+      cv.width=Math.round(box*_slotDpr); cv.height=Math.round(box*_slotDpr);
       const ctx=cv.getContext('2d');
+      ctx.scale(_slotDpr,_slotDpr);
       ctx.clearRect(0,0,box,box);
       if(!def){
         if(canvasId==='canvas-hold'){
           ctx.fillStyle='rgba(90,74,58,.18)';
-          ctx.font="12px 'Noto Sans JP',sans-serif";
+          ctx.font="12px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
           ctx.textAlign='center'; ctx.textBaseline='middle';
           ctx.fillText('なし',box/2,box/2);
         }
@@ -4301,8 +4328,9 @@ class PuzzleGame extends Phaser.Scene{
     // ── 現在パーツ canvas（大きめ）──
     const cc=document.getElementById('canvas-current');
     if(cc){
-      cc.width=BIG_BOX; cc.height=BIG_BOX;
+      cc.width=Math.round(BIG_BOX*_slotDpr); cc.height=Math.round(BIG_BOX*_slotDpr);
       const ctx=cc.getContext('2d');
+      ctx.scale(_slotDpr,_slotDpr);
       ctx.clearRect(0,0,BIG_BOX,BIG_BOX);
       if(this.currentDef&&!this._dragging&&!this._previewActive){
         const shape=this.getShape(this.currentDef,this.rotation);
@@ -4370,7 +4398,7 @@ class PuzzleGame extends Phaser.Scene{
     }
     const labelStr=def.label?def.label.split('\n')[0]:def.name;
     ctx.fillStyle='rgba(58,42,26,0.85)';
-    ctx.font=`bold ${Math.min(13,Math.floor(Math.min(pw,ph)*0.28))}px 'Noto Sans JP',sans-serif`;
+    ctx.font=`bold ${Math.min(13,Math.floor(Math.min(pw,ph)*0.28))}px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(labelStr, ox+pw/2, oy+ph/2);
   }
