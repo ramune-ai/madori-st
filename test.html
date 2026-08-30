@@ -62,7 +62,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   overflow:hidden;min-height:0;position:relative;
   background:#f5f0e8;
 }
-#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 4px 12px rgba(58,42,26,.12),0 12px 40px rgba(58,42,26,.18);}
+#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 2px 10px rgba(58,42,26,.10);}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -80,13 +80,21 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 }
 /* リアルタイム間取り表示 */
 #madori-label{
-  flex:1;min-width:0;text-align:center;
+  flex:1;min-width:0;
+  display:flex;align-items:baseline;justify-content:center;gap:10px;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
-  font-weight:800;font-size:23px;letter-spacing:.01em;
-  color:var(--brown-dark);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;overflow:hidden;
 }
-/* まだ置いていない部分（キッチンなしのR・0WC・0B）は薄い点線で */
+.ml-cap{
+  font-size:13px;font-weight:700;letter-spacing:.06em;
+  color:var(--brown-light);flex-shrink:0;
+}
+.ml-value{
+  font-weight:800;font-size:30px;letter-spacing:.01em;
+  color:var(--brown-dark);
+  overflow:hidden;text-overflow:ellipsis;
+}
+/* まだ置いていない部分（0WC・0B）は薄い点線で */
 .ml-dim{opacity:.32;border-bottom:1px dashed currentColor;}
 #game-top-row1{max-width:620px;margin:0 auto;width:100%;}
 /* ☰メニュー */
@@ -145,14 +153,14 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   overflow:hidden;
 }
 #game-top-row2 canvas{flex-shrink:0;}
-#next-col,#current-piece-wrap,#skip-col{min-width:0;flex-shrink:0;}
+#next-col,#current-piece-wrap{min-width:0;flex-shrink:0;}
 /* 次のパーツ縦並び（左） */
 #next-col{
   display:flex;flex-direction:column;align-items:center;gap:6px;
   padding:4px 7px;
 }
 .next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
-.next-sublabel{font-size:8px;color:var(--brown-light);letter-spacing:.06em;}
+.next-sublabel{font-size:12px;font-weight:700;color:var(--brown-light);letter-spacing:.06em;}
 .next-sublabel.em{color:var(--brown);font-weight:700;}
 /* 操作ヒント共通デザイン（3つ統一） */
 .ui-hint{
@@ -176,7 +184,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   position:relative;
 }
 #current-piece-wrap:active{cursor:grabbing;}
-#current-piece-wrap .piece-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
+#current-piece-wrap .piece-label{font-size:13px;color:var(--accent);letter-spacing:.08em;font-weight:700;}
 #canvas-current{display:block;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
 #canvas-current{width:98px;height:98px;}
@@ -196,28 +204,33 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   opacity:0.8;display:none;transform:translate(-50%,-50%);
 }
 
-/* スキップ（右） */
-#skip-col{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-width:48px;
+/* 操作行（完成／スキップ） */
+#game-top-actions{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:2px 8px 5px;
 }
-#btn-skip{
-  display:flex;flex-direction:column;align-items:center;gap:1px;
-  background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
-  padding:8px 9px;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transition:background .15s,border-color .15s,opacity .15s;
-  box-shadow:0 2px 8px rgba(200,160,96,.18);
-  font-family:inherit;color:var(--brown-dark);line-height:1.15;
+/* ボタン共通：横長のピル型 */
+.pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border-radius:999px;padding:11px 18px;line-height:1;
+  font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.03em;
+  border:1.5px solid transparent;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+  transition:background .15s,color .15s,border-color .15s,transform .1s;
 }
-#btn-skip:active:not(:disabled){background:rgba(200,160,96,.22);}
-#btn-skip:disabled{
-  background:rgba(90,74,58,.05);border-color:rgba(90,74,58,.2);
-  color:rgba(90,74,58,.4);box-shadow:none;cursor:default;
+.pill:active{transform:scale(.95);}
+.pill-ico{display:flex;align-items:center;flex-shrink:0;}
+.pill-primary{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(200,160,96,.45);}
+.pill-secondary{background:#fff;color:var(--brown-dark);border-color:rgba(90,74,58,.22);box-shadow:0 2px 8px rgba(58,42,26,.12);}
+/* まだ押せない状態（押すと理由をトーストで出す） */
+.pill.is-locked{background:#fff;color:rgba(90,74,58,.32);border-color:rgba(90,74,58,.16);box-shadow:none;}
+/* スキップの残り回数 */
+.pill-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+  background:var(--accent);color:#fff;font-size:12px;font-weight:800;
 }
-.skip-icon{font-size:20px;line-height:1;}
-.skip-label{font-size:11px;font-weight:700;letter-spacing:.04em;}
-.skip-count{font-size:10px;font-weight:700;color:var(--accent);}
-#btn-skip:disabled .skip-count{color:rgba(90,74,58,.4);}
+.pill.is-locked .pill-badge{background:rgba(90,74,58,.22);}
 
 /* ── 下部ボタンバー ── */
 #game-bottom-bar{
@@ -225,59 +238,37 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:rgba(245,240,232,.97);
   z-index:50;
 
-  padding:14px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
-  align-items:center;justify-content:center;gap:16px;
+  padding:12px 16px max(20px, calc(env(safe-area-inset-bottom) + 12px));
+  align-items:center;justify-content:center;gap:14px;
 }
-/* 戻すボタン */
-.btn-undo{
-  background:#fff;border:1.5px solid rgba(90,74,58,.22);color:var(--brown);
-  font-size:12px;letter-spacing:.04em;padding:15px 20px 12px;border-radius:16px;
-  cursor:pointer;transition:all .15s;display:flex;flex-direction:column;
-  align-items:center;gap:5px;flex-shrink:0;
+/* 下部の大きな操作ボタン（回転・戻す）。ピルと同じ丸みで揃える */
+.bigbtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:11px;
+  border-radius:999px;padding:15px 30px;line-height:1;
+  font-family:inherit;font-weight:700;font-size:16px;letter-spacing:.06em;
+  border:1.5px solid transparent;cursor:pointer;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;user-select:none;
-  box-shadow:0 2px 8px rgba(58,42,26,.15);
+  transition:background .15s,transform .1s;
 }
-.btn-undo:active{background:rgba(90,74,58,.08);transform:scale(.93);}
-.btn-undo .undo-icon{font-size:26px;line-height:1.1;}
-.btn-undo .undo-label{font-size:10px;color:var(--brown-light);}
-/* 回転ボタン */
-#rotate-unit{
-  display:flex;align-items:center;gap:0;
-  background:var(--brown-dark);border-radius:22px;
-  box-shadow:0 4px 14px rgba(58,42,26,.35);overflow:hidden;
-}
-.btn-rotate-new{
-  background:transparent;border:none;color:#f5f0e8;
-  padding:16px 26px 14px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:5px;
-  transition:background .15s;-webkit-tap-highlight-color:transparent;user-select:none;
-}
-.btn-rotate-new:active{background:rgba(255,255,255,.15);}
-.btn-rotate-new .rot-icon{font-size:30px;line-height:1.1;}
-.btn-rotate-new .rot-label{font-size:10px;color:rgba(245,240,232,.65);letter-spacing:.04em;}
-#rotate-divider{width:1px;background:rgba(255,255,255,.15);align-self:stretch;margin:12px 0;}
+.bigbtn:active{transform:scale(.95);}
+.bigbtn-ico{display:flex;align-items:center;}
+.bigbtn-dark{background:var(--brown-dark);color:#f5f0e8;box-shadow:0 4px 14px rgba(58,42,26,.32);}
+.bigbtn-dark:active{background:#2a1a0a;}
+.bigbtn-light{background:#fff;color:var(--brown-dark);border-color:rgba(90,74,58,.22);box-shadow:0 2px 8px rgba(58,42,26,.15);}
+.bigbtn-light:active{background:rgba(90,74,58,.08);}
 
-/* 完成ボタン（下部バー左端に常設） */
-.btn-complete{
-  background:var(--accent);border:1.5px solid rgba(90,74,58,.22);color:#fff;
-  font-family:inherit;font-size:12px;letter-spacing:.04em;
-  padding:15px 20px 12px;border-radius:16px;
-  cursor:pointer;transition:all .15s;display:flex;flex-direction:column;
-  align-items:center;gap:5px;flex-shrink:0;
-  -webkit-tap-highlight-color:transparent;user-select:none;
-  box-shadow:0 2px 8px rgba(200,160,96,.45);
+/* 置ける場所が無くなった時だけ盤面中央に出る「完成」 */
+#btn-complete-overlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
+#btn-complete-overlay.visible{display:block;}
+#btn-complete-overlay button{
+  background:#3a2a1a;color:#f5f0e8;
+  font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.2em;
+  white-space:nowrap;
+  padding:22px 56px;border:2px solid rgba(200,160,96,.7);border-radius:999px;
+  cursor:pointer;animation:gentlePulse 2s ease-in-out infinite;
+  box-shadow:0 6px 24px rgba(58,42,26,.4);
 }
-.btn-complete:active{transform:scale(.93);}
-.btn-complete .cp-icon{font-size:26px;line-height:1.1;}
-.btn-complete .cp-label{font-size:10px;color:rgba(255,255,255,.85);}
-/* パーツ5個未満：押せるがグレー（タップで理由をトースト表示する） */
-.btn-complete.is-locked{
-  background:#fff;border-color:rgba(90,74,58,.22);color:rgba(90,74,58,.35);
-  box-shadow:0 2px 8px rgba(58,42,26,.1);
-}
-.btn-complete.is-locked .cp-label{color:rgba(90,74,58,.35);}
-/* 置ける場所が無くなった＝完成待ち：目立たせる */
-.btn-complete.is-ready{animation:gentlePulse 2s ease-in-out infinite;}
+#btn-complete-overlay button:active{transform:scale(.96);}
 
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
@@ -545,26 +536,25 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
   #game-top-row1{padding:3px 4px 2px;gap:4px;}
-  #madori-label{font-size:19px;}
+  #madori-label{gap:7px;}
+  .ml-cap{font-size:12px;}
+  .ml-value{font-size:26px;}
   #game-menu-btn{width:48px;height:48px;font-size:24px;}
+  .pill{font-size:13px;padding:10px 15px;gap:6px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
   .res-main-row{flex-wrap:nowrap;gap:8px;}
   .res-side{min-width:104px;}
   .res-spec-v{padding:5px 8px;}
   .rsv-val{font-size:21px;}
   #game-top-row2{padding:2px 6px 3px;gap:4px;}
+  #game-top-actions{padding:1px 6px 4px;gap:8px;}
   #current-piece-wrap{padding:2px 4px;}
-  #skip-col,#next-col{padding:2px 5px;}
-  #current-piece-wrap .piece-label{font-size:8px;}
-  .ui-hint,.next-sublabel{font-size:8px;}
-  .ui-hint{padding:2px 6px;}
-  .btn-undo{padding:14px 20px 11px;}
-  .btn-undo .undo-icon{font-size:28px;}
-  .btn-undo .undo-label{font-size:11px;}
-  .btn-rotate-new{padding:15px 26px 12px;}
-  .btn-rotate-new .rot-icon{font-size:30px;}
-  .btn-rotate-new .rot-label{font-size:11px;}
-  #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
+  #next-col{padding:2px 5px;}
+  #current-piece-wrap .piece-label{font-size:12px;}
+  .ui-hint{font-size:11px;padding:3px 8px;}
+  .next-sublabel{font-size:12px;}
+  .bigbtn{font-size:15px;padding:14px 26px;gap:9px;}
+  #game-bottom-bar{padding:10px 12px max(20px,calc(env(safe-area-inset-bottom) + 10px));gap:12px;}
 }
 .title-grid-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
@@ -710,9 +700,12 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
   <!-- 上部バー -->
   <div id="game-top-bar">
-    <!-- 1段目：設置数 + ナビ -->
+    <!-- 1段目：現在の間取り + ☰ -->
     <div id="game-top-row1">
-      <div id="madori-label"><!-- JS で動的生成 --></div>
+      <div id="madori-label">
+        <span class="ml-cap">現在の間取り</span>
+        <span class="ml-value"><!-- JS で動的生成 --></span>
+      </div>
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
@@ -722,7 +715,19 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         </div>
       </div>
     </div>
-    <!-- 2段目：次次/次 | 現在★ | 保留 -->
+    <!-- 2段目：完成（左）／スキップ（右）-->
+    <div id="game-top-actions">
+      <button class="pill pill-primary is-locked" id="btn-complete" onclick="onCompleteBtn()">
+        <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,13 9.5,18.5 20,5.5"/></svg></span>
+        <span class="pill-txt">この間取りで完成</span>
+      </button>
+      <button class="pill pill-secondary" id="btn-skip" onclick="if(gameScene)gameScene.doSkip()" title="今のパーツを捨てて次へ（C）">
+        <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,5 13,12 5,19"/><line x1="18" y1="5" x2="18" y2="19"/></svg></span>
+        <span class="pill-txt">スキップ</span>
+        <span class="pill-badge" id="skip-count-label">3</span>
+      </button>
+    </div>
+    <!-- 3段目：次の次/次 | 今のパーツ -->
     <div id="game-top-row2">
       <!-- 次のパーツ横並び（次の次→次） -->
       <div id="next-col">
@@ -744,42 +749,26 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <canvas id="canvas-current" width="98" height="98"></canvas>
         <div id="current-piece-hint" class="ui-hint">ドラッグ or 土地タップ</div>
       </div>
-      <!-- スキップ -->
-      <div id="skip-col">
-        <button id="btn-skip" onclick="if(gameScene)gameScene.doSkip()" title="今のパーツを捨てて次へ（C）">
-          <span class="skip-icon">🔄</span>
-          <span class="skip-label">スキップ</span>
-          <span class="skip-count" id="skip-count-label">残り3</span>
-        </button>
-      </div>
     </div>
   </div>
 
   <div id="game-container"></div>
+  <!-- 置ける場所が無くなった時だけ出る、次へ進むボタン -->
+  <div id="btn-complete-overlay">
+    <button onclick="proceedFromComplete()">完　成</button>
+  </div>
 
   <!-- 下部ボタンバー -->
   <div id="game-bottom-bar">
-    <!-- 左：完成（押し間違えると困るので、よく使う「戻す」から遠い側に置く） -->
-    <button class="btn-complete is-locked" id="btn-complete" onclick="onCompleteBtn()">
-      <span class="cp-icon">✓</span>
-      <span class="cp-label">完成</span>
+    <!-- 回転（パーツはすべて長方形なので、向きの切り替えは1個で足りる）-->
+    <button id="btn-rotate" class="bigbtn bigbtn-dark" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="回転（X / 右クリック）">
+      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7 A 10 10 0 1 1 8.9 9.9"/><polyline points="12.4,3.2 17.2,7 12.4,10.8"/></svg></span>
+      <span class="bigbtn-txt">回転</span>
     </button>
-    <!-- 中央：回転ユニット -->
-    <div id="rotate-unit">
-      <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" title="左回転（Z）">
-        <span class="rot-icon"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 A 8 8 0 0 0 4 12"/><polyline points="1.5,9.5 4,12.6 7,10"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4" stroke-width="1.8" opacity=".55"/></svg></span>
-        <span class="rot-label">左回転</span>
-      </button>
-      <div id="rotate-divider"></div>
-      <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="右回転（X / 右クリック）">
-        <span class="rot-icon"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 A 8 8 0 0 1 20 12"/><polyline points="22.5,9.5 20,12.6 17,10"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4" stroke-width="1.8" opacity=".55"/></svg></span>
-        <span class="rot-label">右回転</span>
-      </button>
-    </div>
-    <!-- 右：戻す -->
-    <button class="btn-undo" onclick="if(gameScene)gameScene.doUndo()">
-      <span class="undo-icon">↩</span>
-      <span class="undo-label">戻す</span>
+    <!-- 戻す -->
+    <button id="btn-undo" class="bigbtn bigbtn-light" onclick="if(gameScene)gameScene.doUndo()" title="戻す（Ctrl+Z）">
+      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12 H19 A 7 7 0 1 1 19 26 H13"/><polyline points="13.5,6.5 8 12 13.5,17.5"/></svg></span>
+      <span class="bigbtn-txt">戻す</span>
     </button>
   </div>
 </div>
@@ -1043,8 +1032,9 @@ document.addEventListener('pointerdown',function _bgmKick(){
 document.addEventListener('click',(e)=>{
   const b=e.target&&e.target.closest?e.target.closest('button'):null;
   if(!b)return;
-  if(b.classList.contains('btn-rotate-new'))return;              // 回転音が鳴る
-  if(b.classList.contains('btn-undo'))return;                    // 戻す音が鳴る
+  if(b.id==='btn-rotate')return;                                 // 回転音が鳴る
+  if(b.id==='btn-undo')return;                                   // 戻す音が鳴る
+  if(b.id==='btn-skip')return;                                   // スキップ音が鳴る
   if(b.id&&b.id.indexOf('reroll-btn')===0)return;                // スピン音が鳴る
   const oc=b.getAttribute('onclick')||'';
   if(oc.indexOf('openModal')!==-1)return;                        // ページ音が鳴る
@@ -1266,7 +1256,7 @@ function updateStartProfile(){
   // 🏅アイコンを装備称号の土台バッジに
   const icoEl=document.querySelector('#start-profile .sp-row[onclick*="title"] .sp-ico');
   if(icoEl){
-    if(titleSel){ icoEl.innerHTML=titleBadgeHTML(titleBadgeOf(titleSel),titleRarOf(titleSel),36,14); }
+    if(titleSel){ icoEl.innerHTML=titleBadgeHTML(titleBadgeOf(titleSel),titleRarOf(titleSel),36); }
     else { icoEl.textContent='🏅'; }
   }
   window._playerName=name;
@@ -1306,7 +1296,7 @@ function openNameEdit(mode){
       btn.dataset.val=t;
       const active=sel===t;
       btn.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 7px;border-radius:20px;border:1.5px solid '+(active?'var(--brown-dark)':'rgba(90,74,58,.2)')+';background:'+(active?'var(--brown-dark)':'#fff')+';color:'+(active?'#f5f0e8':'var(--brown)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
-      btn.innerHTML=titleBadgeHTML(titleBadgeOf(t),titleRarOf(t),30,13)+'<span>'+t+'</span>';
+      btn.innerHTML=titleBadgeHTML(titleBadgeOf(t),titleRarOf(t),30)+'<span>'+t+'</span>';
       btn.onclick=()=>selectTitleChip(t);
       listEl.appendChild(btn);
     });
@@ -1595,6 +1585,8 @@ function gotoGame(){
   window._playerName=localStorage.getItem('madori-player-name')||'';
   showMadoriBg(false);
   showScreen('screen-game');
+  const _ov=document.getElementById('btn-complete-overlay');
+  if(_ov)_ov.classList.remove('visible');
   // 既存のPhaserインスタンスを破棄して新規作成（再起動でツモが変わる問題を防ぐ）
   const existing=document.querySelector('#game-container canvas');
   if(existing){
@@ -1711,7 +1703,7 @@ function showTitlesReveal(){
       const el=document.createElement('div');
       const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${wbrBoundaries(title)}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
       const rar=titleRarOf(title), emoji=titleBadgeOf(title);
-      const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,46,17)}</span>`;
+      const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,46)}</span>`;
       if(isNew){
         el.className='title-new-item';
         el.innerHTML=`${badge}${inner}<span class="title-new-badge-inline title-new-right">NEW！</span>`;
@@ -2062,14 +2054,15 @@ function fitToLines(el,maxLines,startFs,minFs){
   }
 }
 function titleTier(rar){ return rar<=1?'rainbow':(rar===2?'gold':(rar<=4?'silver':'bronze')); }
-function titleBadgeHTML(emoji,rar,size,emojiPx){
+// バッジ画像(120x120)の白丸は直径50px＝41.7%、中心は横50%・縦37.9%（実測）。
+// 絵文字は指定サイズの約1.15倍に広がって描かれるので、白丸の7割を上限にする。
+function titleBadgeHTML(emoji,rar,size){
   size=size||30;
   const t=titleTier(rar);
-  const fs=emojiPx||Math.round(size*0.40);
-  const up=Math.round(fs*0.30);       // 絵文字を白丸に乗せる量（控えめ）
-  const right=Math.round(fs*0.02);    // ほんの少しだけ右
+  const fs=Math.round(size*0.29);   // 白丸(41.7%)の約7割
+  const up=Math.round(size*0.12);   // 50% - 37.9% = 12.1% ぶん上へ
   return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;background-image:url(image/badge-'+t+'.png);">'+
-    '<span class="tb-emoji" style="font-size:'+fs+'px;transform:translate('+right+'px,-'+up+'px);">'+(emoji||'')+'</span></span>';
+    '<span class="tb-emoji" style="font-size:'+fs+'px;transform:translateY(-'+up+'px);">'+(emoji||'')+'</span></span>';
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
@@ -2152,17 +2145,23 @@ const ALL_TITLES_MASTER=[
     pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
   // ══ 完成回数（プレイを重ねるほど昇格） ══
   {title:'駆け出しマドリスト', badge:'📐', rar:6, condition:'はじめて物件を完成させる',
-    pop:'記念すべき第一歩です！', check:x=>x.cc>=1},
+    ccStep:1,
+    pop:'記念すべき第一歩です！', check:x=>x.cc===1},
   {title:'一人前マドリスト', badge:'🔑', rar:5, condition:'物件を10回完成させる',
-    pop:'もう一人前です！', check:x=>x.cc>=10},
+    ccStep:10,
+    pop:'もう一人前です！', check:x=>x.cc===10},
   {title:'ベテランマドリスト', badge:'🛠️', rar:4, condition:'物件を50回完成させる',
-    pop:'場数が違います！', check:x=>x.cc>=50},
+    ccStep:50,
+    pop:'場数が違います！', check:x=>x.cc===50},
   {title:'カリスママドリスト', badge:'🌟', rar:3, condition:'物件を100回完成させる',
-    pop:'カリスマの風格…！', check:x=>x.cc>=100},
+    ccStep:100,
+    pop:'カリスマの風格…！', check:x=>x.cc===100},
   {title:'伝説のマドリスト', badge:'🏅', rar:2, condition:'物件を500回完成させる',
-    pop:'もはや伝説の域…！', check:x=>x.cc>=500},
+    ccStep:500,
+    pop:'もはや伝説の域…！', check:x=>x.cc===500},
   {title:'神域のマドリスト', badge:'👑', rar:2, condition:'物件を1000回完成させる',
-    pop:'神の領域に到達…！', check:x=>x.cc>=1000},
+    ccStep:1000,
+    pop:'神の領域に到達…！', check:x=>x.cc===1000},
 ];
 
 function openModal(type){
@@ -2239,7 +2238,7 @@ function renderTitlesPage(){
     card.className='title-grid-card '+(isOwned?'owned':'locked');
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
-    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,54,19);
+    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,54);
     const nameEl=document.createElement('div');
     nameEl.className='title-grid-name';
     nameEl.innerHTML=isOwned ? wbrBoundaries(m.title) : '？？？？';
@@ -2453,8 +2452,12 @@ function generateTitles(age,walk,rent){
     if(m.check&&m.check(x)) earned.push({title:m.title,pop:m.pop||'',rar:m.rar||9});
   }
   if(earned.length===0){
-    const beg=ALL_TITLES_MASTER.find(m=>m.title==='駆け出しマドリスト');
-    if(beg)earned.push({title:beg.title,pop:beg.pop,rar:beg.rar});
+    // 何も取れなかった時の保険。完成回数の称号のうち「到達済みで一番上のもの」を出す
+    // （駆け出しを毎回出すと初回限定の意味がなくなるため）
+    const reached=ALL_TITLES_MASTER
+      .filter(m=>m.ccStep&&cc>=m.ccStep)
+      .sort((a,b)=>b.ccStep-a.ccStep)[0];
+    if(reached)earned.push({title:reached.title,pop:reached.pop,rar:reached.rar});
   }
   earned.sort((a,b)=>a.rar-b.rar);
   return earned;
@@ -2490,7 +2493,8 @@ function madoriLabelHTML(counts){
   const dim=s=>`<span class="ml-dim">${s}</span>`;
   let main;
   if(k===0){
-    main=(rooms>0?String(rooms):'')+dim('R');
+    // キッチンがまだ無い状態。置いた部屋数は確定情報なので薄くしない
+    main=(rooms>0?String(rooms):'')+'R';
   }else{
     const kLabel=`K${k>=2?(_MADORI_SUP[k]||String(k)):''}`;
     main=rooms===0?kLabel:`${rooms}LD${kLabel}`;
@@ -2541,7 +2545,7 @@ function showResult(){
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
     const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
-    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,38,14); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
+    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,38); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
@@ -3089,9 +3093,9 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:21},
-  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:16},
-  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:17},
+  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:18},
+  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:14},
+  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:22},
   {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:13},
   {name:'トイレ',    w:1,h:2,color:0xD4EEF8,label:'トイレ',      type:'toilet',   weight:11},
   {name:'お風呂',    w:2,h:2,color:0xB8DFF0,label:'お風呂',      type:'bath',     weight:11},
@@ -3221,27 +3225,27 @@ const LAND_PRESETS=[
     '########',
     '########',
   ]),
-  // ② L字（左下が欠ける）
+  // ② L字（右下が欠ける）※欠けは4段。3x3が置きやすいよう1段ぶん土地を足してある
   makeLand([
     '########',
     '########',
     '########',
     '########',
     '########',
-    '#####...',
+    '########',
     '#####...',
     '#####...',
     '#####...',
     '#####...',
   ]),
-  // ③ L字（右下が欠ける）
+  // ③ L字（左下が欠ける）※同上
   makeLand([
     '########',
     '########',
     '########',
     '########',
     '########',
-    '...#####',
+    '########',
     '...#####',
     '...#####',
     '...#####',
@@ -3274,10 +3278,15 @@ const LAND_PRESETS=[
     '########',
   ]),
 ];
+// 土地の出現率（LAND_PRESETS と同じ並び：長方形／L字右下／L字左下／台形左／台形右）
+// 斜めの台形はパーツが置きにくいので控えめにしてある
+const LAND_WEIGHTS=[30,25,25,10,10];
+const LAND_WEIGHT_TOTAL=LAND_WEIGHTS.reduce((a,b)=>a+b,0);
 // 現在の土地（ゲーム開始時にランダム選択）
 let LAND_MAP=LAND_PRESETS[0].map(row=>row.slice());
 function pickRandomLand(){
-  const idx=Math.floor(Math.random()*LAND_PRESETS.length);
+  let t=Math.random()*LAND_WEIGHT_TOTAL, idx=LAND_PRESETS.length-1;
+  for(let i=0;i<LAND_WEIGHTS.length;i++){ t-=LAND_WEIGHTS[i]; if(t<0){ idx=i; break; } }
   LAND_MAP=LAND_PRESETS[idx].map(row=>row.slice());
   window._landIndex=idx;
   return idx;
@@ -3480,7 +3489,7 @@ class PuzzleGame extends Phaser.Scene{
     this.game.canvas.addEventListener('mousedown',()=>this.game.canvas.focus());
     this.game.canvas.setAttribute('tabindex','0');
     this.xKey.on('down',()=>this.rotatePiece(1));
-    this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(-1); });
+    this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(1); });
     this.cKey.on('down',()=>this.doSkip());
     this.spaceKey.on('down',()=>this.placeAtCursor());
     this.enterKey.on('down',()=>this.placeAtCursor());
@@ -4292,23 +4301,32 @@ class PuzzleGame extends Phaser.Scene{
     this._updateTopBar();
   }
 
-  // 完成ボタン：5個未満はグレー（押すと理由をトースト）／5個以上で有効／
-  // 置ける場所が無くなったら「完成！」を点滅させて次へ進むことを促す
-  _updateCompleteBtn(){
-    const btn=document.getElementById('btn-complete');
-    if(!btn)return;
-    const enough=this.partCount>=5;
-    btn.classList.toggle('is-locked',!enough && !this.isFinished);
-    btn.classList.toggle('is-ready',!!this.isFinished);
-    const lbl=btn.querySelector('.cp-label');
-    if(lbl)lbl.textContent=this.isFinished?'完成！':'完成';
+  // 完成・スキップ・中央ボタンの状態をまとめて更新。
+  // 完成前は上部の「この間取りで完成」、置けなくなったら盤面中央の「完成」。
+  // 同時に2つ出さないことで、押すべきボタンが常に1つになる。
+  _updateActionBtns(){
+    const fin=!!this.isFinished;
+    const ov=document.getElementById('btn-complete-overlay');
+    if(ov)ov.classList.toggle('visible',fin);
+    const done=document.getElementById('btn-complete');
+    if(done){
+      done.style.display=fin?'none':'';
+      done.classList.toggle('is-locked',this.partCount<5);
+    }
+    const skip=document.getElementById('btn-skip');
+    const skipLbl=document.getElementById('skip-count-label');
+    if(skip&&skipLbl){
+      const left=(typeof this.skipCount==='number')?this.skipCount:SKIP_MAX;
+      skipLbl.textContent=String(left);
+      skip.classList.toggle('is-locked',left<=0||fin);
+    }
   }
   _updateTopBar(){
-    // ── 完成ボタンの状態 ──
-    this._updateCompleteBtn();
+    // ── 完成・スキップ・中央ボタンの状態 ──
+    this._updateActionBtns();
 
     // ── リアルタイム間取り表示（例：2LDK+1WC+0B）──
-    const mlEl=document.getElementById('madori-label');
+    const mlEl=document.querySelector('#madori-label .ml-value');
     if(mlEl){
       const counts={};
       const seenPids=new Set();
@@ -4319,15 +4337,6 @@ class PuzzleGame extends Phaser.Scene{
         }
       }));
       mlEl.innerHTML=madoriLabelHTML(counts);
-    }
-
-    // ── スキップボタンの残り回数 ──
-    const skipBtn=document.getElementById('btn-skip');
-    const skipLbl=document.getElementById('skip-count-label');
-    if(skipBtn&&skipLbl){
-      const left=(typeof this.skipCount==='number')?this.skipCount:SKIP_MAX;
-      skipLbl.textContent='残り'+left;
-      skipBtn.disabled=(left<=0);
     }
 
     // ── 次/次次 canvas（次系は小さめ、今は大きめ）──
@@ -4712,7 +4721,7 @@ function startPhaserGame(){
     const dpr=window.devicePixelRatio||1;
     // 盤の余白係数：スマホは余白多め（盤小さめ）、PCは余白少なめ（盤大きめ）
     const isMobile=(window.innerWidth||400)<600;
-    const MARGIN=isMobile?0.86:0.98;
+    const MARGIN=isMobile?0.96:0.98;
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, 1.0);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
@@ -4754,7 +4763,7 @@ window.addEventListener('resize',()=>{
     const cH=container.clientHeight, cW=container.clientWidth;
     if(!cH||!cW)return;
     const isMobile=(window.innerWidth||400)<600;
-    const MARGIN=isMobile?0.86:0.98;
+    const MARGIN=isMobile?0.96:0.98;
     const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,1.0);
     window._gameScaleRatio=ratio;
     canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
