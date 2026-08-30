@@ -257,16 +257,27 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .btn-rotate-new .rot-label{font-size:10px;color:rgba(245,240,232,.65);letter-spacing:.04em;}
 #rotate-divider{width:1px;background:rgba(255,255,255,.15);align-self:stretch;margin:12px 0;}
 
-/* 完成ボタン */
-#btn-complete-overlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
-#btn-complete-overlay.visible{display:block;}
-#btn-complete-overlay button{
-  background:#3a2a1a;color:#f5f0e8;
-  font-family:'Noto Serif JP',serif;font-size:20px;letter-spacing:.2em;
-  padding:20px 56px;border:2px solid rgba(200,160,96,.7);border-radius:6px;
-  cursor:pointer;animation:gentlePulse 2s ease-in-out infinite;
+/* 完成ボタン（下部バー左端に常設） */
+.btn-complete{
+  background:var(--accent);border:1.5px solid rgba(90,74,58,.22);color:#fff;
+  font-family:inherit;font-size:12px;letter-spacing:.04em;
+  padding:15px 20px 12px;border-radius:16px;
+  cursor:pointer;transition:all .15s;display:flex;flex-direction:column;
+  align-items:center;gap:5px;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+  box-shadow:0 2px 8px rgba(200,160,96,.45);
 }
-#btn-complete-overlay button:hover{background:#2a1a0a;animation:none;transform:scale(1.04);transition:transform .15s;}
+.btn-complete:active{transform:scale(.93);}
+.btn-complete .cp-icon{font-size:26px;line-height:1.1;}
+.btn-complete .cp-label{font-size:10px;color:rgba(255,255,255,.85);}
+/* パーツ5個未満：押せるがグレー（タップで理由をトースト表示する） */
+.btn-complete.is-locked{
+  background:#fff;border-color:rgba(90,74,58,.22);color:rgba(90,74,58,.35);
+  box-shadow:0 2px 8px rgba(58,42,26,.1);
+}
+.btn-complete.is-locked .cp-label{color:rgba(90,74,58,.35);}
+/* 置ける場所が無くなった＝完成待ち：目立たせる */
+.btn-complete.is-ready{animation:gentlePulse 2s ease-in-out infinite;}
 
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
@@ -705,7 +716,6 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
-          <button onclick="toggleGameMenu();if(gameScene)gameScene.forceComplete()">ここで完成にする</button>
           <button onclick="toggleGameMenu();gotoGame()">リトライ</button>
           <button onclick="toggleGameMenu();gotoStart()">タイトルへ戻る</button>
           <button onclick="toggleGameMenu();openSoundSettings()">音の設定</button>
@@ -746,16 +756,13 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   </div>
 
   <div id="game-container"></div>
-  <div id="btn-complete-overlay">
-    <button onclick="onCompleteBtn()">完　成</button>
-  </div>
 
   <!-- 下部ボタンバー -->
   <div id="game-bottom-bar">
-    <!-- 左：戻す -->
-    <button class="btn-undo" onclick="if(gameScene)gameScene.doUndo()">
-      <span class="undo-icon">↩</span>
-      <span class="undo-label">戻す</span>
+    <!-- 左：完成（押し間違えると困るので、よく使う「戻す」から遠い側に置く） -->
+    <button class="btn-complete is-locked" id="btn-complete" onclick="onCompleteBtn()">
+      <span class="cp-icon">✓</span>
+      <span class="cp-label">完成</span>
     </button>
     <!-- 中央：回転ユニット -->
     <div id="rotate-unit">
@@ -1588,7 +1595,6 @@ function gotoGame(){
   window._playerName=localStorage.getItem('madori-player-name')||'';
   showMadoriBg(false);
   showScreen('screen-game');
-  document.getElementById('btn-complete-overlay').classList.remove('visible');
   // 既存のPhaserインスタンスを破棄して新規作成（再起動でツモが変わる問題を防ぐ）
   const existing=document.querySelector('#game-container canvas');
   if(existing){
@@ -1601,7 +1607,14 @@ function gotoGame(){
     setTimeout(()=>startPhaserGame(),50);
   }
 }
+// 下部バーの「完成」ボタン。
+// まだ完成していない → その場で完成にする／完成済み → 次（ルーレット）へ進む
 function onCompleteBtn(){
+  if(!gameScene)return;
+  if(!gameScene.isFinished){ gameScene.forceComplete(); return; }
+  proceedFromComplete();
+}
+function proceedFromComplete(){
   if(!gameScene)return;
   // プレビュー（赤いパーツ表示）を消す
   gameScene.stopPreviewTween();
@@ -3299,6 +3312,7 @@ class PuzzleGame extends Phaser.Scene{
     this.currentDef=null; this.rotation=0;
     this.curC=Math.floor(COLS/2); this.curR=0;
     this.skipCount=SKIP_MAX;
+    this.isFinished=false;
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
     // ドラッグ状態リセット（リトライ時にゴーストが残らないよう）
@@ -3380,7 +3394,6 @@ class PuzzleGame extends Phaser.Scene{
           // 完成後の画面へ復帰：収納→スナップショット→各画面
           const rv=this._restoreRv, rl=this._restoreRl;
           try{ this.fillEmptyAsStorage(); }catch(e){}
-          document.getElementById('btn-complete-overlay').classList.remove('visible');
           requestAnimationFrame(()=>requestAnimationFrame(()=>{
             try{
               captureMadoriSnapshot();
@@ -3434,6 +3447,7 @@ class PuzzleGame extends Phaser.Scene{
     this.rotation=st.rotation||0;
     this.partCount=st.partCount||0;
     this.skipCount=(typeof st.skipCount==='number')?st.skipCount:SKIP_MAX;
+    this.isFinished=false;
     this.curC=(typeof st.curC==='number')?st.curC:Math.floor(COLS/2);
     this.curR=(typeof st.curR==='number')?st.curR:0;
     this._anchorC=this.curC; this._anchorR=this.curR;
@@ -3584,8 +3598,8 @@ class PuzzleGame extends Phaser.Scene{
     // ── startDrag / moveDrag / endDrag ──
     const startDrag=(cx,cy,fromCanvas=false)=>{
       if(!this.currentDef||this._dragging)return;
-      // 完成（物件完成オーバーレイ表示中）はパーツを動かせない
-      if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+      // 完成後はパーツを動かせない
+      if(this.isFinished)return;
       // 枠(wrap)からは、配置検討中(プレビュー表示中)は再取得しない
       // 土地(canvas)からは、プレビューを掴んで動かせるので許可
       if(this._previewActive&&!fromCanvas)return;
@@ -3933,7 +3947,7 @@ class PuzzleGame extends Phaser.Scene{
   doSkip(){
     if(!this.currentDef)return;
     // 完成後はスキップ不可
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
     if(this.skipCount<=0){ showGameToast('スキップは使い切ったよ！'); return; }
     playSE('hold');
     this.skipCount--;
@@ -3958,6 +3972,7 @@ class PuzzleGame extends Phaser.Scene{
     this._tapPreviewShown=false;
     const ghost=document.getElementById('drag-ghost');
     if(ghost)ghost.style.display='none';
+    this.isFinished=false;
     const state=this.undoStack.pop();
     this.grid=state.grid;
     this.currentDef=state.currentDef; this.rotation=state.rotation;
@@ -3973,7 +3988,6 @@ class PuzzleGame extends Phaser.Scene{
     this._clearPreview();
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
-    document.getElementById('btn-complete-overlay').classList.remove('visible');
     this.checkNoPlace();
     this._persist();
   }
@@ -4075,7 +4089,7 @@ class PuzzleGame extends Phaser.Scene{
   // 進行中のゲームを保存（リロードで続きから再開するため）
   _persist(){ persistFlow('screen-game'); }
   checkNoPlace(){
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
 
     const canPlaceAnywhere=(def)=>{
       if(!def)return false;
@@ -4101,9 +4115,8 @@ class PuzzleGame extends Phaser.Scene{
   }
   // 完成処理（自動判定・手動「ここで完成」共通）
   _doComplete(){
-    const _ov=document.getElementById('btn-complete-overlay');
-    if(_ov.classList.contains('visible'))return; // 二重完成カウント防止
-    _ov.classList.add('visible');
+    if(this.isFinished)return; // 二重完成カウント防止
+    this.isFinished=true;
     try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
     this._persist();
     this._clearPreview();
@@ -4114,7 +4127,7 @@ class PuzzleGame extends Phaser.Scene{
   }
   // ☰メニューの「ここで完成にする」（自動判定が拾えないケースの保険）
   forceComplete(){
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
     if(this.partCount<5){ showGameToast('パーツを5個以上置いてから完成できるよ！'); return; }
     this._doComplete();
   }
@@ -4279,7 +4292,21 @@ class PuzzleGame extends Phaser.Scene{
     this._updateTopBar();
   }
 
+  // 完成ボタン：5個未満はグレー（押すと理由をトースト）／5個以上で有効／
+  // 置ける場所が無くなったら「完成！」を点滅させて次へ進むことを促す
+  _updateCompleteBtn(){
+    const btn=document.getElementById('btn-complete');
+    if(!btn)return;
+    const enough=this.partCount>=5;
+    btn.classList.toggle('is-locked',!enough && !this.isFinished);
+    btn.classList.toggle('is-ready',!!this.isFinished);
+    const lbl=btn.querySelector('.cp-label');
+    if(lbl)lbl.textContent=this.isFinished?'完成！':'完成';
+  }
   _updateTopBar(){
+    // ── 完成ボタンの状態 ──
+    this._updateCompleteBtn();
+
     // ── リアルタイム間取り表示（例：2LDK+1WC+0B）──
     const mlEl=document.getElementById('madori-label');
     if(mlEl){
@@ -4499,7 +4526,7 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   updatePreview(c,r,snap=true){
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
     if(!this.currentDef)return;
     // 毎回クリアして再描画（シンプル・確実）
     this.stopPreviewTween();
