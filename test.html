@@ -995,6 +995,21 @@ function startBGM(){
     _bgm=a;
   }catch(e){ _bgm=null; }
 }
+// 画面が隠れたら音を止める（タブを裏に回す／閉じる／ホームに戻る）
+// これをやらないと iOS/Android でBGMが鳴り続ける
+function _audioSuspend(){
+  try{ if(_bgm) _bgm.pause(); }catch(e){}
+  try{ if(_actx && _actx.state==='running') _actx.suspend().catch(()=>{}); }catch(e){}
+}
+function _audioResume(){
+  try{ if(_bgm && bgmVol>0) _bgm.play().catch(()=>{}); }catch(e){}
+  try{ if(_actx && _actx.state==='suspended') _actx.resume().catch(()=>{}); }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) _audioSuspend(); else _audioResume();
+});
+// iOS Safari でタブを閉じる／アプリを切り替える時の保険
+window.addEventListener('pagehide',_audioSuspend);
 function setSeVol(v){
   seVol=Math.max(0,Math.min(1,v));
   try{ localStorage.setItem('madori-se-vol',String(seVol)); }catch(e){}
