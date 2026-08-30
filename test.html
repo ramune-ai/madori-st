@@ -70,20 +70,24 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:rgba(245,240,232,.98);
   position:relative;z-index:30;
   width:100%;max-width:100vw;overflow-x:hidden;
-  min-height:215px;
+  min-height:190px;
 }
-@media(min-width:600px){#game-top-bar{min-height:195px;}}
-/* 1段目：設置数 + ナビボタン */
+@media(min-width:600px){#game-top-bar{min-height:172px;}}
+/* 1段目：リアルタイム間取り + ☰ */
 #game-top-row1{
   display:flex;align-items:center;justify-content:space-between;
   padding:4px 8px 3px;gap:8px;
 }
-/* 設置数グリッド */
-#part-count-grid{
-  display:grid;grid-template-columns:repeat(4,auto);
-  gap:2px 14px;font-size:13px;font-weight:500;color:var(--brown-dark);
-  font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em;flex:1;
+/* リアルタイム間取り表示 */
+#madori-label{
+  flex:1;min-width:0;text-align:center;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-weight:800;font-size:23px;letter-spacing:.01em;
+  color:var(--brown-dark);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+/* まだ置いていない部分（キッチンなしのR・0WC・0B）は薄い点線で */
+.ml-dim{opacity:.32;border-bottom:1px dashed currentColor;}
 #game-top-row1{max-width:620px;margin:0 auto;width:100%;}
 /* ☰メニュー */
 #game-menu-wrap{position:relative;flex-shrink:0;}
@@ -125,11 +129,6 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .title-reveal-cond{display:block;margin-top:4px;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
-.pc-item{display:flex;align-items:baseline;gap:4px;white-space:nowrap;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 9px;box-shadow:0 1px 4px rgba(58,42,26,.07);}
-.pc-name{color:var(--brown-dark);font-size:14px;font-weight:700;letter-spacing:.02em;}
-.pc-count{color:var(--brown-dark);font-weight:700;font-size:15px;font-family:'Noto Serif JP',serif;}
-.pc-unit{color:var(--brown-light);font-size:11px;}
-.pc-item.pc-storage{background:rgba(200,160,96,.18);border-color:rgba(200,160,96,.5);}
 /* ナビボタン */
 #game-nav-btns{display:flex;gap:5px;flex-shrink:0;}
 .btn-nav{background:none;border:1px solid rgba(90,74,58,.2);color:var(--brown-light);
@@ -137,7 +136,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   cursor:pointer;transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
 .btn-nav:active{background:rgba(90,74,58,.1);}
 
-/* 2段目：次次/次 | 現在パーツ | 保留 */
+/* 2段目：次次/次 | 現在パーツ | スキップ */
 #game-top-row2{
   display:flex;align-items:flex-end;justify-content:center;
   padding:3px 8px 4px;gap:6px;
@@ -534,13 +533,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
-  /* ④パーツ数チップ：左に詰めてコンパクトに（☰の見切れ防止） */
   #game-top-row1{padding:3px 4px 2px;gap:4px;}
-  #part-count-grid{gap:2px 4px;justify-content:start;}
-  .pc-item{padding:2px 5px;gap:2px;border-radius:6px;}
-  .pc-name{font-size:10px;letter-spacing:0;}
-  .pc-count{font-size:13px;}
-  .pc-unit{font-size:9px;}
+  #madori-label{font-size:19px;}
   #game-menu-btn{width:48px;height:48px;font-size:24px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
   .res-main-row{flex-wrap:nowrap;gap:8px;}
@@ -707,9 +701,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div id="game-top-bar">
     <!-- 1段目：設置数 + ナビ -->
     <div id="game-top-row1">
-      <div id="part-count-grid">
-        <!-- JS で動的生成 -->
-      </div>
+      <div id="madori-label"><!-- JS で動的生成 --></div>
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
@@ -2457,22 +2449,40 @@ function generateTitles(age,walk,rent){
 function generateTitle(age,walk,rent,roomTypes){
   return generateTitles(age,walk,rent,roomTypes)[0];
 }
+// 間取りラベルの材料。完成画面（文字列）とゲーム画面（HTML）で同じ計算を使う
+const _MADORI_SUP={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
+function madoriLabelParts(counts){
+  return {
+    rooms:(counts['youshitsu']||0)+(counts['washitsu']||0),
+    k:counts['kitchen']||0,
+    wc:counts['toilet']||0,
+    bath:counts['bath']||0
+  };
+}
 function countRoomLabel(roomTypes,counts){
-  const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
-  const sup={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
-  const k=counts['kitchen']||0;
-  const wc=counts['toilet']||0;
-  const bath=counts['bath']||0;
+  const {rooms,k,wc,bath}=madoriLabelParts(counts);
   // WC・B は個数を常にプレフィックスで表示（0WC, 1WC, 2WC …）
-  const wcStr=`+${wc}WC`;
-  const bStr=`+${bath}B`;
-  const extra=wcStr+bStr;
+  const extra=`+${wc}WC`+`+${bath}B`;
   if(k===0){
     return (rooms>0?rooms:'')+'R'+extra;
   }
-  const kLabel=`K${k>=2?(sup[k]||String(k)):''}`;
+  const kLabel=`K${k>=2?(_MADORI_SUP[k]||String(k)):''}`;
   const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel}`;
   return ldkLabel+extra;
+}
+// ゲーム画面の上部に出すリアルタイム間取り表示。
+// まだ置いていない部分（キッチンなしのR・0WC・0B）は薄い点線にして「これから埋まる」ことを見せる
+function madoriLabelHTML(counts){
+  const {rooms,k,wc,bath}=madoriLabelParts(counts);
+  const dim=s=>`<span class="ml-dim">${s}</span>`;
+  let main;
+  if(k===0){
+    main=(rooms>0?String(rooms):'')+dim('R');
+  }else{
+    const kLabel=`K${k>=2?(_MADORI_SUP[k]||String(k)):''}`;
+    main=rooms===0?kLabel:`${rooms}LD${kLabel}`;
+  }
+  return main+(wc>0?`+${wc}WC`:dim('+0WC'))+(bath>0?`+${bath}B`:dim('+0B'));
 }
 function showResult(){
   const age=rouletteValues[0]??'--';
@@ -3281,7 +3291,6 @@ class PuzzleGame extends Phaser.Scene{
     }
     this._storageGfx=null;
     this._storageTexts=[];
-    this._endStorage=null;
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
     this.boardImgs={};
     this.boardLabels={};
@@ -3965,7 +3974,6 @@ class PuzzleGame extends Phaser.Scene{
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
     document.getElementById('btn-complete-overlay').classList.remove('visible');
-    this._endStorage=null;
     this.checkNoPlace();
     this._persist();
   }
@@ -4102,7 +4110,7 @@ class PuzzleGame extends Phaser.Scene{
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
     try{ this.fillEmptyAsStorage(); }catch(e){ console.warn('[end] 収納描画スキップ:', e); }
     // 収納マス数を集計して上部バーに表示
-    try{ this._endStorage=collectMadoriStats().st; this._updateTopBar(); }catch(e){}
+    try{ this._updateTopBar(); }catch(e){}
   }
   // ☰メニューの「ここで完成にする」（自動判定が拾えないケースの保険）
   forceComplete(){
@@ -4272,9 +4280,9 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   _updateTopBar(){
-    // ── 設置数グリッド ──
-    const grid=document.getElementById('part-count-grid');
-    if(grid){
+    // ── リアルタイム間取り表示（例：2LDK+1WC+0B）──
+    const mlEl=document.getElementById('madori-label');
+    if(mlEl){
       const counts={};
       const seenPids=new Set();
       this.grid.forEach(row=>row.forEach(cell=>{
@@ -4283,27 +4291,7 @@ class PuzzleGame extends Phaser.Scene{
           counts[cell.type]=(counts[cell.type]||0)+1;
         }
       }));
-      const labels={youshitsu:'洋室',washitsu:'和室',roka:'廊下',kitchen:'キッチン',
-                    toilet:'トイレ',bath:'お風呂',balcony:'バルコニー',storage:'収納'};
-      grid.innerHTML='';
-      PARTS_DEF.forEach(d=>{
-        const item=document.createElement('div');
-        item.className='pc-item';
-        item.innerHTML=`<span class="pc-name">${labels[d.type]||d.name}</span><span class="pc-count">${counts[d.type]||0}</span><span class="pc-unit">コ</span>`;
-        grid.appendChild(item);
-      });
-      // 収納マス数（空き土地マス）を常時表示。完成後は確定値を使う
-      let stCount=this._endStorage;
-      if(stCount===null||stCount===undefined){
-        stCount=0;
-        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-          if(LAND_MAP[r][c]!==null&&!this.grid[r][c])stCount++;
-        }
-      }
-      const st=document.createElement('div');
-      st.className='pc-item pc-storage';
-      st.innerHTML=`<span class="pc-name">収納</span><span class="pc-count">${stCount}</span><span class="pc-unit">マス</span>`;
-      grid.appendChild(st);
+      mlEl.innerHTML=madoriLabelHTML(counts);
     }
 
     // ── スキップボタンの残り回数 ──
