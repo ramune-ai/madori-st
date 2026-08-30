@@ -146,7 +146,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   overflow:hidden;
 }
 #game-top-row2 canvas{flex-shrink:0;}
-#next-col,#current-piece-wrap,#hold-col{min-width:0;flex-shrink:0;}
+#next-col,#current-piece-wrap,#skip-col{min-width:0;flex-shrink:0;}
 /* 次のパーツ縦並び（左） */
 #next-col{
   display:flex;flex-direction:column;align-items:center;gap:6px;
@@ -180,14 +180,14 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #current-piece-wrap .piece-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
 #canvas-current{display:block;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
-#canvas-current,#canvas-hold{width:98px;height:98px;}
+#canvas-current{width:98px;height:98px;}
 #canvas-next1,#canvas-next2{width:56px;height:56px;}
 @media(max-width:599px){
-  #canvas-current,#canvas-hold{width:122px;height:122px;}
+  #canvas-current{width:122px;height:122px;}
   #canvas-next1,#canvas-next2{width:59px;height:59px;}
 }
 @media(max-width:419px){
-  #canvas-current,#canvas-hold{width:110px;height:110px;}
+  #canvas-current{width:110px;height:110px;}
   #canvas-next1,#canvas-next2{width:59px;height:59px;}
 }
 
@@ -197,17 +197,28 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   opacity:0.8;display:none;transform:translate(-50%,-50%);
 }
 
-/* 保留（右） */
-#hold-col{
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
-  padding:4px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  min-width:48px;transition:background .15s,border-color .15s;
-  box-shadow:0 2px 8px rgba(200,160,96,.18);
+/* スキップ（右） */
+#skip-col{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:48px;
 }
-#hold-col.drag-over{background:rgba(200,160,96,.3);border-color:var(--brown-dark);}
-#hold-col:active{background:rgba(200,160,96,.18);}
-.hold-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
+#btn-skip{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
+  padding:8px 9px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:background .15s,border-color .15s,opacity .15s;
+  box-shadow:0 2px 8px rgba(200,160,96,.18);
+  font-family:inherit;color:var(--brown-dark);line-height:1.15;
+}
+#btn-skip:active:not(:disabled){background:rgba(200,160,96,.22);}
+#btn-skip:disabled{
+  background:rgba(90,74,58,.05);border-color:rgba(90,74,58,.2);
+  color:rgba(90,74,58,.4);box-shadow:none;cursor:default;
+}
+.skip-icon{font-size:20px;line-height:1;}
+.skip-label{font-size:11px;font-weight:700;letter-spacing:.04em;}
+.skip-count{font-size:10px;font-weight:700;color:var(--accent);}
+#btn-skip:disabled .skip-count{color:rgba(90,74,58,.4);}
 
 /* ── 下部ボタンバー ── */
 #game-bottom-bar{
@@ -538,8 +549,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .rsv-val{font-size:21px;}
   #game-top-row2{padding:2px 6px 3px;gap:4px;}
   #current-piece-wrap{padding:2px 4px;}
-  #hold-col,#next-col{padding:2px 5px;}
-  #current-piece-wrap .piece-label,.hold-label{font-size:8px;}
+  #skip-col,#next-col{padding:2px 5px;}
+  #current-piece-wrap .piece-label{font-size:8px;}
   .ui-hint,.next-sublabel{font-size:8px;}
   .ui-hint{padding:2px 6px;}
   .btn-undo{padding:14px 20px 11px;}
@@ -731,11 +742,13 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <canvas id="canvas-current" width="98" height="98"></canvas>
         <div id="current-piece-hint" class="ui-hint">ドラッグ or 土地タップ</div>
       </div>
-      <!-- 保留 -->
-      <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
-        <div class="hold-label">保留</div>
-        <canvas id="canvas-hold" width="98" height="98"></canvas>
-        <div id="hold-hint" class="ui-hint">タップで交換</div>
+      <!-- スキップ -->
+      <div id="skip-col">
+        <button id="btn-skip" onclick="if(gameScene)gameScene.doSkip()" title="今のパーツを捨てて次へ（C）">
+          <span class="skip-icon">🔄</span>
+          <span class="skip-label">スキップ</span>
+          <span class="skip-count" id="skip-count-label">残り3</span>
+        </button>
       </div>
     </div>
   </div>
@@ -905,7 +918,7 @@ const SOUND={                 // 「呼び名 : ファイル名」。使う音�
   grab:     'grab.mp3',       // パーツを掴む
   place:    'place.mp3',      // パーツを置く
   rotate:   'rotate.mp3',     // パーツを回転
-  hold:     'hold.mp3',       // 保留
+  hold:     'hold.mp3',       // スキップ
   spin:     'spin.mp3',       // ガチャ回転
   lock:     'lock.mp3',       // ガチャ確定
   rare:     'rare.mp3',       // レア
@@ -1390,9 +1403,8 @@ function persistFlow(screen){
       st.grid=gs.grid;
       st.queue=(gs.queue||[]).map(d=>d&&d.type);
       st.currentType=gs.currentDef&&gs.currentDef.type;
-      st.holdType=gs.holdDef?gs.holdDef.type:null;
       st.rotation=gs.rotation; st.partCount=gs.partCount;
-      st.holdUsed=!!gs.holdUsed; st.curC=gs.curC; st.curR=gs.curR;
+      st.skipCount=gs.skipCount; st.curC=gs.curC; st.curR=gs.curR;
     }
     localStorage.setItem('madori-game-state', JSON.stringify(st));
   }catch(e){}
@@ -3154,6 +3166,7 @@ function svgToCanvas(dataUrl){
 }
 
 const CS=54,COLS=8,ROWS=10,UI_R=0;
+const SKIP_MAX=3;   // 1ゲームで使えるスキップ回数
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 // 土地形状定義
 // null = 配置不可マス、0 = 通常マス
@@ -3276,7 +3289,7 @@ class PuzzleGame extends Phaser.Scene{
     this.undoStack=[];
     this.currentDef=null; this.rotation=0;
     this.curC=Math.floor(COLS/2); this.curR=0;
-    this.holdDef=null; this.holdUsed=false;
+    this.skipCount=SKIP_MAX;
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
     // ドラッグ状態リセット（リトライ時にゴーストが残らないよう）
@@ -3409,10 +3422,9 @@ class PuzzleGame extends Phaser.Scene{
     this.queue=(st.queue||[]).map(byType).filter(Boolean);
     while(this.queue.length<4)this.queue.push(this.pickRandom());
     this.currentDef=byType(st.currentType)||this.queue.shift()||this.pickRandom();
-    this.holdDef=st.holdType?byType(st.holdType):null;
     this.rotation=st.rotation||0;
     this.partCount=st.partCount||0;
-    this.holdUsed=!!st.holdUsed;
+    this.skipCount=(typeof st.skipCount==='number')?st.skipCount:SKIP_MAX;
     this.curC=(typeof st.curC==='number')?st.curC:Math.floor(COLS/2);
     this.curR=(typeof st.curR==='number')?st.curR:0;
     this._anchorC=this.curC; this._anchorR=this.curR;
@@ -3440,14 +3452,13 @@ class PuzzleGame extends Phaser.Scene{
     this.spaceKey=this.input.keyboard.addKey(K.SPACE);
     this.enterKey=this.input.keyboard.addKey(K.ENTER);
     // ウィンドウがフォーカスを失ったときキーボード入力を無効化
-    // （スクショショートカット等でholdやundoが誤発動するのを防ぐ）
+    // （スクショショートカット等でスキップやundoが誤発動するのを防ぐ）
     this.input.keyboard.disableGlobalCapture();
     this.game.canvas.addEventListener('mousedown',()=>this.game.canvas.focus());
     this.game.canvas.setAttribute('tabindex','0');
     this.xKey.on('down',()=>this.rotatePiece(1));
     this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(-1); });
-    this.cKey.on('down',()=>this.doHold());
-    // Shiftはスクショショートカットと競合するため hold から除外
+    this.cKey.on('down',()=>this.doSkip());
     this.spaceKey.on('down',()=>this.placeAtCursor());
     this.enterKey.on('down',()=>this.placeAtCursor());
     this._moveRepeat={timer:null,delay:200,interval:80};
@@ -3480,7 +3491,6 @@ class PuzzleGame extends Phaser.Scene{
 
   _setupDrag(){
     const wrap    = document.getElementById('current-piece-wrap');
-    const holdCol = document.getElementById('hold-col');
     const canvas  = this.game.canvas;
     if(!wrap||!canvas)return;
 
@@ -3600,10 +3610,6 @@ class PuzzleGame extends Phaser.Scene{
     const moveDrag=(cx,cy)=>{
       this._preTap=null; // 動かし始めたら通常の追従に戻す
       if(!this._dragging)return;
-      if(holdCol){
-        const h=holdCol.getBoundingClientRect();
-        holdCol.classList.toggle('drag-over',cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom);
-      }
       const g=toGame(cx,cy);
       // 指/カーソルが土地グリッドの実描画範囲内か（マージンなしで厳密に）
       const r=canvas.getBoundingClientRect();
@@ -3614,7 +3620,7 @@ class PuzzleGame extends Phaser.Scene{
         clearCC();
         doPreview(cx,cy);
       } else {
-        // 土地の外（枠と土地の間・保留枠の上など）：ゴーストをカーソルに追従表示
+        // 土地の外（枠と土地の間など）：ゴーストをカーソルに追従表示
         showGhost(cx,cy);
       }
     };
@@ -3623,14 +3629,6 @@ class PuzzleGame extends Phaser.Scene{
       if(!this._dragging)return;
       this._dragging=false;
       hideGhost();
-      if(holdCol)holdCol.classList.remove('drag-over');
-      // 保留枠へのドロップ
-      if(holdCol){
-        const h=holdCol.getBoundingClientRect();
-        if(cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom){
-          this.doHold(); this._clearPreview(); this.drawUI(); return;
-        }
-      }
       const g=toGame(cx,cy);
       if(wasTap){
         // タップ＝動かさず離した → 2段階（1回目プレビュー、2回目は「プレビューの上をタップ」で確定）
@@ -3677,7 +3675,6 @@ class PuzzleGame extends Phaser.Scene{
       if(!this._dragging)return;
       this._dragging=false;
       hideGhost();
-      if(holdCol)holdCol.classList.remove('drag-over');
       this._clearPreview(); this.drawUI();
     };
 
@@ -3719,14 +3716,6 @@ class PuzzleGame extends Phaser.Scene{
       if(!this._dragging)return;
       this._dragging=false;
       hideGhost();
-      if(holdCol)holdCol.classList.remove('drag-over');
-      // 保留枠へのドロップ
-      if(holdCol){
-        const h=holdCol.getBoundingClientRect();
-        if(e.clientX>=h.left&&e.clientX<=h.right&&e.clientY>=h.top&&e.clientY<=h.bottom){
-          this.doHold(); this._clearPreview(); this.drawUI(); return;
-        }
-      }
       const sh=this.getShape(this.currentDef,this.rotation);
       const pw=sh[0].length, ph=sh.length;
       const g=toGame(e.clientX,e.clientY);
@@ -3899,7 +3888,7 @@ class PuzzleGame extends Phaser.Scene{
 
   nextPiece(){
     this.currentDef=this.queue.shift(); this.queue.push(this.pickRandom());
-    this.rotation=0; this.holdUsed=false;
+    this.rotation=0;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     // 回転アンカー（補正前の希望位置）を初期化
@@ -3931,18 +3920,23 @@ class PuzzleGame extends Phaser.Scene{
     else this._updateTopBar(); // カウント等だけ更新
     this._persist();
   }
-  doHold(){
+  // 今のパーツを捨てて次へ（1ゲーム SKIP_MAX 回まで）
+  doSkip(){
     if(!this.currentDef)return;
-    // 完成後は交換不可
+    // 完成後はスキップ不可
     if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.skipCount<=0){ showGameToast('スキップは使い切ったよ！'); return; }
     playSE('hold');
-    if(this.holdDef){[this.holdDef,this.currentDef]=[this.currentDef,this.holdDef];}
-    else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
-    this.rotation=0; this.holdUsed=false;
+    this.skipCount--;
+    this.currentDef=this.queue.shift(); this.queue.push(this.pickRandom());
+    this.rotation=0;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
+    this._anchorC=this.curC; this._anchorR=this.curR;
+    this._mPreviewShown=false; this._tapPreviewShown=false;
     this._clearPreview();
     this.drawUI();
+    this.checkNoPlace();
     this._persist();
   }
   doUndo(){
@@ -3958,8 +3952,8 @@ class PuzzleGame extends Phaser.Scene{
     const state=this.undoStack.pop();
     this.grid=state.grid;
     this.currentDef=state.currentDef; this.rotation=state.rotation;
-    this.queue=state.queue.slice(); this.holdDef=state.holdDef;
-    this.holdUsed=state.holdUsed; this.partCount=state.partCount;
+    this.queue=state.queue.slice();
+    this.skipCount=state.skipCount; this.partCount=state.partCount;
     // 収納（終了時自動生成）の描画を破棄 → 元の状態に戻す
     if(this._storageGfx){this._storageGfx.destroy();this._storageGfx=null;}
     if(this._storageTexts){this._storageTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});this._storageTexts=[];}
@@ -4085,16 +4079,14 @@ class PuzzleGame extends Phaser.Scene{
     };
 
     const curOk=canPlaceAnywhere(this.currentDef);
+    if(curOk)return;
 
-    // このターンに操作できるのは current と（holdで取り出せる）パーツのみ。
-    // holdDef あり → hold と交換できる（current ↔ hold）
-    // holdDef なし → holdを押すと queue[0] を引き出せる
-    const swapDef = this.holdDef ? this.holdDef : this.queue[0];
-    const swapOk = canPlaceAnywhere(swapDef);
-
-    // current も 交換先も置けない → 終了
-    const shouldEnd = !curOk && !swapOk;
-    if(!shouldEnd)return;
+    // 今のパーツが置けない。スキップが残っていればまだ続けられる
+    if(this.skipCount>0){
+      showGameToast('置ける場所がないよ！スキップを使ってね');
+      return;
+    }
+    // 置けない かつ スキップも残っていない → 終了
 
     // 全て置けない → 終了
     this._doComplete();
@@ -4134,7 +4126,7 @@ class PuzzleGame extends Phaser.Scene{
     this.undoStack.push({
       grid:this.grid.map(row=>row.map(cell=>cell?{...cell}:null)),
       currentDef:def,rotation:this.rotation,queue:this.queue.slice(),
-      holdDef:this.holdDef,holdUsed:this.holdUsed,partCount:this.partCount
+      skipCount:this.skipCount,partCount:this.partCount
     });
     if(this.undoStack.length>1)this.undoStack.shift();
     const pid='p'+(++this.partCount);
@@ -4314,16 +4306,24 @@ class PuzzleGame extends Phaser.Scene{
       grid.appendChild(st);
     }
 
-    // ── 次/次次/保留 canvas（次系は小さめ、今・保留は大きめ）──
-    const bigPx=this._unifiedCellPx();      // 今・保留
+    // ── スキップボタンの残り回数 ──
+    const skipBtn=document.getElementById('btn-skip');
+    const skipLbl=document.getElementById('skip-count-label');
+    if(skipBtn&&skipLbl){
+      const left=(typeof this.skipCount==='number')?this.skipCount:SKIP_MAX;
+      skipLbl.textContent='残り'+left;
+      skipBtn.disabled=(left<=0);
+    }
+
+    // ── 次/次次 canvas（次系は小さめ、今は大きめ）──
+    const bigPx=this._unifiedCellPx();      // 今のパーツ
     const smallPx=this._unifiedCellPxSmall();// 次・次の次
     const PAD=8;
-    const BIG_BOX=3*bigPx+PAD;     // 今・保留の枠
+    const BIG_BOX=3*bigPx+PAD;     // 今のパーツの枠
     const SMALL_BOX=3*smallPx+PAD; // 次・次の次の枠
     const slots=[
       {def:this.queue[1], canvasId:'canvas-next2', box:SMALL_BOX, px:smallPx},
       {def:this.queue[0], canvasId:'canvas-next1', box:SMALL_BOX, px:smallPx},
-      {def:this.holdDef,  canvasId:'canvas-hold',  box:BIG_BOX,   px:bigPx},
     ];
     const _slotDpr=Math.min(3,window.devicePixelRatio||1);
     for(const {def,canvasId,box,px} of slots){
@@ -4333,15 +4333,7 @@ class PuzzleGame extends Phaser.Scene{
       const ctx=cv.getContext('2d');
       ctx.scale(_slotDpr,_slotDpr);
       ctx.clearRect(0,0,box,box);
-      if(!def){
-        if(canvasId==='canvas-hold'){
-          ctx.fillStyle='rgba(90,74,58,.18)';
-          ctx.font="12px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
-          ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText('なし',box/2,box/2);
-        }
-        continue;
-      }
+      if(!def)continue;
       const sh=this.getShape(def,0);
       const sw=sh[0].length, sr=sh.length;
       const ox=Math.floor((box-sw*px)/2), oy=Math.floor((box-sr*px)/2);
@@ -4674,7 +4666,7 @@ function startPhaserGame(){
       if(cv){cv.width=sz;cv.height=sz;}
     };
     set('canvas-next2',SMALL); set('canvas-next1',SMALL);
-    set('canvas-current',BIG); set('canvas-hold',BIG);
+    set('canvas-current',BIG);
   };
   // screen-gameがdisplay:flexになった後、barのoffsetHeightを計測して起動
   const launch=()=>{
