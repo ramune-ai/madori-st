@@ -144,20 +144,26 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   cursor:pointer;transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
 .btn-nav:active{background:rgba(90,74,58,.1);}
 
-/* 2段目：次次/次 | 現在パーツ | スキップ */
+/* 2段目：次（左・縦）｜今のパーツ（中央）｜完成・スキップ（右・縦） */
 #game-top-row2{
-  display:flex;align-items:flex-end;justify-content:center;
-  padding:3px 8px 4px;gap:6px;
+  display:flex;align-items:center;justify-content:center;
+  padding:3px 8px 5px;gap:8px;
   max-width:100%;
   flex-wrap:nowrap;
   overflow:hidden;
 }
+/* 完成（上）／スキップ（下） */
+#action-col{
+  display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+  gap:9px;flex-shrink:0;
+}
+#action-col .pill{width:100%;}
 #game-top-row2 canvas{flex-shrink:0;}
-#next-col,#current-piece-wrap{min-width:0;flex-shrink:0;}
-/* 次のパーツ縦並び（左） */
+#next-col,#current-piece-wrap,#action-col{min-width:0;flex-shrink:0;}
+/* 次のパーツ縦並び（左）。上が「次」＝先に来るもの */
 #next-col{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:4px 7px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:2px 4px;
 }
 .next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
 .next-sublabel{font-size:12px;font-weight:700;color:var(--brown-light);letter-spacing:.06em;}
@@ -238,7 +244,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:rgba(245,240,232,.97);
   z-index:50;
 
-  padding:12px 16px max(20px, calc(env(safe-area-inset-bottom) + 12px));
+  padding:12px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
   align-items:center;justify-content:center;gap:14px;
 }
 /* 下部の大きな操作ボタン（回転・戻す）。ピルと同じ丸みで揃える */
@@ -260,15 +266,39 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* 置ける場所が無くなった時だけ盤面中央に出る「完成」 */
 #btn-complete-overlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
 #btn-complete-overlay.visible{display:block;}
+.cf-card{
+  display:flex;flex-direction:column;align-items:stretch;gap:11px;
+  background:rgba(245,240,232,.97);
+  border:1.5px solid rgba(90,74,58,.2);border-radius:20px;
+  padding:20px 20px 18px;
+  box-shadow:0 10px 34px rgba(58,42,26,.35);
+}
+.cf-title{
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:14px;font-weight:700;color:var(--brown);
+  text-align:center;white-space:nowrap;margin-bottom:2px;
+}
 #btn-complete-overlay button{
-  background:#3a2a1a;color:#f5f0e8;
-  font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.2em;
-  white-space:nowrap;
-  padding:22px 56px;border:2px solid rgba(200,160,96,.7);border-radius:999px;
-  cursor:pointer;animation:gentlePulse 2s ease-in-out infinite;
-  box-shadow:0 6px 24px rgba(58,42,26,.4);
+  font-family:'Noto Serif JP',serif;white-space:nowrap;cursor:pointer;
+  border-radius:999px;
 }
 #btn-complete-overlay button:active{transform:scale(.96);}
+.cf-yes{
+  background:#3a2a1a;color:#f5f0e8;
+  font-size:21px;letter-spacing:.2em;
+  padding:19px 52px;border:2px solid rgba(200,160,96,.7);
+  box-shadow:0 6px 24px rgba(58,42,26,.4);
+}
+.cf-no{
+  background:#fff;color:var(--brown-dark);
+  font-size:15px;letter-spacing:.1em;
+  padding:13px 0;border:1.5px solid rgba(90,74,58,.22);
+}
+/* もう置ける場所が無い＝続けられない時 */
+.cf-no.is-locked{
+  background:rgba(90,74,58,.06);color:rgba(90,74,58,.32);
+  border-color:rgba(90,74,58,.14);cursor:default;
+}
 
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
@@ -546,15 +576,15 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .res-side{min-width:104px;}
   .res-spec-v{padding:5px 8px;}
   .rsv-val{font-size:21px;}
-  #game-top-row2{padding:2px 6px 3px;gap:4px;}
-  #game-top-actions{padding:1px 6px 4px;gap:8px;}
-  #current-piece-wrap{padding:2px 4px;}
-  #next-col{padding:2px 5px;}
+  #game-top-row2{padding:2px 5px 4px;gap:6px;}
+  #action-col{gap:8px;}
+  #action-col .pill{padding:11px 10px;gap:5px;}
+  #current-piece-wrap{padding:3px 5px;}
+  #next-col{padding:2px 2px;gap:6px;}
   #current-piece-wrap .piece-label{font-size:12px;}
-  .ui-hint{font-size:11px;padding:3px 8px;}
   .next-sublabel{font-size:12px;}
   .bigbtn{font-size:15px;padding:14px 26px;gap:9px;}
-  #game-bottom-bar{padding:10px 12px max(20px,calc(env(safe-area-inset-bottom) + 10px));gap:12px;}
+  #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
@@ -715,60 +745,60 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         </div>
       </div>
     </div>
-    <!-- 2段目：完成（左）／スキップ（右）-->
-    <div id="game-top-actions">
-      <button class="pill pill-primary is-locked" id="btn-complete" onclick="onCompleteBtn()">
-        <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,13 9.5,18.5 20,5.5"/></svg></span>
-        <span class="pill-txt">この間取りで完成</span>
-      </button>
-      <button class="pill pill-secondary" id="btn-skip" onclick="if(gameScene)gameScene.doSkip()" title="今のパーツを捨てて次へ（C）">
-        <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,5 13,12 5,19"/><line x1="18" y1="5" x2="18" y2="19"/></svg></span>
-        <span class="pill-txt">スキップ</span>
-        <span class="pill-badge" id="skip-count-label">3</span>
-      </button>
-    </div>
-    <!-- 3段目：次の次/次 | 今のパーツ -->
+    <!-- 2段目：次（左・縦）｜今のパーツ（中央）｜完成・スキップ（右・縦） -->
     <div id="game-top-row2">
-      <!-- 次のパーツ横並び（次の次→次） -->
+      <!-- 次のパーツ縦並び（次 → 次の次） -->
       <div id="next-col">
-        <div style="display:flex;flex-direction:row;align-items:center;gap:6px;">
-          <div class="next-row">
-            <div class="next-sublabel">次の次</div>
-            <canvas id="canvas-next2" width="56" height="56"></canvas>
-          </div>
-          <div class="next-row">
-            <div class="next-sublabel em">次</div>
-            <canvas id="canvas-next1" width="56" height="56"></canvas>
-          </div>
+        <div class="next-row">
+          <div class="next-sublabel em">次</div>
+          <canvas id="canvas-next1" width="56" height="56"></canvas>
         </div>
-        <div id="pc-rotate-hint" class="ui-hint">右クリックで回転</div>
+        <div class="next-row">
+          <div class="next-sublabel">次の次</div>
+          <canvas id="canvas-next2" width="56" height="56"></canvas>
+        </div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
         <canvas id="canvas-current" width="98" height="98"></canvas>
-        <div id="current-piece-hint" class="ui-hint">ドラッグ or 土地タップ</div>
+      </div>
+      <!-- 完成（上）／スキップ（下） -->
+      <div id="action-col">
+        <button class="pill pill-primary is-locked" id="btn-complete" onclick="onCompleteBtn()">
+          <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,13 9.5,18.5 20,5.5"/></svg></span>
+          <span class="pill-txt">完成</span>
+        </button>
+        <button class="pill pill-secondary" id="btn-skip" onclick="if(gameScene)gameScene.doSkip()" title="今のパーツを捨てて次へ（C）">
+          <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,5 13,12 5,19"/><line x1="18" y1="5" x2="18" y2="19"/></svg></span>
+          <span class="pill-txt">スキップ</span>
+          <span class="pill-badge" id="skip-count-label">3</span>
+        </button>
       </div>
     </div>
   </div>
 
   <div id="game-container"></div>
-  <!-- 置ける場所が無くなった時だけ出る、次へ進むボタン -->
+  <!-- 完成の確認ダイアログ（手動完成・置き場所切れの両方でここに出る） -->
   <div id="btn-complete-overlay">
-    <button onclick="proceedFromComplete()">完　成</button>
+    <div class="cf-card">
+      <div class="cf-title">この間取りで完成にしますか？</div>
+      <button class="cf-yes" onclick="proceedFromComplete()">完　成</button>
+      <button class="cf-no" id="btn-keep-playing" onclick="if(gameScene)gameScene.continuePlaying()">まだ続ける</button>
+    </div>
   </div>
 
   <!-- 下部ボタンバー -->
   <div id="game-bottom-bar">
-    <!-- 回転（パーツはすべて長方形なので、向きの切り替えは1個で足りる）-->
-    <button id="btn-rotate" class="bigbtn bigbtn-dark" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="回転（X / 右クリック）">
-      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7 A 10 10 0 1 1 8.9 9.9"/><polyline points="12.4,3.2 17.2,7 12.4,10.8"/></svg></span>
-      <span class="bigbtn-txt">回転</span>
-    </button>
-    <!-- 戻す -->
+    <!-- 戻す（左） -->
     <button id="btn-undo" class="bigbtn bigbtn-light" onclick="if(gameScene)gameScene.doUndo()" title="戻す（Ctrl+Z）">
       <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12 H19 A 7 7 0 1 1 19 26 H13"/><polyline points="13.5,6.5 8 12 13.5,17.5"/></svg></span>
       <span class="bigbtn-txt">戻す</span>
+    </button>
+    <!-- 回転（右）。パーツはすべて長方形なので向きの切り替えは1個で足りる -->
+    <button id="btn-rotate" class="bigbtn bigbtn-dark" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="回転（X / 右クリック）">
+      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7 A 10 10 0 1 1 8.9 9.9"/><polyline points="12.4,3.2 17.2,7 12.4,10.8"/></svg></span>
+      <span class="bigbtn-txt">回転</span>
     </button>
   </div>
 </div>
@@ -1002,9 +1032,39 @@ function _audioSuspend(){
   try{ if(_bgm) _bgm.pause(); }catch(e){}
   try{ if(_actx && _actx.state==='running') _actx.suspend().catch(()=>{}); }catch(e){}
 }
+// iOSはアプリを切り替えると音を止め、画面が戻っただけでは再開させてくれない
+// （再開にはユーザーの操作が要る）。そこで復帰に失敗したら「次の1タップ」で
+// もう一度やり直す仕掛けを仕込む。起動時にBGMを鳴らすのと同じ手口。
+let _audioKickArmed=false;
+function _armAudioKick(){
+  if(_audioKickArmed)return;
+  _audioKickArmed=true;
+  const kick=()=>{
+    document.removeEventListener('pointerdown',kick,true);
+    document.removeEventListener('touchend',kick,true);
+    _audioKickArmed=false;
+    _audioResume();
+  };
+  document.addEventListener('pointerdown',kick,true);
+  document.addEventListener('touchend',kick,true);
+}
 function _audioResume(){
-  try{ if(_bgm && bgmVol>0) _bgm.play().catch(()=>{}); }catch(e){}
-  try{ if(_actx && _actx.state==='suspended') _actx.resume().catch(()=>{}); }catch(e){}
+  // iOSには 'interrupted' という状態もあるので running 以外はすべて再開対象
+  try{
+    if(_actx && _actx.state!=='running'){
+      const p=_actx.resume();
+      if(p&&p.catch)p.catch(()=>_armAudioKick());
+    }
+  }catch(e){ _armAudioKick(); }
+  try{
+    if(bgmVol>0){
+      if(!_bgm){ startBGM(); }
+      else {
+        const p=_bgm.play();
+        if(p&&p.catch)p.catch(()=>_armAudioKick());
+      }
+    }
+  }catch(e){ _armAudioKick(); }
 }
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden) _audioSuspend(); else _audioResume();
@@ -1608,6 +1668,11 @@ function onCompleteBtn(){
 }
 function proceedFromComplete(){
   if(!gameScene)return;
+  // 完成回数はここで数える（「まだ続ける」で戻れるので、完成した瞬間だと水増しになる）
+  if(!gameScene._counted){
+    gameScene._counted=true;
+    try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
+  }
   // プレビュー（赤いパーツ表示）を消す
   gameScene.stopPreviewTween();
   if(gameScene.previewImg){gameScene.previewImg.destroy();gameScene.previewImg=null;}
@@ -4100,16 +4165,7 @@ class PuzzleGame extends Phaser.Scene{
   checkNoPlace(){
     if(this.isFinished)return;
 
-    const canPlaceAnywhere=(def)=>{
-      if(!def)return false;
-      for(let rot=0;rot<4;rot++){
-        const shape=this.getShape(def,rot);
-        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(this.canPlace(shape,c,r))return true;
-      }
-      return false;
-    };
-
-    const curOk=canPlaceAnywhere(this.currentDef);
+    const curOk=this._canPlaceAnywhere(this.currentDef);
     if(curOk)return;
 
     // 今のパーツが置けない。スキップが残っていればまだ続けられる
@@ -4126,7 +4182,6 @@ class PuzzleGame extends Phaser.Scene{
   _doComplete(){
     if(this.isFinished)return; // 二重完成カウント防止
     this.isFinished=true;
-    try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
     this._persist();
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
@@ -4134,6 +4189,30 @@ class PuzzleGame extends Phaser.Scene{
     // 収納マス数を集計して上部バーに表示
     try{ this._updateTopBar(); }catch(e){}
   }
+  // 「まだ続ける」：完成をやめてゲームに戻る。
+  // 置ける場所が無い時は押せない（_updateActionBtns でグレーにしてある）
+  continuePlaying(){
+    if(!this.isFinished)return;
+    if(!this._canContinue())return;
+    playSE('tap');
+    this.isFinished=false;
+    // 完成時に描いた収納を消す
+    if(this._storageGfx){this._storageGfx.destroy();this._storageGfx=null;}
+    if(this._storageTexts){this._storageTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});this._storageTexts=[];}
+    this.drawBoard();
+    this.drawUI();
+    this._persist();
+  }
+  // 今のパーツが置ける、またはスキップが残っていれば続けられる
+  _canPlaceAnywhere(def){
+    if(!def)return false;
+    for(let rot=0;rot<4;rot++){
+      const shape=this.getShape(def,rot);
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(this.canPlace(shape,c,r))return true;
+    }
+    return false;
+  }
+  _canContinue(){ return this._canPlaceAnywhere(this.currentDef)||this.skipCount>0; }
   // ☰メニューの「ここで完成にする」（自動判定が拾えないケースの保険）
   forceComplete(){
     if(this.isFinished)return;
@@ -4174,21 +4253,39 @@ class PuzzleGame extends Phaser.Scene{
   drawBg(){
     const g=this.bgGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
-    // 欠け部分（土地外）：建築図面風ハッチング
+    // 欠け部分（土地外）＝駐車場。
+    // 「置けない場所」なので、間取り本体より必ず暗く・地味にして沈ませる。
+    if(this._parkTexts)this._parkTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});
+    this._parkTexts=[];
+    let _pMinC=COLS,_pMaxC=-1,_pMinR=ROWS,_pMaxR=-1,_pCount=0;
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(isLand(r,c))continue;
-      const px=c*CS,py=r*CS;
-      g.fillStyle(0xeceae6,1);
-      g.fillRect(px,py,CS,CS);
-      g.lineStyle(1.5,0xc0b8b0,0.55);
-      const HSTEP=9;
-      for(let o=-(CS-1);o<CS;o+=HSTEP){
-        let x1=px,y1=py+o,x2=px+CS,y2=py+o+CS;
-        if(y1<py){const d=py-y1;x1+=d;y1=py;}
-        if(y2>py+CS){const d=y2-(py+CS);x2-=d;y2=py+CS;}
-        if(x1>=x2||y1>=y2)continue;
-        g.lineBetween(x1,y1,x2,y2);
+      _pCount++;
+      if(c<_pMinC)_pMinC=c; if(c>_pMaxC)_pMaxC=c;
+      if(r<_pMinR)_pMinR=r; if(r>_pMaxR)_pMaxR=r;
+      // アスファルト
+      g.fillStyle(0xa9a59e,1);
+      g.fillRect(c*CS,r*CS,CS,CS);
+    }
+    if(_pCount>0){
+      // 白い区画線。1マス＝1台ぶんの駐車スペースとして縦線を引く
+      g.fillStyle(0xe8e5df,0.85);
+      const LW=2;
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+        if(isLand(r,c))continue;
+        const px=c*CS,py=r*CS;
+        // 区画の仕切り（左右の隣も駐車場のときだけ内側に線を引く）
+        if(!isLand(r,c-1)&&c>0) g.fillRect(px,py+4,LW,CS-8);
+        // 車止め側のライン（下の隣が駐車場でない＝区画の端）
+        if(isLand(r+1,c)||r===ROWS-1) g.fillRect(px+4,py+CS-LW-3,CS-8,LW);
       }
+      // 中央に控えめな「P」
+      const cx=((_pMinC+_pMaxC+1)/2)*CS, cy=((_pMinR+_pMaxR+1)/2)*CS;
+      const pTxt=this.add.text(cx,cy,'P',{
+        fontFamily:"'M PLUS Rounded 1c','Noto Sans JP',sans-serif",
+        fontSize:Math.round(CS*0.9)+'px',fontStyle:'bold',color:'#ffffff'
+      }).setOrigin(0.5,0.5).setDepth(1).setAlpha(0.28).setResolution(this._txtRes);
+      this._parkTexts=[pTxt];
     }
     // 有効な土地マスを床色で塗る
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
@@ -4308,6 +4405,8 @@ class PuzzleGame extends Phaser.Scene{
     const fin=!!this.isFinished;
     const ov=document.getElementById('btn-complete-overlay');
     if(ov)ov.classList.toggle('visible',fin);
+    const keep=document.getElementById('btn-keep-playing');
+    if(keep)keep.classList.toggle('is-locked',fin&&!this._canContinue());
     const done=document.getElementById('btn-complete');
     if(done){
       done.style.display=fin?'none':'';
