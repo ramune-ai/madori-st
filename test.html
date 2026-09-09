@@ -41,29 +41,33 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #screen-start::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(200,160,96,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(106,138,80,.08) 0%,transparent 60%);pointer-events:none;}
 .logo-wrap{text-align:center;margin-bottom:48px;animation:fadeDown .8s ease both;}
 /* ゲームの目的をひと言。ふわふわ浮かせて楽しい雰囲気に */
+/* もこもこ雲の吹き出し。形はSVGで描き、文字はその上に重ねる */
 .start-bubble{
-  position:absolute;right:max(14px, calc(50% - 178px));
-  top:calc(env(safe-area-inset-top, 0px) + 96px);
-  background:#fff;border:2px solid var(--accent);border-radius:18px;
-  padding:11px 16px;z-index:4;
+  position:absolute;right:max(10px, calc(50% - 182px));
+  top:calc(env(safe-area-inset-top, 0px) + 92px);
+  width:196px;height:96px;z-index:4;
+  display:flex;align-items:center;justify-content:center;
+  animation:bubbleFloat 3.4s ease-in-out infinite;
+  filter:drop-shadow(0 4px 10px rgba(200,160,96,.35));
+}
+.bubble-cloud{
+  position:absolute;inset:0;width:100%;height:100%;
+  fill:#fff;stroke:var(--accent);stroke-width:5;
+  vector-effect:non-scaling-stroke;
+}
+.bubble-tail{
+  position:absolute;left:16px;bottom:-22px;width:34px;height:34px;
+  fill:#fff;stroke:var(--accent);stroke-width:2.4;
+}
+.bubble-text{
+  position:relative;z-index:1;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
-  font-size:14px;font-weight:800;line-height:1.5;color:var(--brown-dark);
+  font-size:14px;font-weight:800;line-height:1.55;color:var(--brown-dark);
   text-align:center;letter-spacing:.02em;
-  box-shadow:0 4px 16px rgba(200,160,96,.35);
-  transform:rotate(-4deg);
-  animation:bubbleFloat 3.2s ease-in-out infinite;
-}
-.start-bubble::after{
-  content:'';position:absolute;left:26px;bottom:-11px;
-  border:10px solid transparent;border-top-color:var(--accent);border-bottom:0;
-}
-.start-bubble::before{
-  content:'';position:absolute;left:28px;bottom:-7px;z-index:1;
-  border:8px solid transparent;border-top-color:#fff;border-bottom:0;
 }
 @keyframes bubbleFloat{
-  0%,100%{transform:rotate(-4deg) translateY(-4px);}
-  50%{transform:rotate(-4deg) translateY(4px);}
+  0%,100%{transform:translateY(-5px);}
+  50%{transform:translateY(5px);}
 }
 .logo-icon{font-size:56px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(90,74,58,.15));}
 .logo-title{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);letter-spacing:.15em;line-height:1;}
@@ -217,8 +221,8 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
    上部がめり込んだように見えるため。低くしたぶん盤が大きくなる */
 #game-top-row2{
   display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;
-  padding:2px 3px 5px;column-gap:6px;
-  width:100%;height:176px;box-sizing:content-box;
+  padding:2px 3px 12px;column-gap:6px;
+  width:100%;height:150px;box-sizing:content-box;
 }
 #next-col,#current-piece-wrap,#action-col{height:100%;box-sizing:border-box;overflow:visible;}
 #next-col{justify-self:center;}
@@ -250,8 +254,8 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 }
 /* ラベルはパーツの横。縦を使わないぶんパーツを大きくできる */
 .next-row{
-  display:flex;flex-direction:column;align-items:center;gap:1px;
-  padding:2px 5px 3px;border-radius:10px;
+  display:flex;flex-direction:row;align-items:center;gap:4px;
+  padding:2px 5px;border-radius:10px;
   border:1.5px solid transparent;
 }
 /* 手前に来るほうだけ白く浮かせて、到着順を表す */
@@ -259,10 +263,11 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:#fff;border-color:rgba(200,160,96,.5);
 }
 /* ラベルの幅をそろえることで、次と次の次のパーツの中心線が一致する */
+/* ラベルは縦書き。横に置くことで枠の高さを使わずに済む */
 .next-sublabel{
+  writing-mode:vertical-rl;text-orientation:upright;
   font-size:11px;font-weight:800;color:var(--brown-dark);
-  letter-spacing:0;flex-shrink:0;
-  text-align:center;line-height:1.2;
+  letter-spacing:.02em;flex-shrink:0;line-height:1;
 }
 /* カードなし側は「次」より1段奥に見せる */
 .next-row:not(.is-soon){opacity:.72;}
@@ -932,7 +937,15 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
   <!-- 左上：名前＋称号コーナー -->
-  <div class="start-bubble">自分だけの<br>間取り物件を作ろう！</div>
+  <div class="start-bubble">
+    <svg class="bubble-cloud" viewBox="0 0 240 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M30 104C10 104 2 84 16 72 4 52 24 30 46 38 52 14 88 6 104 24 120 2 158 6 166 30 192 22 216 42 208 66 228 74 224 104 202 104Z"/>
+    </svg>
+    <svg class="bubble-tail" viewBox="0 0 40 40" aria-hidden="true">
+      <circle cx="26" cy="12" r="9"/><circle cx="12" cy="28" r="6"/>
+    </svg>
+    <span class="bubble-text">自分だけの<br>間取り物件を作ろう！</span>
+  </div>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
@@ -1662,7 +1675,7 @@ function updateStartProfile(){
   try{
     const saves=JSON.parse(localStorage.getItem('madori-history')||'[]').length;
     const sc=document.getElementById('start-saves-count');
-    if(sc) sc.textContent=saves+' 件';
+    if(sc) sc.textContent=saves+' / '+HISTORY_MAX;
   }catch(e){}
   window._playerName=name;
 }
@@ -2274,9 +2287,7 @@ function renderSavesList(){
 
   function renderPage(){
     const s=entry();
-    counter.textContent=_savesFavOnly
-      ? (_savesIdx+1)+' / '+list.length+'（お気に入り）'
-      : (_savesIdx+1)+' 件目 ／ 保存 '+all.length+' / '+HISTORY_MAX;
+    counter.textContent=(_savesIdx+1)+' / '+list.length+(_savesFavOnly?'（お気に入り）':'');
     pageEl.innerHTML='';
     if(s.img){
       const img=document.createElement('img');
