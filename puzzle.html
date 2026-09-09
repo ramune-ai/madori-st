@@ -610,6 +610,25 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .btn-result:hover{transform:translateY(-2px);}
 .btn-result.primary:hover{box-shadow:0 6px 18px rgba(58,42,26,.3);}
 
+/* ── ゲーム画面の立ち上がり ── */
+#game-loading{
+  display:none;position:absolute;inset:0;z-index:90;
+  flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:var(--cream);
+}
+#screen-game.is-loading #game-loading{display:flex;}
+.gl-icon{font-size:46px;animation:glBob 1.1s ease-in-out infinite;}
+.gl-text{
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:14px;font-weight:700;letter-spacing:.12em;color:var(--brown-light);
+}
+@keyframes glBob{0%,100%{transform:translateY(-4px);}50%{transform:translateY(4px);}}
+/* 準備中は中身を隠し、できたら全体をまとめてフェードインさせる */
+#game-top-bar,#game-container,#game-bottom-bar{transition:opacity .28s ease;}
+#screen-game.is-loading #game-top-bar,
+#screen-game.is-loading #game-container,
+#screen-game.is-loading #game-bottom-bar{opacity:0;}
+
 /* ── 遊び方モーダル ── */
 .howto{display:flex;flex-direction:column;gap:18px;padding:2px 0 6px;}
 .howto-step{
@@ -922,6 +941,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 <!-- ② ゲーム -->
 <div id="screen-game" class="screen">
 
+  <!-- 準備できるまでの覆い。バラバラに現れるのを防ぐ -->
+  <div id="game-loading"><div class="gl-icon">🏠</div><div class="gl-text">じゅんび中…</div></div>
   <!-- 上部バー -->
   <div id="game-top-bar">
     <!-- 1段目：現在の間取り + ☰ -->
@@ -1922,6 +1943,10 @@ function lockRerollSlot(idx){
 }
 
 function gotoGame(){
+  // 準備できるまで中身を隠す（バラバラに現れるのを防ぐ）
+  window._gameShown=false;
+  const _sg=document.getElementById('screen-game');
+  if(_sg)_sg.classList.add('is-loading');
   window._playerName=localStorage.getItem('madori-player-name')||'';
   showMadoriBg(false);
   showScreen('screen-game');
@@ -3455,6 +3480,12 @@ function _roundRect(ctx,x,y,w,h,r){
 // 画像アセットのバージョン。image/配下のPNGを差し替えたら数字を上げると
 // GitHub Pages / ブラウザの古いキャッシュ（旧404含む）を確実に回避できる。
 const ASSET_VER='1';
+// パーツ画像はスタート画面のうちに先読みしておく。
+// ゲーム開始時に初めて読むと、その待ち時間ぶん立ち上がりが遅くなるため
+(function preloadParts(){
+  const keys=['youshitsu','washitsu','roka','kitchen','bath','toilet','balcony','genkan'];
+  keys.forEach(k=>{ const im=new Image(); im.src='image/'+k+'.png?v='+ASSET_VER; });
+})();
 const SVG_TEX={
   youshitsu:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCI+CjxyZWN0IHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjY2ZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIwIiAgd2lkdGg9IjQ2IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NmUiLz4KPHJlY3QgeD0iNDYiIHk9IjAiICB3aWR0aD0iMzgiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2MiIvPgo8cmVjdCB4PSI4NCIgeT0iMCIgIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2VhNDcwIi8+CjxyZWN0IHg9IjAiICB5PSI4IiAgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGEwNmEiLz4KPHJlY3QgeD0iMzAiIHk9IjgiICB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2M0OWE2MCIvPgo8cmVjdCB4PSI4MCIgeT0iOCIgIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNDZjIi8+CjxyZWN0IHg9IjAiICB5PSIxNiIgd2lkdGg9IjM4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjODllNjQiLz4KPHJlY3QgeD0iMzgiIHk9IjE2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI4MiIgeT0iMTYiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzI5ODYwIi8+CjxyZWN0IHg9IjAiICB5PSIyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NiIvPgo8cmVjdCB4PSI2OCIgeT0iMjQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSIzMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjIiLz4KPHJlY3QgeD0iMzYiIHk9IjMyIiB3aWR0aD0iNDYiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI4MiIgeT0iMzIiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMDZhIi8+CjxyZWN0IHg9IjAiICB5PSI0MCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMmE2NmUiLz4KPHJlY3QgeD0iNTIiIHk9IjQwIiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M2OWM2NiIvPgo8cmVjdCB4PSI4MiIgeT0iNDAiIHdpZHRoPSIzOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhYTcyIi8+CjxyZWN0IHg9IjAiICB5PSI0OCIgd2lkdGg9IjI2IiBoZWlnaHQ9IjgiIGZpbGw9IiNjMjlhNjAiLz4KPHJlY3QgeD0iMjYiIHk9IjQ4IiB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iI2QwYTQ2YyIvPgo8cmVjdCB4PSI2NiIgeT0iNDgiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSI1NiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjgiIGZpbGw9IiNkNGE4NzAiLz4KPHJlY3QgeD0iNDQiIHk9IjU2IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI4MCIgeT0iNTYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcyIi8+CjxyZWN0IHg9IjAiICB5PSI2NCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EyNmMiLz4KPHJlY3QgeD0iMzAiIHk9IjY0IiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTY2ZSIvPgo8cmVjdCB4PSI2NiIgeT0iNjQiIHdpZHRoPSI1NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY0Ii8+CjxyZWN0IHg9IjAiICB5PSI3MiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iNDgiIHk9IjcyIiB3aWR0aD0iMzYiIGhlaWdodD0iOCIgZmlsbD0iI2MyOTg2MCIvPgo8cmVjdCB4PSI4NCIgeT0iNzIiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI4MCIgd2lkdGg9IjIyIiBoZWlnaHQ9IjgiIGZpbGw9IiNjY2EwNmEiLz4KPHJlY3QgeD0iMjIiIHk9IjgwIiB3aWR0aD0iNTAiIGhlaWdodD0iOCIgZmlsbD0iI2QyYTQ2ZSIvPgo8cmVjdCB4PSI3MiIgeT0iODAiIHdpZHRoPSI0OCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxyZWN0IHg9IjAiICB5PSI4OCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjgiIGZpbGw9IiNkMGE0NmMiLz4KPHJlY3QgeD0iNDAiIHk9Ijg4IiB3aWR0aD0iMzAiIGhlaWdodD0iOCIgZmlsbD0iI2M4OWM2NCIvPgo8cmVjdCB4PSI3MCIgeT0iODgiIHdpZHRoPSI1MCIgaGVpZ2h0PSI4IiBmaWxsPSIjZDZhODcwIi8+CjxyZWN0IHg9IjAiICB5PSI5NiIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgiIGZpbGw9IiNjYWEwNjgiLz4KPHJlY3QgeD0iMzAiIHk9Ijk2IiB3aWR0aD0iNDQiIGhlaWdodD0iOCIgZmlsbD0iI2Q0YTg3MCIvPgo8cmVjdCB4PSI3NCIgeT0iOTYiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjAiICB5PSIxMDQiIHdpZHRoPSI0NCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzY5YzY2Ii8+CjxyZWN0IHg9IjQ0IiB5PSIxMDQiIHdpZHRoPSIzNiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDRhODcwIi8+CjxyZWN0IHg9IjgwIiB5PSIxMDQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI4IiBmaWxsPSIjYzg5ZTY0Ii8+CjxyZWN0IHg9IjAiICB5PSIxMTIiIHdpZHRoPSIzMiIgaGVpZ2h0PSI4IiBmaWxsPSIjY2NhMjZhIi8+CjxyZWN0IHg9IjMyIiB5PSIxMTIiIHdpZHRoPSI0NiIgaGVpZ2h0PSI4IiBmaWxsPSIjZDJhNjZlIi8+CjxyZWN0IHg9Ijc4IiB5PSIxMTIiIHdpZHRoPSI0MiIgaGVpZ2h0PSI4IiBmaWxsPSIjYzQ5YTYyIi8+CjxsaW5lIHgxPSIwIiB5MT0iOCIgICB4Mj0iMTIwIiB5Mj0iOCIgICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxNiIgIHgyPSIxMjAiIHkyPSIxNiIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjI0IiAgeDI9IjEyMCIgeTI9IjI0IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMzIiICB4Mj0iMTIwIiB5Mj0iMzIiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI0MCIgIHgyPSIxMjAiIHkyPSI0MCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjQ4IiAgeDI9IjEyMCIgeTI9IjQ4IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iNTYiICB4Mj0iMTIwIiB5Mj0iNTYiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI2NCIgIHgyPSIxMjAiIHkyPSI2NCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9IjcyIiAgeDI9IjEyMCIgeTI9IjcyIiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iODAiICB4Mj0iMTIwIiB5Mj0iODAiICBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSI4OCIgIHgyPSIxMjAiIHkyPSI4OCIgIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8bGluZSB4MT0iMCIgeTE9Ijk2IiAgeDI9IjEyMCIgeTI9Ijk2IiAgc3Ryb2tlPSIjOWE3MDQwIiBzdHJva2Utd2lkdGg9IjAuNiIgb3BhY2l0eT0iMC41Ii8+CjxsaW5lIHgxPSIwIiB5MT0iMTA0IiB4Mj0iMTIwIiB5Mj0iMTA0IiBzdHJva2U9IiM5YTcwNDAiIHN0cm9rZS13aWR0aD0iMC42IiBvcGFjaXR5PSIwLjUiLz4KPGxpbmUgeDE9IjAiIHkxPSIxMTIiIHgyPSIxMjAiIHkyPSIxMTIiIHN0cm9rZT0iIzlhNzA0MCIgc3Ryb2tlLXdpZHRoPSIwLjYiIG9wYWNpdHk9IjAuNSIvPgo8cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2E1MDIwIiBzdHJva2Utd2lkdGg9IjIuNSIvPgo8L3N2Zz4=",
 };
@@ -4778,6 +4809,16 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   drawUI(){
+    // 盤・パーツが揃った最初の描画で、画面全体をまとめて出す
+    if(!window._gameShown){
+      window._gameShown=true;
+      try{
+        refitBoard();
+        const sg=document.getElementById('screen-game');
+        if(sg)requestAnimationFrame(()=>sg.classList.remove('is-loading'));
+      }catch(e){}
+    }
+
     // Phaser内のUIオブジェクトは不要なのでクリアのみ
     if(this._uiObjs){this._uiObjs.forEach(o=>o&&o.destroy()); this._uiObjs=[];}
     // HTML側の上部バーを更新
@@ -5250,8 +5291,13 @@ function startPhaserGame(){
   };
   // フォント読み込み完了＋2フレーム後に起動（テキスト幅確定でのズレ防止）
   const kickoff=()=>requestAnimationFrame(()=>requestAnimationFrame(launch));
+  // フォント読み込み完了を待つのは文字幅のズレ対策だが、待ちすぎると
+  // 立ち上がりが遅くなる。上限を決めて、間に合わなければ先に起動する
   if(document.fonts&&document.fonts.ready){
-    document.fonts.ready.then(kickoff);
+    let fired=false;
+    const once=()=>{ if(fired)return; fired=true; kickoff(); };
+    document.fonts.ready.then(once);
+    setTimeout(once,600);
   } else {
     kickoff();
   }
