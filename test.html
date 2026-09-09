@@ -103,16 +103,17 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:#fff;border:1.5px solid rgba(200,160,96,.55);
   border-radius:16px;padding:6px 16px 8px;
   box-shadow:0 2px 10px rgba(58,42,26,.10);
-  min-width:186px;
+  width:196px;box-sizing:content-box;
 }
 .ml-cap{
   font-size:13px;font-weight:800;letter-spacing:.18em;
   color:var(--accent);line-height:1.2;
 }
 .ml-value{
-  font-weight:800;font-size:32px;letter-spacing:.01em;line-height:1.15;
+  font-weight:800;font-size:32px;letter-spacing:.01em;line-height:1;
   color:var(--brown-dark);
-  max-width:100%;overflow:hidden;text-overflow:ellipsis;
+  width:100%;text-align:center;overflow:hidden;
+  height:36px;display:flex;align-items:center;justify-content:center;
 }
 /* まだ置いていない部分（0WC・0B）は薄さだけで表す。
    点線は見出しのすぐ下に横線が入って competing するのでやめた */
@@ -178,8 +179,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
    文字は折り返させない（.pill-txt が nowrap）ので、狭くても崩れない */
 /* 左右を同じ幅の「余り」にすると中央の今のパーツが画面の真ん中に来る。
    左右の列は中央側に寄せ、grid の gap で左右の隙間を等しくする */
+/* 左の「このあと」と中央の「今のパーツ」の見出しを同じ段に置き、
+   3つの列の上端・下端をそろえる（align-items:stretch） */
 #game-top-row2{
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;
   padding:3px 3px 6px;column-gap:6px;
   width:100%;
 }
@@ -195,29 +198,36 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #next-col,#current-piece-wrap,#action-col{min-width:0;flex-shrink:0;}
 /* このあと来るパーツ（左）。上が先に来る。
    枠の強さ＝近さ：今のパーツ（アクセント枠）＞ 次（白いカード）＞ その次（枠なし） */
+/* 左も1枚のカードにして、今のパーツと上端・下端をそろえる */
 #next-col{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  padding:2px 2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;
+  padding:5px 7px 7px;
+  background:rgba(255,255,255,.55);
+  border:1.5px solid rgba(90,74,58,.16);
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(58,42,26,.07);
 }
+/* 「今のパーツ」の見出しと同じ高さ・同じ行に見えるようにそろえる */
 .next-cap{
-  font-size:11px;font-weight:700;letter-spacing:.16em;
-  color:var(--brown-light);text-align:center;margin-bottom:1px;
+  font-size:12px;font-weight:800;letter-spacing:.1em;line-height:1.2;
+  color:var(--brown-light);text-align:center;
+  height:16px;display:flex;align-items:center;justify-content:center;
 }
 /* ラベルはパーツの横。縦を使わないぶんパーツを大きくできる */
 .next-row{
-  display:flex;flex-direction:row;align-items:center;gap:5px;
-  padding:4px 6px 4px 4px;border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  padding:3px 5px 4px;border-radius:10px;
   border:1.5px solid transparent;
 }
+/* 手前に来るほうだけ白く浮かせて、到着順を表す */
 .next-row.is-soon{
-  background:#fff;border-color:rgba(90,74,58,.2);
-  box-shadow:0 2px 8px rgba(58,42,26,.1);
+  background:#fff;border-color:rgba(200,160,96,.5);
 }
 /* ラベルの幅をそろえることで、次と次の次のパーツの中心線が一致する */
 .next-sublabel{
   font-size:11px;font-weight:800;color:var(--brown-dark);
   letter-spacing:0;flex-shrink:0;
-  width:3em;text-align:right;
+  text-align:center;
 }
 /* カードなし側は「次」より1段奥に見せる */
 .next-row:not(.is-soon){opacity:.72;}
@@ -236,17 +246,17 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 
 /* 現在パーツ（中央・大きく・ドラッグ可） */
 #current-piece-wrap{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;
   background:#fff;border:3.5px solid var(--accent);border-radius:14px;
-  padding:5px 8px;cursor:grab;user-select:none;
+  padding:5px 10px 8px;cursor:grab;user-select:none;
   box-shadow:0 4px 16px rgba(200,160,96,.42), 0 0 0 4px rgba(200,160,96,.12);
   -webkit-tap-highlight-color:transparent;
   touch-action:none;
   position:relative;
 }
 #current-piece-wrap:active{cursor:grabbing;}
-#current-piece-wrap .piece-label{font-size:13px;color:var(--accent);letter-spacing:.08em;font-weight:800;}
-#canvas-current{display:block;}
+#current-piece-wrap .piece-label{font-size:12px;color:var(--accent);letter-spacing:.1em;font-weight:800;line-height:1.2;height:16px;display:flex;align-items:center;justify-content:center;}
+#canvas-current{display:block;margin:auto 0;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
 #canvas-current{width:98px;height:98px;}
 #canvas-next1,#canvas-next2{width:66px;height:66px;}
@@ -256,7 +266,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 }
 @media(max-width:419px){
   #canvas-current{width:102px;height:102px;}
-  #canvas-next1,#canvas-next2{width:64px;height:64px;}
+  #canvas-next1,#canvas-next2{width:66px;height:66px;}
 }
 @media(max-width:359px){
   #canvas-current{width:96px;height:96px;}
@@ -289,14 +299,15 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .pill-txt{white-space:nowrap;}
 /* 完成は「先へ進む」操作。称号（金）と区別するため緑系にして、
    押せるようになったらやわらかく脈打たせて視線を誘導する */
+/* ゲーム画面の完成は、周りと同じ黄土色系で統一。押せる時だけ脈打たせる */
 .pill-primary{
-  background:var(--green);color:#fff;
-  box-shadow:0 3px 12px rgba(106,138,80,.45);
+  background:var(--accent);color:#fff;
+  box-shadow:0 3px 12px rgba(200,160,96,.5);
   animation:readyPulse 2.2s ease-in-out infinite;
 }
 @keyframes readyPulse{
-  0%,100%{box-shadow:0 3px 12px rgba(106,138,80,.4);}
-  50%{box-shadow:0 4px 18px rgba(106,138,80,.75);}
+  0%,100%{box-shadow:0 3px 12px rgba(200,160,96,.42);}
+  50%{box-shadow:0 4px 18px rgba(200,160,96,.8);}
 }
 /* まだ押せない間は動かさない */
 .pill.is-locked{animation:none;}
@@ -711,7 +722,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 @media(max-width:600px){
   #game-top-row1{padding:18px 4px 8px;}
   .ml-cap{font-size:12px;letter-spacing:.16em;}
-  .ml-value{font-size:30px;}
+  .ml-value{font-size:30px;height:34px;}
   #game-menu-btn{width:44px;height:44px;font-size:22px;}
   .pill{font-size:12px;padding:9px 10px;gap:5px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
@@ -722,8 +733,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #game-top-row2{padding:2px 5px 4px;gap:6px;}
   #action-col{gap:8px;}
   #action-col .pill{padding:10px 10px;gap:5px;}
-  #current-piece-wrap{padding:3px 5px;}
-  #next-col{padding:2px 2px;gap:6px;}
+  #current-piece-wrap{padding:5px 8px 7px;}
+  #next-col{padding:5px 4px 6px;gap:4px;}
   #current-piece-wrap .piece-label{font-size:12px;}
   .next-sublabel{font-size:12px;}
   .bigbtn{font-size:15px;padding:14px 26px;gap:9px;}
@@ -822,7 +833,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   will-change:opacity,transform;
 }
 .title-new-badge-inline{
-  position:absolute;top:-8px;right:10px;
+  position:absolute;top:-9px;right:-6px;
   font-size:11px;font-weight:800;background:#e05a4e;color:#fff;
   padding:3px 9px;border-radius:10px;letter-spacing:.06em;flex-shrink:0;
   box-shadow:0 2px 8px rgba(224,90,78,.55);
@@ -3796,6 +3807,7 @@ class PuzzleGame extends Phaser.Scene{
         this.drawBoard();
         this.nextPiece();
         this.drawUI();
+        try{ requestAnimationFrame(()=>requestAnimationFrame(refitBoard)); setTimeout(refitBoard,250); }catch(e){}
       }
     });
     this.setupKeys();
@@ -5251,9 +5263,39 @@ function startPhaserGame(){
     try{ if(window._phaserGame&&window._phaserGame.scale)window._phaserGame.scale.refresh(); }catch(e){}
   },{passive:true});
 });
-// ウィンドウサイズが変わったら盤の表示サイズを再計算（PCで上下が見切れる問題の対策）
+// 盤の表示サイズを、今の余白に合わせて測り直す。
 // ※Phaser内部のzoomは触らず、canvasの見た目サイズ（CSS）だけを変える。
 //   内部を触ると描画崩れ（黒枠）やタップ座標のずれが起きるため。
+function refitBoard(){
+  // 直前のレイアウト変更を反映させてから測る
+  const container=document.getElementById('game-container');
+  const canvas=container?container.querySelector('canvas'):null;
+  if(!container||!canvas)return;
+  const cH=container.clientHeight, cW=container.clientWidth;
+  if(!cH||!cW)return;
+  const isMobile=(window.innerWidth||400)<600;
+  const MARGIN=isMobile?0.96:0.98;
+  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,1.0);
+  window._gameScaleRatio=ratio;
+  canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
+  canvas.style.height=Math.round(CANVAS_H*ratio)+'px';
+  try{ if(window._phaserGame&&window._phaserGame.scale)window._phaserGame.scale.refresh(); }catch(e){}
+}
+// 上下バーの高さは、フォント読み込みやcanvasサイズ確定のあとで変わる。
+// 起動時の1回だけの計測だと初回ロードで盤がはみ出すので、変わるたびに測り直す
+(function watchBars(){
+  const attach=()=>{
+    const top=document.getElementById('game-top-bar');
+    const bot=document.getElementById('game-bottom-bar');
+    if(!top||!bot){ setTimeout(attach,200); return; }
+    try{
+      const ro=new ResizeObserver(()=>{ clearTimeout(window._fitTimer); window._fitTimer=setTimeout(refitBoard,60); });
+      ro.observe(top); ro.observe(bot);
+    }catch(e){}
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>setTimeout(refitBoard,80));
+  };
+  attach();
+})();
 let _rzLastW=window.innerWidth, _rzLastH=window.innerHeight;
 window.addEventListener('resize',()=>{
   clearTimeout(window._rzTimer);
@@ -5263,17 +5305,7 @@ window.addEventListener('resize',()=>{
     const dh=Math.abs(window.innerHeight-_rzLastH);
     if(dw<40&&dh<120)return;
     _rzLastW=window.innerWidth; _rzLastH=window.innerHeight;
-    const container=document.getElementById('game-container');
-    const canvas=container?container.querySelector('canvas'):null;
-    if(!container||!canvas)return;
-    const cH=container.clientHeight, cW=container.clientWidth;
-    if(!cH||!cW)return;
-    const isMobile=(window.innerWidth||400)<600;
-    const MARGIN=isMobile?0.96:0.98;
-    const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,1.0);
-    window._gameScaleRatio=ratio;
-    canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
-    canvas.style.height=Math.round(CANVAS_H*ratio)+'px';
+    refitBoard();
   },150);
 });
 
