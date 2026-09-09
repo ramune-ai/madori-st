@@ -4,11 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>間取りすと</title>
-<!-- アイコン：iPhoneのSafariは favicon.ico を優先して見に行くので、それを1行目に置く。
-     ?v=3 は「前と同じ名前でも中身が変わったので読み直して」という印（数字を増やすだけ） -->
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" href="image/favicon.png?v=3">
-<link rel="apple-touch-icon" href="image/icon-180.png?v=3">
+<!-- アイコン：image/favicon.png（タブ用）と image/icon-180.png（iPhoneホーム画面用）を配置すると表示される -->
+<link rel="icon" type="image/png" href="image/favicon.png?v=2">
+<link rel="apple-touch-icon" href="image/icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
@@ -16,7 +14,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 .title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
-.title-badge .tb-emoji{line-height:1;display:block;will-change:transform;}
+.title-badge .tb-emoji{line-height:1;display:block;will-change:transform;letter-spacing:0;text-indent:0;}
 .name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
@@ -29,10 +27,13 @@ button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
   --green:#6a8a50;
   --blue:#5080a8;
 }
-body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;padding-top:env(safe-area-inset-top);}
+/* ページ自体はスクロールさせない。必要な画面は .screen の中だけで縦に動かす。
+   ページがスクロールできると、iOSでアドレスバーの分だけ画面が上にズレる */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
+body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;overflow-x:hidden;padding-top:env(safe-area-inset-top);}
 
 /* ── 共通 ── */
-.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px 24px;}
+.screen{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .screen.active{display:flex;}
 
 /* ── ① スタート ── */
@@ -48,11 +49,20 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .btn-start:hover::after{background:rgba(255,255,255,.06);}
 .btn-start:active{transform:translateY(0);}
 .start-sub-btns{display:flex;gap:24px;margin-top:36px;animation:fadeUp .8s .4s ease both;}
-.btn-sub{position:relative;background:none;border:1px solid rgba(90,74,58,.3);color:var(--brown-light);font-size:14px;letter-spacing:.1em;padding:11px 22px;border-radius:3px;cursor:pointer;transition:all .2s;white-space:nowrap;}
-.btn-sub:hover{border-color:var(--brown-light);color:var(--brown);background:rgba(90,74,58,.05);}
+.btn-sub{
+  position:relative;background:#fff;
+  border:1.5px solid var(--accent);color:var(--brown-dark);
+  font-size:14px;font-weight:700;letter-spacing:.08em;
+  padding:13px 22px;border-radius:14px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+  box-shadow:0 2px 10px rgba(200,160,96,.28);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-sub:hover{background:rgba(200,160,96,.1);}
+.btn-sub:active{transform:scale(.95);}
 
 /* ── ② ゲーム画面 ── */
-#screen-game{
+#screen-game{overflow:hidden;
   display:none;flex-direction:column;align-items:stretch;
   padding:0;position:fixed;top:0;left:0;right:0;bottom:0;
   height:100dvh;max-height:100dvh;
@@ -64,7 +74,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   overflow:hidden;min-height:0;position:relative;
   background:#f5f0e8;
 }
-#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 4px 12px rgba(58,42,26,.12),0 12px 40px rgba(58,42,26,.18);}
+#game-container canvas{display:block;background:#f5f0e8;box-shadow:0 2px 10px rgba(58,42,26,.10);}
 
 /* ── 上部バー（2段） ── */
 #game-top-bar{
@@ -72,21 +82,37 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:rgba(245,240,232,.98);
   position:relative;z-index:30;
   width:100%;max-width:100vw;overflow-x:hidden;
-  min-height:215px;
+  min-height:190px;
 }
-@media(min-width:600px){#game-top-bar{min-height:195px;}}
-/* 1段目：設置数 + ナビボタン */
+@media(min-width:600px){#game-top-bar{min-height:172px;}}
+/* 1段目：リアルタイム間取り + ☰ */
 #game-top-row1{
   display:flex;align-items:center;justify-content:space-between;
   padding:4px 8px 3px;gap:8px;
 }
-/* 設置数グリッド */
-#part-count-grid{
-  display:grid;grid-template-columns:repeat(4,auto);
-  gap:2px 14px;font-size:13px;font-weight:500;color:var(--brown-dark);
-  font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em;flex:1;
+/* リアルタイム間取り表示 */
+/* 見出しを上、値を下に積む。大きさの差が主従として働くので揃えなくてよくなる */
+#madori-label{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  white-space:nowrap;overflow:hidden;
 }
-#game-top-row1{max-width:620px;margin:0 auto;width:100%;}
+.ml-cap{
+  font-size:11px;font-weight:700;letter-spacing:.2em;
+  color:var(--brown-light);line-height:1.2;
+}
+.ml-value{
+  font-weight:800;font-size:27px;letter-spacing:.01em;line-height:1.15;
+  color:var(--brown-dark);
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;
+}
+/* まだ置いていない部分（0WC・0B）は薄さだけで表す。
+   点線は見出しのすぐ下に横線が入って competing するのでやめた */
+.ml-dim{opacity:.3;}
+/* 主役の○LDK と、付随情報の +WC +B の間を離す */
+.ml-sub{margin-left:.35em;}
+#game-top-row1{width:100%;}
 /* ☰メニュー */
 #game-menu-wrap{position:relative;flex-shrink:0;}
 #game-menu-wrap{align-self:flex-start;margin-top:2px;}
@@ -113,8 +139,12 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .sp-edit{font-size:12px;color:var(--brown-light);border:1px solid rgba(90,74,58,.25);padding:3px 9px;border-radius:7px;white-space:nowrap;}
 .sp-hint{font-size:11px;color:var(--brown-light);margin-top:5px;text-align:center;letter-spacing:.03em;}
 /* スタート画面上部のリンク */
-.start-toplinks{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);right:max(12px, calc(50% - 230px));display:flex;gap:8px;z-index:5;}
-.start-toplinks-left{position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);left:max(12px, calc(50% - 230px));display:flex;gap:8px;z-index:5;}
+/* 上部リンクは左に縦積み。上から 配信ガイドライン → 音楽設定 */
+.start-toplinks-left{
+  position:absolute;top:calc(env(safe-area-inset-top, 0px) + 12px);
+  left:max(12px, calc(50% - 230px));
+  display:flex;flex-direction:column;align-items:flex-start;gap:14px;z-index:5;
+}
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
 .top-link{font-size:12px;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 12px;text-decoration:none;letter-spacing:.03em;box-shadow:0 1px 5px rgba(58,42,26,.07);-webkit-tap-highlight-color:transparent;}
 .top-link:active{background:rgba(200,160,96,.15);}
@@ -127,11 +157,6 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .title-reveal-cond{display:block;margin-top:4px;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;}
 /* 称号一覧ボタンのNEW! */
 .titles-new-pop{position:absolute;top:-9px;right:-9px;background:#e05a4e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.05em;box-shadow:0 2px 6px rgba(224,90,78,.4);animation:popIn .4s ease both;}
-.pc-item{display:flex;align-items:baseline;gap:4px;white-space:nowrap;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 9px;box-shadow:0 1px 4px rgba(58,42,26,.07);}
-.pc-name{color:var(--brown-dark);font-size:14px;font-weight:700;letter-spacing:.02em;}
-.pc-count{color:var(--brown-dark);font-weight:700;font-size:15px;font-family:'Noto Serif JP',serif;}
-.pc-unit{color:var(--brown-light);font-size:11px;}
-.pc-item.pc-storage{background:rgba(200,160,96,.18);border-color:rgba(200,160,96,.5);}
 /* ナビボタン */
 #game-nav-btns{display:flex;gap:5px;flex-shrink:0;}
 .btn-nav{background:none;border:1px solid rgba(90,74,58,.2);color:var(--brown-light);
@@ -139,24 +164,53 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   cursor:pointer;transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
 .btn-nav:active{background:rgba(90,74,58,.1);}
 
-/* 2段目：次次/次 | 現在パーツ | 保留 */
+/* 2段目：次（左・縦）｜今のパーツ（中央）｜完成・スキップ（右・縦） */
+/* 左右を同じ幅の「余り」にすると、中央の今のパーツが必ず画面の真ん中に来る。
+   左右の中身が増減しても中央はぶれない */
+/* 左右を同じ幅の「余り」にすると、中央の今のパーツが必ず画面の真ん中に来る。
+   文字は折り返させない（.pill-txt が nowrap）ので、狭くても崩れない */
 #game-top-row2{
-  display:flex;align-items:flex-end;justify-content:center;
-  padding:3px 8px 4px;gap:6px;
-  max-width:100%;
-  flex-wrap:nowrap;
-  overflow:hidden;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:3px 4px 5px;
+  width:100%;
 }
+#next-col{justify-self:start;}
+#action-col{justify-self:end;}
+/* 完成（上）／スキップ（下） */
+#action-col{
+  display:flex;flex-direction:column;align-items:stretch;justify-content:center;
+  gap:9px;flex-shrink:0;
+}
+#action-col .pill{width:100%;}
 #game-top-row2 canvas{flex-shrink:0;}
-#next-col,#current-piece-wrap,#hold-col{min-width:0;flex-shrink:0;}
-/* 次のパーツ縦並び（左） */
+#next-col,#current-piece-wrap,#action-col{min-width:0;flex-shrink:0;}
+/* このあと来るパーツ（左）。上が先に来る。
+   枠の強さ＝近さ：今のパーツ（アクセント枠）＞ 次（白いカード）＞ その次（枠なし） */
 #next-col{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:4px 7px;
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;
+  padding:2px 2px;
 }
-.next-row{display:flex;flex-direction:column;align-items:center;gap:1px;}
-.next-sublabel{font-size:8px;color:var(--brown-light);letter-spacing:.06em;}
-.next-sublabel.em{color:var(--brown);font-weight:700;}
+.next-cap{
+  font-size:10px;font-weight:700;letter-spacing:.16em;
+  color:var(--brown-light);padding-left:4px;margin-bottom:1px;
+}
+/* ラベルはパーツの横。縦を使わないぶんパーツを大きくできる */
+.next-row{
+  display:flex;flex-direction:row;align-items:center;gap:6px;
+  padding:4px 8px 4px 5px;border-radius:12px;
+  border:1.5px solid transparent;
+}
+.next-row.is-soon{
+  background:#fff;border-color:rgba(90,74,58,.2);
+  box-shadow:0 2px 8px rgba(58,42,26,.1);
+}
+.next-sublabel{
+  font-size:13px;font-weight:800;color:var(--brown-dark);
+  letter-spacing:.04em;flex-shrink:0;
+}
+/* カードなし側は「次」より1段奥に見せる */
+.next-row:not(.is-soon){opacity:.72;padding-left:24px;}
+.next-row.is-soon .next-sublabel{color:var(--brown-dark);}
 /* 操作ヒント共通デザイン（3つ統一） */
 .ui-hint{
   font-size:12px;color:var(--brown-light);font-weight:500;
@@ -171,26 +225,31 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* 現在パーツ（中央・大きく・ドラッグ可） */
 #current-piece-wrap{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  background:rgba(200,160,96,.08);border:2px solid var(--accent);border-radius:10px;
-  padding:4px 6px;cursor:grab;user-select:none;
-  box-shadow:0 2px 8px rgba(200,160,96,.22);
+  background:#fff;border:3.5px solid var(--accent);border-radius:14px;
+  padding:5px 8px;cursor:grab;user-select:none;
+  box-shadow:0 4px 16px rgba(200,160,96,.42), 0 0 0 4px rgba(200,160,96,.12);
   -webkit-tap-highlight-color:transparent;
   touch-action:none;
   position:relative;
 }
 #current-piece-wrap:active{cursor:grabbing;}
-#current-piece-wrap .piece-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
+#current-piece-wrap .piece-label{font-size:13px;color:var(--accent);letter-spacing:.08em;font-weight:800;}
 #canvas-current{display:block;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
-#canvas-current,#canvas-hold{width:98px;height:98px;}
-#canvas-next1,#canvas-next2{width:56px;height:56px;}
+#canvas-current{width:98px;height:98px;}
+#canvas-next1,#canvas-next2{width:66px;height:66px;}
 @media(max-width:599px){
-  #canvas-current,#canvas-hold{width:122px;height:122px;}
-  #canvas-next1,#canvas-next2{width:59px;height:59px;}
+  #canvas-current{width:122px;height:122px;}
+  #canvas-next1,#canvas-next2{width:72px;height:72px;}
 }
 @media(max-width:419px){
-  #canvas-current,#canvas-hold{width:110px;height:110px;}
-  #canvas-next1,#canvas-next2{width:59px;height:59px;}
+  #canvas-current{width:110px;height:110px;}
+  #canvas-next1,#canvas-next2{width:66px;height:66px;}
+}
+@media(max-width:359px){
+  #canvas-current{width:96px;height:96px;}
+  #canvas-next1,#canvas-next2{width:58px;height:58px;}
+  .pill{font-size:12px;padding:9px 12px;}
 }
 
 /* ドラッグゴースト */
@@ -199,17 +258,46 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   opacity:0.8;display:none;transform:translate(-50%,-50%);
 }
 
-/* 保留（右） */
-#hold-col{
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  background:rgba(200,160,96,.06);border:1.5px solid var(--accent);border-radius:8px;
-  padding:4px 7px;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  min-width:48px;transition:background .15s,border-color .15s;
-  box-shadow:0 2px 8px rgba(200,160,96,.18);
+/* 操作行（完成／スキップ） */
+#game-top-actions{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:2px 8px 5px;
 }
-#hold-col.drag-over{background:rgba(200,160,96,.3);border-color:var(--brown-dark);}
-#hold-col:active{background:rgba(200,160,96,.18);}
-.hold-label{font-size:9px;color:var(--accent);letter-spacing:.1em;font-weight:700;}
+/* ボタン共通：横長のピル型 */
+.pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border-radius:999px;padding:11px 18px;line-height:1;
+  font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.03em;
+  border:1.5px solid transparent;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+  transition:background .15s,color .15s,border-color .15s,transform .1s;
+}
+.pill:active{transform:scale(.95);}
+.pill-ico{display:flex;align-items:center;flex-shrink:0;}
+.pill-txt{white-space:nowrap;}
+/* 完成は「先へ進む」操作。称号（金）と区別するため緑系にして、
+   押せるようになったらやわらかく脈打たせて視線を誘導する */
+.pill-primary{
+  background:var(--green);color:#fff;
+  box-shadow:0 3px 12px rgba(106,138,80,.45);
+  animation:readyPulse 2.2s ease-in-out infinite;
+}
+@keyframes readyPulse{
+  0%,100%{box-shadow:0 3px 12px rgba(106,138,80,.4);}
+  50%{box-shadow:0 4px 18px rgba(106,138,80,.75);}
+}
+/* まだ押せない間は動かさない */
+.pill.is-locked{animation:none;}
+.pill-secondary{background:#fff;color:var(--brown-dark);border-color:rgba(90,74,58,.22);box-shadow:0 2px 8px rgba(58,42,26,.12);}
+/* まだ押せない状態（押すと理由をトーストで出す） */
+.pill.is-locked{background:#fff;color:rgba(90,74,58,.32);border-color:rgba(90,74,58,.16);box-shadow:none;}
+/* スキップの残り回数 */
+.pill-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+  background:var(--accent);color:#fff;font-size:12px;font-weight:800;
+}
+.pill.is-locked .pill-badge{background:rgba(90,74,58,.22);}
 
 /* ── 下部ボタンバー ── */
 #game-bottom-bar{
@@ -217,48 +305,61 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:rgba(245,240,232,.97);
   z-index:50;
 
-  padding:14px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
-  align-items:center;justify-content:center;gap:16px;
+  padding:12px 16px max(40px, calc(env(safe-area-inset-bottom) + 24px));
+  align-items:center;justify-content:center;gap:14px;
 }
-/* 戻すボタン */
-.btn-undo{
-  background:#fff;border:1.5px solid rgba(90,74,58,.22);color:var(--brown);
-  font-size:12px;letter-spacing:.04em;padding:15px 20px 12px;border-radius:16px;
-  cursor:pointer;transition:all .15s;display:flex;flex-direction:column;
-  align-items:center;gap:5px;flex-shrink:0;
+/* 下部の大きな操作ボタン（回転・戻す）。ピルと同じ丸みで揃える */
+.bigbtn{
+  display:inline-flex;align-items:center;justify-content:center;gap:11px;
+  border-radius:999px;padding:15px 30px;line-height:1;
+  font-family:inherit;font-weight:700;font-size:16px;letter-spacing:.06em;
+  border:1.5px solid transparent;cursor:pointer;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;user-select:none;
-  box-shadow:0 2px 8px rgba(58,42,26,.15);
+  transition:background .15s,transform .1s;
 }
-.btn-undo:active{background:rgba(90,74,58,.08);transform:scale(.93);}
-.btn-undo .undo-icon{font-size:26px;line-height:1.1;}
-.btn-undo .undo-label{font-size:10px;color:var(--brown-light);}
-/* 回転ボタン */
-#rotate-unit{
-  display:flex;align-items:center;gap:0;
-  background:var(--brown-dark);border-radius:22px;
-  box-shadow:0 4px 14px rgba(58,42,26,.35);overflow:hidden;
-}
-.btn-rotate-new{
-  background:transparent;border:none;color:#f5f0e8;
-  padding:16px 26px 14px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:5px;
-  transition:background .15s;-webkit-tap-highlight-color:transparent;user-select:none;
-}
-.btn-rotate-new:active{background:rgba(255,255,255,.15);}
-.btn-rotate-new .rot-icon{font-size:30px;line-height:1.1;}
-.btn-rotate-new .rot-label{font-size:10px;color:rgba(245,240,232,.65);letter-spacing:.04em;}
-#rotate-divider{width:1px;background:rgba(255,255,255,.15);align-self:stretch;margin:12px 0;}
+.bigbtn:active{transform:scale(.95);}
+.bigbtn-ico{display:flex;align-items:center;}
+.bigbtn-dark{background:var(--brown-dark);color:#f5f0e8;box-shadow:0 4px 14px rgba(58,42,26,.32);}
+.bigbtn-dark:active{background:#2a1a0a;}
+.bigbtn-light{background:#fff;color:var(--brown-dark);border-color:rgba(90,74,58,.22);box-shadow:0 2px 8px rgba(58,42,26,.15);}
+.bigbtn-light:active{background:rgba(90,74,58,.08);}
 
-/* 完成ボタン */
+/* 置ける場所が無くなった時だけ盤面中央に出る「完成」 */
 #btn-complete-overlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:auto;}
 #btn-complete-overlay.visible{display:block;}
-#btn-complete-overlay button{
-  background:#3a2a1a;color:#f5f0e8;
-  font-family:'Noto Serif JP',serif;font-size:20px;letter-spacing:.2em;
-  padding:20px 56px;border:2px solid rgba(200,160,96,.7);border-radius:6px;
-  cursor:pointer;animation:gentlePulse 2s ease-in-out infinite;
+.cf-card{
+  display:flex;flex-direction:column;align-items:stretch;gap:11px;
+  background:rgba(245,240,232,.97);
+  border:1.5px solid rgba(90,74,58,.2);border-radius:20px;
+  padding:20px 20px 18px;
+  box-shadow:0 10px 34px rgba(58,42,26,.35);
 }
-#btn-complete-overlay button:hover{background:#2a1a0a;animation:none;transform:scale(1.04);transition:transform .15s;}
+.cf-title{
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:14px;font-weight:700;color:var(--brown);
+  text-align:center;white-space:nowrap;margin-bottom:2px;
+}
+#btn-complete-overlay button{
+  font-family:'Noto Serif JP',serif;white-space:nowrap;cursor:pointer;
+  border-radius:999px;
+}
+#btn-complete-overlay button:active{transform:scale(.96);}
+.cf-yes{
+  background:#3a2a1a;color:#f5f0e8;
+  font-size:21px;letter-spacing:.2em;
+  padding:19px 52px;border:2px solid rgba(200,160,96,.7);
+  box-shadow:0 6px 24px rgba(58,42,26,.4);
+}
+.cf-no{
+  background:#fff;color:var(--brown-dark);
+  font-size:15px;letter-spacing:.1em;
+  padding:13px 0;border:1.5px solid rgba(90,74,58,.22);
+}
+/* もう置ける場所が無い＝続けられない時 */
+.cf-no.is-locked{
+  background:rgba(90,74,58,.06);color:rgba(90,74,58,.32);
+  border-color:rgba(90,74,58,.14);cursor:default;
+}
 
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
@@ -358,6 +459,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   will-change:transform;
 }
 .reroll-slot-btn.visible{visibility:visible;opacity:1;pointer-events:auto;}
+/* ENABLE_REROLL=false のとき、再抽選まわりをまとめて隠す */
+body.no-reroll .reroll-slot-btn,
+body.no-reroll .reroll-pop,
+body.no-reroll .reroll-note{display:none!important;}
 .reroll-slot-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(58,42,26,.45);}
 .reroll-slot-btn.used{background:rgba(90,74,58,.25);color:var(--brown-light);cursor:not-allowed;box-shadow:none;}
 .reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
@@ -510,13 +615,14 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .title-grid{
   display:grid;
   grid-template-columns:repeat(4,1fr);
-  grid-auto-rows:minmax(148px,auto);
+  /* auto だと称号名が2行のカードだけ背が伸びて高さが揃わないので固定する */
+  grid-auto-rows:178px;
   gap:10px;
   padding:4px 0;
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:minmax(140px,auto);gap:12px;}
+  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:174px;gap:12px;}
   .title-grid-badge{font-size:34px;}
   .title-grid-name{font-size:17px;line-height:1.25;}
   .title-grid-card.locked .title-grid-name{font-size:16px;}
@@ -525,39 +631,33 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
-  /* ④パーツ数チップ：左に詰めてコンパクトに（☰の見切れ防止） */
   #game-top-row1{padding:3px 4px 2px;gap:4px;}
-  #part-count-grid{gap:2px 4px;justify-content:start;}
-  .pc-item{padding:2px 5px;gap:2px;border-radius:6px;}
-  .pc-name{font-size:10px;letter-spacing:0;}
-  .pc-count{font-size:13px;}
-  .pc-unit{font-size:9px;}
+  .ml-cap{font-size:10px;letter-spacing:.18em;}
+  .ml-value{font-size:25px;}
   #game-menu-btn{width:48px;height:48px;font-size:24px;}
+  .pill{font-size:13px;padding:10px 11px;gap:5px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
   .res-main-row{flex-wrap:nowrap;gap:8px;}
   .res-side{min-width:104px;}
   .res-spec-v{padding:5px 8px;}
   .rsv-val{font-size:21px;}
-  #game-top-row2{padding:2px 6px 3px;gap:4px;}
-  #current-piece-wrap{padding:2px 4px;}
-  #hold-col,#next-col{padding:2px 5px;}
-  #current-piece-wrap .piece-label,.hold-label{font-size:8px;}
-  .ui-hint,.next-sublabel{font-size:8px;}
-  .ui-hint{padding:2px 6px;}
-  .btn-undo{padding:14px 20px 11px;}
-  .btn-undo .undo-icon{font-size:28px;}
-  .btn-undo .undo-label{font-size:11px;}
-  .btn-rotate-new{padding:15px 26px 12px;}
-  .btn-rotate-new .rot-icon{font-size:30px;}
-  .btn-rotate-new .rot-label{font-size:11px;}
+  #game-top-row2{padding:2px 5px 4px;gap:6px;}
+  #action-col{gap:8px;}
+  #action-col .pill{padding:11px 11px;gap:5px;}
+  #current-piece-wrap{padding:3px 5px;}
+  #next-col{padding:2px 2px;gap:6px;}
+  #current-piece-wrap .piece-label{font-size:12px;}
+  .next-sublabel{font-size:12px;}
+  .bigbtn{font-size:15px;padding:14px 26px;gap:9px;}
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
+  position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
   padding:12px 10px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
   transition:border-color .2s;
-  height:100%;overflow:visible;
+  height:100%;overflow:hidden;
 }
 .title-grid-card.owned{
   border-color:var(--accent);
@@ -567,6 +667,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   background:#f8f5f0;
   border-color:rgba(90,74,58,.08);
 }
+/* 称号名・条件は行数で抑えて、どのカードも同じ高さに収める */
+.title-grid-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
+.title-grid-cond{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 .title-grid-badge{
   font-size:32px;line-height:1;
   transition:filter .2s;
@@ -591,10 +694,30 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   font-size:11px;color:var(--brown-light);
   line-height:1.45;letter-spacing:.02em;
 }
+/* NEWは右上の角に。縦の場所を取らないのでカードの中身が押し出されない */
 .title-grid-new-badge{
-  font-size:8px;font-weight:700;letter-spacing:.06em;
-  background:var(--accent);color:#fff;
-  padding:1px 5px;border-radius:3px;margin-top:1px;
+  position:absolute;top:-7px;right:-6px;
+  font-size:9px;font-weight:800;letter-spacing:.06em;
+  background:#e05a4e;color:#fff;
+  padding:2px 7px;border-radius:10px;
+  box-shadow:0 2px 7px rgba(224,90,78,.5);
+  animation:newPulse 1.8s ease-in-out infinite;
+}
+/* 新しく獲得した称号：やわらかく光らせて浮かせる */
+.title-grid-card.is-new{
+  border-color:var(--accent);
+  background:linear-gradient(160deg,#fffdf5,#fdf0d8);
+  box-shadow:0 4px 16px rgba(200,160,96,.45), 0 1px 0 #fff inset;
+  transform:translateY(-2px);
+  animation:newGlow 2.4s ease-in-out infinite;
+}
+@keyframes newPulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.08);opacity:.85;}
+}
+@keyframes newGlow{
+  0%,100%{box-shadow:0 4px 16px rgba(200,160,96,.35), 0 1px 0 #fff inset;}
+  50%{box-shadow:0 6px 24px rgba(200,160,96,.7), 0 1px 0 #fff inset;}
 }
 
 /* ── 間取り背景 ── */
@@ -638,10 +761,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 <!-- ① スタート -->
 <div id="screen-start" class="screen active" style="position:relative;">
   <div class="start-toplinks-left">
-    <button class="top-link" onclick="openSoundSettings()">♪ 音楽設定</button>
-  </div>
-  <div class="start-toplinks">
     <a class="top-link" href="guideline.html" target="_blank" rel="noopener">📋 配信ガイドライン</a>
+    <button class="top-link" onclick="openSoundSettings()">♪ 音楽設定</button>
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
   <!-- 左上：名前＋称号コーナー -->
@@ -696,80 +817,75 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
   <!-- 上部バー -->
   <div id="game-top-bar">
-    <!-- 1段目：設置数 + ナビ -->
+    <!-- 1段目：現在の間取り + ☰ -->
     <div id="game-top-row1">
-      <div id="part-count-grid">
-        <!-- JS で動的生成 -->
+      <div id="madori-label">
+        <span class="ml-cap">現在の間取り</span>
+        <span class="ml-value"><!-- JS で動的生成 --></span>
       </div>
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
-          <button onclick="toggleGameMenu();if(gameScene)gameScene.forceComplete()">ここで完成にする</button>
           <button onclick="toggleGameMenu();gotoGame()">リトライ</button>
           <button onclick="toggleGameMenu();gotoStart()">タイトルへ戻る</button>
           <button onclick="toggleGameMenu();openSoundSettings()">音の設定</button>
         </div>
       </div>
     </div>
-    <!-- 2段目：次次/次 | 現在★ | 保留 -->
+    <!-- 2段目：次（左・縦）｜今のパーツ（中央）｜完成・スキップ（右・縦） -->
     <div id="game-top-row2">
-      <!-- 次のパーツ横並び（次の次→次） -->
+      <!-- このあと来るパーツ。手前ほど枠を強くして到着順を表す -->
       <div id="next-col">
-        <div style="display:flex;flex-direction:row;align-items:center;gap:6px;">
-          <div class="next-row">
-            <div class="next-sublabel">次の次</div>
-            <canvas id="canvas-next2" width="56" height="56"></canvas>
-          </div>
-          <div class="next-row">
-            <div class="next-sublabel em">次</div>
-            <canvas id="canvas-next1" width="56" height="56"></canvas>
-          </div>
+        <div class="next-cap">このあと</div>
+        <div class="next-row is-soon">
+          <span class="next-sublabel">次</span>
+          <canvas id="canvas-next1" width="56" height="56"></canvas>
         </div>
-        <div id="pc-rotate-hint" class="ui-hint">右クリックで回転</div>
+        <div class="next-row">
+          <canvas id="canvas-next2" width="56" height="56"></canvas>
+        </div>
       </div>
       <!-- 現在パーツ（ドラッグ可） -->
       <div id="current-piece-wrap" title="ドラッグして土地に置く">
         <div class="piece-label">今のパーツ</div>
         <canvas id="canvas-current" width="98" height="98"></canvas>
-        <div id="current-piece-hint" class="ui-hint">ドラッグ or 土地タップ</div>
       </div>
-      <!-- 保留 -->
-      <div id="hold-col" onclick="if(gameScene)gameScene.doHold()">
-        <div class="hold-label">保留</div>
-        <canvas id="canvas-hold" width="98" height="98"></canvas>
-        <div id="hold-hint" class="ui-hint">タップで交換</div>
+      <!-- 完成（上）／スキップ（下） -->
+      <div id="action-col">
+        <button class="pill pill-primary is-locked" id="btn-complete" onclick="onCompleteBtn()">
+          <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,13 9.5,18.5 20,5.5"/></svg></span>
+          <span class="pill-txt">完成</span>
+        </button>
+        <button class="pill pill-secondary" id="btn-skip" onclick="if(gameScene)gameScene.doSkip()" title="今のパーツを捨てて次へ（C）">
+          <span class="pill-ico"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,5 13,12 5,19"/><line x1="18" y1="5" x2="18" y2="19"/></svg></span>
+          <span class="pill-txt">スキップ</span>
+          <span class="pill-badge" id="skip-count-label">3</span>
+        </button>
       </div>
     </div>
   </div>
 
   <div id="game-container"></div>
+  <!-- 完成の確認ダイアログ（手動完成・置き場所切れの両方でここに出る） -->
   <div id="btn-complete-overlay">
-    <button onclick="onCompleteBtn()">完　成</button>
+    <div class="cf-card">
+      <div class="cf-title">この間取りで完成にしますか？</div>
+      <button class="cf-yes" onclick="proceedFromComplete()">完　成</button>
+      <button class="cf-no" id="btn-keep-playing" onclick="if(gameScene)gameScene.continuePlaying()">まだ続ける</button>
+    </div>
   </div>
 
   <!-- 下部ボタンバー -->
   <div id="game-bottom-bar">
-    <!-- 左：戻す -->
-    <button class="btn-undo" onclick="if(gameScene)gameScene.doUndo()">
-      <span class="undo-icon">↩</span>
-      <span class="undo-label">戻す</span>
+    <!-- 戻す（左） -->
+    <button id="btn-undo" class="bigbtn bigbtn-light" onclick="if(gameScene)gameScene.doUndo()" title="戻す（Ctrl+Z）">
+      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12 H19 A 7 7 0 1 1 19 26 H13"/><polyline points="13.5,6.5 8 12 13.5,17.5"/></svg></span>
+      <span class="bigbtn-txt">戻す</span>
     </button>
-    <!-- 中央：回転ユニット -->
-    <div id="rotate-unit">
-      <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(-1)" title="左回転（Z）">
-        <span class="rot-icon"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 A 8 8 0 0 0 4 12"/><polyline points="1.5,9.5 4,12.6 7,10"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.4" stroke-width="1.8" opacity=".55"/></svg></span>
-        <span class="rot-label">左回転</span>
-      </button>
-      <div id="rotate-divider"></div>
-      <button class="btn-rotate-new" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="右回転（X / 右クリック）">
-        <span class="rot-icon"><svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 A 8 8 0 0 1 20 12"/><polyline points="22.5,9.5 20,12.6 17,10"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.4" stroke-width="1.8" opacity=".55"/></svg></span>
-        <span class="rot-label">右回転</span>
-      </button>
-    </div>
-    <!-- 右：戻す -->
-    <button class="btn-undo" onclick="if(gameScene)gameScene.doUndo()">
-      <span class="undo-icon">↩</span>
-      <span class="undo-label">戻す</span>
+    <!-- 回転（右）。パーツはすべて長方形なので向きの切り替えは1個で足りる -->
+    <button id="btn-rotate" class="bigbtn bigbtn-dark" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="回転（X / 右クリック）">
+      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7 A 10 10 0 1 1 8.9 9.9"/><polyline points="12.4,3.2 17.2,7 12.4,10.8"/></svg></span>
+      <span class="bigbtn-txt">回転</span>
     </button>
   </div>
 </div>
@@ -812,7 +928,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   </div>
   <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoTitles()">獲得称号を確認 →</button>
   <div style="font-size:10px;color:var(--brown-light);margin-top:8px;letter-spacing:.06em;text-align:center;">
-    ※ 再抽選は広告視聴で無料（実装予定）
+    <span class="reroll-note">※ 再抽選は広告視聴で無料（実装予定）</span>
   </div>
 </div>
 
@@ -861,7 +977,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
-      <div class="res-promo">間取りゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@madori_st</span></div>
+      <div class="res-promo">間取りパズルゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span></div>
     </div>
 
     <!-- ボタン（2段） -->
@@ -907,7 +1023,7 @@ const SOUND={                 // 「呼び名 : ファイル名」。使う音�
   grab:     'grab.mp3',       // パーツを掴む
   place:    'place.mp3',      // パーツを置く
   rotate:   'rotate.mp3',     // パーツを回転
-  hold:     'hold.mp3',       // 保留
+  hold:     'hold.mp3',       // スキップ
   spin:     'spin.mp3',       // ガチャ回転
   lock:     'lock.mp3',       // ガチャ確定
   rare:     'rare.mp3',       // レア
@@ -931,6 +1047,8 @@ function _audioCtx(){
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC)return null;
     _actx=new AC();
+    // 割り込みで running から外れたら、次のタップで戻す準備をしておく
+    try{ _actx.onstatechange=()=>{ if(_actx.state!=='running'&&!document.hidden) _armAudioKick(); }; }catch(e){}
   }
   if(_actx.state==='suspended'){ _actx.resume().catch(()=>{}); }
   return _actx;
@@ -993,10 +1111,71 @@ function startBGM(){
     const a=new Audio(encodeURI(SND_DIR+BGM_FILE));
     a.loop=true; a.volume=bgmVol;
     a.onerror=()=>{ if(_bgm===a)_bgm=null; };
+    // 割り込みで一時停止させられた時（画面は見えたまま）に備える
+    a.addEventListener('pause',()=>{ if(_bgm===a&&!document.hidden&&bgmVol>0) _armAudioKick(); });
     a.play().then(()=>{}).catch(()=>{ if(_bgm===a)_bgm=null; });
     _bgm=a;
   }catch(e){ _bgm=null; }
 }
+// 画面が隠れたら音を止める（タブを裏に回す／閉じる／ホームに戻る）
+// これをやらないと iOS/Android でBGMが鳴り続ける
+function _audioSuspend(){
+  try{ if(_bgm) _bgm.pause(); }catch(e){}
+  try{ if(_actx && _actx.state==='running') _actx.suspend().catch(()=>{}); }catch(e){}
+}
+// iOSはアプリを切り替えると音を止め、画面が戻っただけでは再開させてくれない
+// （再開にはユーザーの操作が要る）。そこで復帰に失敗したら「次の1タップ」で
+// もう一度やり直す仕掛けを仕込む。起動時にBGMを鳴らすのと同じ手口。
+let _audioKickArmed=false;
+function _armAudioKick(){
+  if(_audioKickArmed)return;
+  _audioKickArmed=true;
+  const kick=()=>{
+    document.removeEventListener('pointerdown',kick,true);
+    document.removeEventListener('touchend',kick,true);
+    _audioKickArmed=false;
+    _audioResume();
+  };
+  document.addEventListener('pointerdown',kick,true);
+  document.addEventListener('touchend',kick,true);
+}
+function _audioResume(){
+  // iOSには 'interrupted' という状態もあるので running 以外はすべて再開対象
+  try{
+    if(_actx && _actx.state!=='running'){
+      const p=_actx.resume();
+      if(p&&p.catch)p.catch(()=>_armAudioKick());
+    }
+  }catch(e){ _armAudioKick(); }
+  try{
+    if(bgmVol>0){
+      if(!_bgm){ startBGM(); }
+      else {
+        const p=_bgm.play();
+        if(p&&p.catch)p.catch(()=>_armAudioKick());
+      }
+    }
+  }catch(e){ _armAudioKick(); }
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) _audioSuspend(); else _audioResume();
+});
+// iOS Safari でタブを閉じる／アプリを切り替える時の保険
+window.addEventListener('pagehide',_audioSuspend);
+
+// アラームや着信などの「割り込み」は、画面が隠れないので visibilitychange が
+// 起きないことがある。その場合タップ待ちも仕込まれないため、触っても直らない。
+// そこで「どのタップでも、鳴っているはずの音が止まっていたら鳴らし直す」
+// 見張りを常時置く。正常に鳴っている間は何もしないので負担はない
+function _audioWatchdog(){
+  try{
+    const ctxBad = _actx && _actx.state!=='running';
+    const bgmBad = bgmVol>0 && (!_bgm || _bgm.paused);
+    if(ctxBad||bgmBad) _audioResume();
+  }catch(e){}
+}
+document.addEventListener('pointerdown',_audioWatchdog,true);
+document.addEventListener('touchend',_audioWatchdog,true);
 function setSeVol(v){
   seVol=Math.max(0,Math.min(1,v));
   try{ localStorage.setItem('madori-se-vol',String(seVol)); }catch(e){}
@@ -1018,8 +1197,9 @@ document.addEventListener('pointerdown',function _bgmKick(){
 document.addEventListener('click',(e)=>{
   const b=e.target&&e.target.closest?e.target.closest('button'):null;
   if(!b)return;
-  if(b.classList.contains('btn-rotate-new'))return;              // 回転音が鳴る
-  if(b.classList.contains('btn-undo'))return;                    // 戻す音が鳴る
+  if(b.id==='btn-rotate')return;                                 // 回転音が鳴る
+  if(b.id==='btn-undo')return;                                   // 戻す音が鳴る
+  if(b.id==='btn-skip')return;                                   // スキップ音が鳴る
   if(b.id&&b.id.indexOf('reroll-btn')===0)return;                // スピン音が鳴る
   const oc=b.getAttribute('onclick')||'';
   if(oc.indexOf('openModal')!==-1)return;                        // ページ音が鳴る
@@ -1185,6 +1365,15 @@ function showScreen(id){
     requestAnimationFrame(_rst);
     setTimeout(_rst,120); // iOS Safariがスクロール位置を後から復元するケースの対策
   }catch(e){}
+  // Phaserはタップ位置の計算に盤面の位置を記憶していて、画面サイズが変わった時しか
+  // 更新しない。画面を切り替えるとここがずれて当たり判定が狂うので明示的に直す
+  try{
+    if(window._phaserGame&&window._phaserGame.scale){
+      const sc=window._phaserGame.scale;
+      const refresh=()=>{ try{ sc.refresh(); }catch(e){} };
+      refresh(); requestAnimationFrame(refresh); setTimeout(refresh,150);
+    }
+  }catch(e){}
   const bar=document.getElementById('game-bottom-bar');
   const topBar=document.getElementById('game-top-bar');
   if(id==='screen-game'){
@@ -1241,7 +1430,7 @@ function updateStartProfile(){
   // 🏅アイコンを装備称号の土台バッジに
   const icoEl=document.querySelector('#start-profile .sp-row[onclick*="title"] .sp-ico');
   if(icoEl){
-    if(titleSel){ icoEl.innerHTML=titleBadgeHTML(titleBadgeOf(titleSel),titleRarOf(titleSel),36,14); }
+    if(titleSel){ icoEl.innerHTML=titleBadgeHTML(titleBadgeOf(titleSel),titleRarOf(titleSel),36); }
     else { icoEl.textContent='🏅'; }
   }
   window._playerName=name;
@@ -1281,7 +1470,7 @@ function openNameEdit(mode){
       btn.dataset.val=t;
       const active=sel===t;
       btn.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 7px;border-radius:20px;border:1.5px solid '+(active?'var(--brown-dark)':'rgba(90,74,58,.2)')+';background:'+(active?'var(--brown-dark)':'#fff')+';color:'+(active?'#f5f0e8':'var(--brown)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
-      btn.innerHTML=titleBadgeHTML(titleBadgeOf(t),titleRarOf(t),30,13)+'<span>'+t+'</span>';
+      btn.innerHTML=titleBadgeHTML(titleBadgeOf(t),titleRarOf(t),30)+'<span>'+t+'</span>';
       btn.onclick=()=>selectTitleChip(t);
       listEl.appendChild(btn);
     });
@@ -1377,9 +1566,8 @@ function persistFlow(screen){
       st.grid=gs.grid;
       st.queue=(gs.queue||[]).map(d=>d&&d.type);
       st.currentType=gs.currentDef&&gs.currentDef.type;
-      st.holdType=gs.holdDef?gs.holdDef.type:null;
       st.rotation=gs.rotation; st.partCount=gs.partCount;
-      st.holdUsed=!!gs.holdUsed; st.curC=gs.curC; st.curR=gs.curR;
+      st.skipCount=gs.skipCount; st.curC=gs.curC; st.curR=gs.curR;
     }
     localStorage.setItem('madori-game-state', JSON.stringify(st));
   }catch(e){}
@@ -1478,6 +1666,9 @@ const REROLL_POOLS={
   2:[70,80,90,100],       // 高級確定（家賃レア70以上）
 };
 // 再抽選済みフラグ（per slot）
+// 再抽選（リワード広告用）。課金を実装するまでは非表示にしておく。
+// true にするだけでボタン・吹き出し・注釈がまとめて戻る
+const ENABLE_REROLL=false;
 const rerollDone=[false,false,false];
 
 // 開発中：再抽選制限なし（将来：広告視聴で1日1回）
@@ -1571,7 +1762,8 @@ function gotoGame(){
   window._playerName=localStorage.getItem('madori-player-name')||'';
   showMadoriBg(false);
   showScreen('screen-game');
-  document.getElementById('btn-complete-overlay').classList.remove('visible');
+  const _ov=document.getElementById('btn-complete-overlay');
+  if(_ov)_ov.classList.remove('visible');
   // 既存のPhaserインスタンスを破棄して新規作成（再起動でツモが変わる問題を防ぐ）
   const existing=document.querySelector('#game-container canvas');
   if(existing){
@@ -1581,11 +1773,34 @@ function gotoGame(){
   }
   if(!gameStarted){
     gameStarted=true;
-    setTimeout(()=>startPhaserGame(),50);
+    // Phaserのdestroyは次のフレームで実行されるため、時間で待つと
+    // 後から届いた破棄処理が新しい盤面を消してしまうことがある。
+    // canvasが実際に消えたのを確認してから作り直す。
+    const container=document.getElementById('game-container');
+    let tries=0;
+    const waitClear=()=>{
+      const left=container&&container.querySelector('canvas');
+      if(!left||tries>60){ startPhaserGame(); return; }
+      tries++;
+      requestAnimationFrame(waitClear);
+    };
+    requestAnimationFrame(waitClear);
   }
 }
+// 下部バーの「完成」ボタン。
+// まだ完成していない → その場で完成にする／完成済み → 次（ルーレット）へ進む
 function onCompleteBtn(){
   if(!gameScene)return;
+  if(!gameScene.isFinished){ gameScene.forceComplete(); return; }
+  proceedFromComplete();
+}
+function proceedFromComplete(){
+  if(!gameScene)return;
+  // 完成回数はここで数える（「まだ続ける」で戻れるので、完成した瞬間だと水増しになる）
+  if(!gameScene._counted){
+    gameScene._counted=true;
+    try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
+  }
   // プレビュー（赤いパーツ表示）を消す
   gameScene.stopPreviewTween();
   if(gameScene.previewImg){gameScene.previewImg.destroy();gameScene.previewImg=null;}
@@ -1681,7 +1896,7 @@ function showTitlesReveal(){
       const el=document.createElement('div');
       const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${wbrBoundaries(title)}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
       const rar=titleRarOf(title), emoji=titleBadgeOf(title);
-      const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,46,17)}</span>`;
+      const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,46)}</span>`;
       if(isNew){
         el.className='title-new-item';
         el.innerHTML=`${badge}${inner}<span class="title-new-badge-inline title-new-right">NEW！</span>`;
@@ -2032,14 +2247,15 @@ function fitToLines(el,maxLines,startFs,minFs){
   }
 }
 function titleTier(rar){ return rar<=1?'rainbow':(rar===2?'gold':(rar<=4?'silver':'bronze')); }
-function titleBadgeHTML(emoji,rar,size,emojiPx){
+// バッジ画像(120x120)の白丸は直径50px＝41.7%、中心は横50%・縦37.9%（実測）。
+// 絵文字は指定サイズの約1.15倍に広がって描かれるので、白丸の7割を上限にする。
+function titleBadgeHTML(emoji,rar,size){
   size=size||30;
   const t=titleTier(rar);
-  const fs=emojiPx||Math.round(size*0.40);
-  const up=Math.round(fs*0.30);       // 絵文字を白丸に乗せる量（控えめ）
-  const right=Math.round(fs*0.02);    // ほんの少しだけ右
+  const fs=Math.round(size*0.29);   // 白丸(41.7%)の約7割
+  const up=Math.round(size*0.12);   // 50% - 37.9% = 12.1% ぶん上へ
   return '<span class="title-badge" style="width:'+size+'px;height:'+size+'px;background-image:url(image/badge-'+t+'.png);">'+
-    '<span class="tb-emoji" style="font-size:'+fs+'px;transform:translate('+right+'px,-'+up+'px);">'+(emoji||'')+'</span></span>';
+    '<span class="tb-emoji" style="font-size:'+fs+'px;transform:translateY(-'+up+'px);">'+(emoji||'')+'</span></span>';
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
@@ -2122,17 +2338,23 @@ const ALL_TITLES_MASTER=[
     pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
   // ══ 完成回数（プレイを重ねるほど昇格） ══
   {title:'駆け出しマドリスト', badge:'📐', rar:6, condition:'はじめて物件を完成させる',
-    pop:'記念すべき第一歩です！', check:x=>x.cc>=1},
+    ccStep:1,
+    pop:'記念すべき第一歩です！', check:x=>x.cc===1},
   {title:'一人前マドリスト', badge:'🔑', rar:5, condition:'物件を10回完成させる',
-    pop:'もう一人前です！', check:x=>x.cc>=10},
+    ccStep:10,
+    pop:'もう一人前です！', check:x=>x.cc===10},
   {title:'ベテランマドリスト', badge:'🛠️', rar:4, condition:'物件を50回完成させる',
-    pop:'場数が違います！', check:x=>x.cc>=50},
+    ccStep:50,
+    pop:'場数が違います！', check:x=>x.cc===50},
   {title:'カリスママドリスト', badge:'🌟', rar:3, condition:'物件を100回完成させる',
-    pop:'カリスマの風格…！', check:x=>x.cc>=100},
+    ccStep:100,
+    pop:'カリスマの風格…！', check:x=>x.cc===100},
   {title:'伝説のマドリスト', badge:'🏅', rar:2, condition:'物件を500回完成させる',
-    pop:'もはや伝説の域…！', check:x=>x.cc>=500},
+    ccStep:500,
+    pop:'もはや伝説の域…！', check:x=>x.cc===500},
   {title:'神域のマドリスト', badge:'👑', rar:2, condition:'物件を1000回完成させる',
-    pop:'神の領域に到達…！', check:x=>x.cc>=1000},
+    ccStep:1000,
+    pop:'神の領域に到達…！', check:x=>x.cc===1000},
 ];
 
 function openModal(type){
@@ -2206,10 +2428,11 @@ function renderTitlesPage(){
     const isOwned=owned.has(m.title);
     const isNew=newSet.has(m.title);
     const card=document.createElement('div');
-    card.className='title-grid-card '+(isOwned?'owned':'locked');
+    card.className='title-grid-card '+(isOwned?'owned':'locked')+(isNew?' is-new':'');
+
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
-    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,54,19);
+    badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,54);
     const nameEl=document.createElement('div');
     nameEl.className='title-grid-name';
     nameEl.innerHTML=isOwned ? wbrBoundaries(m.title) : '？？？？';
@@ -2423,8 +2646,12 @@ function generateTitles(age,walk,rent){
     if(m.check&&m.check(x)) earned.push({title:m.title,pop:m.pop||'',rar:m.rar||9});
   }
   if(earned.length===0){
-    const beg=ALL_TITLES_MASTER.find(m=>m.title==='駆け出しマドリスト');
-    if(beg)earned.push({title:beg.title,pop:beg.pop,rar:beg.rar});
+    // 何も取れなかった時の保険。完成回数の称号のうち「到達済みで一番上のもの」を出す
+    // （駆け出しを毎回出すと初回限定の意味がなくなるため）
+    const reached=ALL_TITLES_MASTER
+      .filter(m=>m.ccStep&&cc>=m.ccStep)
+      .sort((a,b)=>b.ccStep-a.ccStep)[0];
+    if(reached)earned.push({title:reached.title,pop:reached.pop,rar:reached.rar});
   }
   earned.sort((a,b)=>a.rar-b.rar);
   return earned;
@@ -2432,22 +2659,42 @@ function generateTitles(age,walk,rent){
 function generateTitle(age,walk,rent,roomTypes){
   return generateTitles(age,walk,rent,roomTypes)[0];
 }
+// 間取りラベルの材料。完成画面（文字列）とゲーム画面（HTML）で同じ計算を使う
+const _MADORI_SUP={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
+function madoriLabelParts(counts){
+  return {
+    rooms:(counts['youshitsu']||0)+(counts['washitsu']||0),
+    k:counts['kitchen']||0,
+    wc:counts['toilet']||0,
+    bath:counts['bath']||0
+  };
+}
 function countRoomLabel(roomTypes,counts){
-  const rooms=(counts['youshitsu']||0)+(counts['washitsu']||0);
-  const sup={2:'²',3:'³',4:'⁴',5:'⁵',6:'⁶'};
-  const k=counts['kitchen']||0;
-  const wc=counts['toilet']||0;
-  const bath=counts['bath']||0;
+  const {rooms,k,wc,bath}=madoriLabelParts(counts);
   // WC・B は個数を常にプレフィックスで表示（0WC, 1WC, 2WC …）
-  const wcStr=`+${wc}WC`;
-  const bStr=`+${bath}B`;
-  const extra=wcStr+bStr;
+  const extra=`+${wc}WC`+`+${bath}B`;
   if(k===0){
     return (rooms>0?rooms:'')+'R'+extra;
   }
-  const kLabel=`K${k>=2?(sup[k]||String(k)):''}`;
+  const kLabel=`K${k>=2?(_MADORI_SUP[k]||String(k)):''}`;
   const ldkLabel=rooms===0?kLabel:`${rooms}LD${kLabel}`;
   return ldkLabel+extra;
+}
+// ゲーム画面の上部に出すリアルタイム間取り表示。
+// まだ置いていない部分（キッチンなしのR・0WC・0B）は薄い点線にして「これから埋まる」ことを見せる
+function madoriLabelHTML(counts){
+  const {rooms,k,wc,bath}=madoriLabelParts(counts);
+  const dim=s=>`<span class="ml-dim">${s}</span>`;
+  let main;
+  if(k===0){
+    // キッチンがまだ無い状態。置いた部屋数は確定情報なので薄くしない
+    main=(rooms>0?String(rooms):'')+'R';
+  }else{
+    const kLabel=`K${k>=2?(_MADORI_SUP[k]||String(k)):''}`;
+    main=rooms===0?kLabel:`${rooms}LD${kLabel}`;
+  }
+  const sub=(wc>0?`+${wc}WC`:dim('+0WC'))+(bath>0?`+${bath}B`:dim('+0B'));
+  return main+`<span class="ml-sub">${sub}</span>`;
 }
 function showResult(){
   const age=rouletteValues[0]??'--';
@@ -2493,7 +2740,7 @@ function showResult(){
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
     const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
-    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,38,14); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
+    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,38); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
@@ -2699,7 +2946,7 @@ async function saveAndShare(){
   const tags=(window._shareTags||(r.titles||[]).slice(0,3)).map(titleToHashtag);
   // シェア文面：固定文＋間取り＋固定タグ＋称号タグ
   const titleTags=tags.join(' ');
-  const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #madori_st #間取りゲーム'+(titleTags?' '+titleTags:'');
+  const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル #ramune_aiai'+(titleTags?' '+titleTags:'');
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
@@ -3007,10 +3254,10 @@ function buildPropertyCard(opt){
     // 宣伝（フッターロゴの上）
     ctx.fillStyle='#5a4a3a';
     ctx.font="bold 27px 'Noto Serif JP',serif";
-    ctx.fillText('間取りゲームは「間取りすと」で検索！', W/2, yPromo+16);
+    ctx.fillText('間取りパズルゲームは「間取りすと」で検索！', W/2, yPromo+16);
     ctx.fillStyle='#7a5a30';
     ctx.font="500 20px 'Noto Sans JP',sans-serif";
-    ctx.fillText('X・Instagram・TikTok｜@madori_st', W/2, yPromo+50);
+    ctx.fillText('X・Instagram・TikTok｜@ramune_aiai', W/2, yPromo+50);
 
     // フッター
     ctx.fillStyle='#b0a090';
@@ -3041,9 +3288,9 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:21},
-  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:16},
-  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:17},
+  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:18},
+  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:14},
+  {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:22},
   {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:13},
   {name:'トイレ',    w:1,h:2,color:0xD4EEF8,label:'トイレ',      type:'toilet',   weight:11},
   {name:'お風呂',    w:2,h:2,color:0xB8DFF0,label:'お風呂',      type:'bath',     weight:11},
@@ -3141,6 +3388,7 @@ function svgToCanvas(dataUrl){
 }
 
 const CS=54,COLS=8,ROWS=10,UI_R=0;
+const SKIP_MAX=3;   // 1ゲームで使えるスキップ回数
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 // 土地形状定義
 // null = 配置不可マス、0 = 通常マス
@@ -3172,27 +3420,27 @@ const LAND_PRESETS=[
     '########',
     '########',
   ]),
-  // ② L字（左下が欠ける）
+  // ② L字（右下が欠ける）※欠けは4段。3x3が置きやすいよう1段ぶん土地を足してある
   makeLand([
     '########',
     '########',
     '########',
     '########',
     '########',
-    '#####...',
+    '########',
     '#####...',
     '#####...',
     '#####...',
     '#####...',
   ]),
-  // ③ L字（右下が欠ける）
+  // ③ L字（左下が欠ける）※同上
   makeLand([
     '########',
     '########',
     '########',
     '########',
     '########',
-    '...#####',
+    '########',
     '...#####',
     '...#####',
     '...#####',
@@ -3225,10 +3473,15 @@ const LAND_PRESETS=[
     '########',
   ]),
 ];
+// 土地の出現率（LAND_PRESETS と同じ並び：長方形／L字右下／L字左下／台形左／台形右）
+// 斜めの台形はパーツが置きにくいので控えめにしてある
+const LAND_WEIGHTS=[30,25,25,10,10];
+const LAND_WEIGHT_TOTAL=LAND_WEIGHTS.reduce((a,b)=>a+b,0);
 // 現在の土地（ゲーム開始時にランダム選択）
 let LAND_MAP=LAND_PRESETS[0].map(row=>row.slice());
 function pickRandomLand(){
-  const idx=Math.floor(Math.random()*LAND_PRESETS.length);
+  let t=Math.random()*LAND_WEIGHT_TOTAL, idx=LAND_PRESETS.length-1;
+  for(let i=0;i<LAND_WEIGHTS.length;i++){ t-=LAND_WEIGHTS[i]; if(t<0){ idx=i; break; } }
   LAND_MAP=LAND_PRESETS[idx].map(row=>row.slice());
   window._landIndex=idx;
   return idx;
@@ -3255,7 +3508,6 @@ class PuzzleGame extends Phaser.Scene{
     }
     this._storageGfx=null;
     this._storageTexts=[];
-    this._endStorage=null;
     this.grid=Array.from({length:ROWS},()=>Array(COLS).fill(null));
     this.boardImgs={};
     this.boardLabels={};
@@ -3263,7 +3515,8 @@ class PuzzleGame extends Phaser.Scene{
     this.undoStack=[];
     this.currentDef=null; this.rotation=0;
     this.curC=Math.floor(COLS/2); this.curR=0;
-    this.holdDef=null; this.holdUsed=false;
+    this.skipCount=SKIP_MAX;
+    this.isFinished=false;
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
     // ドラッグ状態リセット（リトライ時にゴーストが残らないよう）
@@ -3345,7 +3598,6 @@ class PuzzleGame extends Phaser.Scene{
           // 完成後の画面へ復帰：収納→スナップショット→各画面
           const rv=this._restoreRv, rl=this._restoreRl;
           try{ this.fillEmptyAsStorage(); }catch(e){}
-          document.getElementById('btn-complete-overlay').classList.remove('visible');
           requestAnimationFrame(()=>requestAnimationFrame(()=>{
             try{
               captureMadoriSnapshot();
@@ -3396,10 +3648,10 @@ class PuzzleGame extends Phaser.Scene{
     this.queue=(st.queue||[]).map(byType).filter(Boolean);
     while(this.queue.length<4)this.queue.push(this.pickRandom());
     this.currentDef=byType(st.currentType)||this.queue.shift()||this.pickRandom();
-    this.holdDef=st.holdType?byType(st.holdType):null;
     this.rotation=st.rotation||0;
     this.partCount=st.partCount||0;
-    this.holdUsed=!!st.holdUsed;
+    this.skipCount=(typeof st.skipCount==='number')?st.skipCount:SKIP_MAX;
+    this.isFinished=false;
     this.curC=(typeof st.curC==='number')?st.curC:Math.floor(COLS/2);
     this.curR=(typeof st.curR==='number')?st.curR:0;
     this._anchorC=this.curC; this._anchorR=this.curR;
@@ -3427,14 +3679,13 @@ class PuzzleGame extends Phaser.Scene{
     this.spaceKey=this.input.keyboard.addKey(K.SPACE);
     this.enterKey=this.input.keyboard.addKey(K.ENTER);
     // ウィンドウがフォーカスを失ったときキーボード入力を無効化
-    // （スクショショートカット等でholdやundoが誤発動するのを防ぐ）
+    // （スクショショートカット等でスキップやundoが誤発動するのを防ぐ）
     this.input.keyboard.disableGlobalCapture();
     this.game.canvas.addEventListener('mousedown',()=>this.game.canvas.focus());
     this.game.canvas.setAttribute('tabindex','0');
     this.xKey.on('down',()=>this.rotatePiece(1));
-    this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(-1); });
-    this.cKey.on('down',()=>this.doHold());
-    // Shiftはスクショショートカットと競合するため hold から除外
+    this.zKey.on('down',()=>{ if(this.ctrlKey.isDown)this.doUndo(); else this.rotatePiece(1); });
+    this.cKey.on('down',()=>this.doSkip());
     this.spaceKey.on('down',()=>this.placeAtCursor());
     this.enterKey.on('down',()=>this.placeAtCursor());
     this._moveRepeat={timer:null,delay:200,interval:80};
@@ -3467,7 +3718,6 @@ class PuzzleGame extends Phaser.Scene{
 
   _setupDrag(){
     const wrap    = document.getElementById('current-piece-wrap');
-    const holdCol = document.getElementById('hold-col');
     const canvas  = this.game.canvas;
     if(!wrap||!canvas)return;
 
@@ -3552,8 +3802,8 @@ class PuzzleGame extends Phaser.Scene{
     // ── startDrag / moveDrag / endDrag ──
     const startDrag=(cx,cy,fromCanvas=false)=>{
       if(!this.currentDef||this._dragging)return;
-      // 完成（物件完成オーバーレイ表示中）はパーツを動かせない
-      if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+      // 完成後はパーツを動かせない
+      if(this.isFinished)return;
       // 枠(wrap)からは、配置検討中(プレビュー表示中)は再取得しない
       // 土地(canvas)からは、プレビューを掴んで動かせるので許可
       if(this._previewActive&&!fromCanvas)return;
@@ -3587,10 +3837,6 @@ class PuzzleGame extends Phaser.Scene{
     const moveDrag=(cx,cy)=>{
       this._preTap=null; // 動かし始めたら通常の追従に戻す
       if(!this._dragging)return;
-      if(holdCol){
-        const h=holdCol.getBoundingClientRect();
-        holdCol.classList.toggle('drag-over',cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom);
-      }
       const g=toGame(cx,cy);
       // 指/カーソルが土地グリッドの実描画範囲内か（マージンなしで厳密に）
       const r=canvas.getBoundingClientRect();
@@ -3601,7 +3847,7 @@ class PuzzleGame extends Phaser.Scene{
         clearCC();
         doPreview(cx,cy);
       } else {
-        // 土地の外（枠と土地の間・保留枠の上など）：ゴーストをカーソルに追従表示
+        // 土地の外（枠と土地の間など）：ゴーストをカーソルに追従表示
         showGhost(cx,cy);
       }
     };
@@ -3610,14 +3856,6 @@ class PuzzleGame extends Phaser.Scene{
       if(!this._dragging)return;
       this._dragging=false;
       hideGhost();
-      if(holdCol)holdCol.classList.remove('drag-over');
-      // 保留枠へのドロップ
-      if(holdCol){
-        const h=holdCol.getBoundingClientRect();
-        if(cx>=h.left&&cx<=h.right&&cy>=h.top&&cy<=h.bottom){
-          this.doHold(); this._clearPreview(); this.drawUI(); return;
-        }
-      }
       const g=toGame(cx,cy);
       if(wasTap){
         // タップ＝動かさず離した → 2段階（1回目プレビュー、2回目は「プレビューの上をタップ」で確定）
@@ -3664,7 +3902,6 @@ class PuzzleGame extends Phaser.Scene{
       if(!this._dragging)return;
       this._dragging=false;
       hideGhost();
-      if(holdCol)holdCol.classList.remove('drag-over');
       this._clearPreview(); this.drawUI();
     };
 
@@ -3706,14 +3943,6 @@ class PuzzleGame extends Phaser.Scene{
       if(!this._dragging)return;
       this._dragging=false;
       hideGhost();
-      if(holdCol)holdCol.classList.remove('drag-over');
-      // 保留枠へのドロップ
-      if(holdCol){
-        const h=holdCol.getBoundingClientRect();
-        if(e.clientX>=h.left&&e.clientX<=h.right&&e.clientY>=h.top&&e.clientY<=h.bottom){
-          this.doHold(); this._clearPreview(); this.drawUI(); return;
-        }
-      }
       const sh=this.getShape(this.currentDef,this.rotation);
       const pw=sh[0].length, ph=sh.length;
       const g=toGame(e.clientX,e.clientY);
@@ -3886,7 +4115,7 @@ class PuzzleGame extends Phaser.Scene{
 
   nextPiece(){
     this.currentDef=this.queue.shift(); this.queue.push(this.pickRandom());
-    this.rotation=0; this.holdUsed=false;
+    this.rotation=0;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
     // 回転アンカー（補正前の希望位置）を初期化
@@ -3918,18 +4147,25 @@ class PuzzleGame extends Phaser.Scene{
     else this._updateTopBar(); // カウント等だけ更新
     this._persist();
   }
-  doHold(){
+  // 今のパーツを捨てて次へ（1ゲーム SKIP_MAX 回まで）
+  doSkip(){
     if(!this.currentDef)return;
-    // 完成後は交換不可
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    // 完成後はスキップ不可
+    if(this.isFinished)return;
+    if(this.skipCount<=0){ showGameToast('スキップは使い切ったよ！'); return; }
     playSE('hold');
-    if(this.holdDef){[this.holdDef,this.currentDef]=[this.currentDef,this.holdDef];}
-    else{this.holdDef=this.currentDef;this.currentDef=this.queue.shift();this.queue.push(this.pickRandom());}
-    this.rotation=0; this.holdUsed=false;
+    // スキップも1手として記録する（戻すとパーツと残り回数の両方が返る）
+    this._pushUndo(this.currentDef);
+    this.skipCount--;
+    this.currentDef=this.queue.shift(); this.queue.push(this.pickRandom());
+    this.rotation=0;
     const shape=this.getShape(this.currentDef,0);
     this.curC=Math.floor((COLS-shape[0].length)/2); this.curR=0;
+    this._anchorC=this.curC; this._anchorR=this.curR;
+    this._mPreviewShown=false; this._tapPreviewShown=false;
     this._clearPreview();
     this.drawUI();
+    this.checkNoPlace();
     this._persist();
   }
   doUndo(){
@@ -3942,11 +4178,12 @@ class PuzzleGame extends Phaser.Scene{
     this._tapPreviewShown=false;
     const ghost=document.getElementById('drag-ghost');
     if(ghost)ghost.style.display='none';
+    this.isFinished=false;
     const state=this.undoStack.pop();
     this.grid=state.grid;
     this.currentDef=state.currentDef; this.rotation=state.rotation;
-    this.queue=state.queue.slice(); this.holdDef=state.holdDef;
-    this.holdUsed=state.holdUsed; this.partCount=state.partCount;
+    this.queue=state.queue.slice();
+    this.skipCount=state.skipCount; this.partCount=state.partCount;
     // 収納（終了時自動生成）の描画を破棄 → 元の状態に戻す
     if(this._storageGfx){this._storageGfx.destroy();this._storageGfx=null;}
     if(this._storageTexts){this._storageTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});this._storageTexts=[];}
@@ -3957,8 +4194,6 @@ class PuzzleGame extends Phaser.Scene{
     this._clearPreview();
     this.drawUI();
     // プレビューはドラッグ開始まで表示しない
-    document.getElementById('btn-complete-overlay').classList.remove('visible');
-    this._endStorage=null;
     this.checkNoPlace();
     this._persist();
   }
@@ -4060,48 +4295,65 @@ class PuzzleGame extends Phaser.Scene{
   // 進行中のゲームを保存（リロードで続きから再開するため）
   _persist(){ persistFlow('screen-game'); }
   checkNoPlace(){
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
+    if(!this.currentDef)return;   // 起動直後などパーツが未確定のとき
 
-    const canPlaceAnywhere=(def)=>{
-      if(!def)return false;
-      for(let rot=0;rot<4;rot++){
-        const shape=this.getShape(def,rot);
-        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(this.canPlace(shape,c,r))return true;
+    const curOk=this._canPlaceAnywhere(this.currentDef);
+    if(curOk){ this._noPlaceWarnedFor=null; return; }
+
+    // 今のパーツが置けない。スキップが残っていればまだ続けられる
+    if(this.skipCount>0){
+      // 描画の度に判定するので、同じパーツで何度もトーストを出さない
+      if(this._noPlaceWarnedFor!==this.currentDef){
+        this._noPlaceWarnedFor=this.currentDef;
+        showGameToast('置ける場所がないよ！スキップを使ってね');
       }
-      return false;
-    };
+      return;
+    }
 
-    const curOk=canPlaceAnywhere(this.currentDef);
-
-    // このターンに操作できるのは current と（holdで取り出せる）パーツのみ。
-    // holdDef あり → hold と交換できる（current ↔ hold）
-    // holdDef なし → holdを押すと queue[0] を引き出せる
-    const swapDef = this.holdDef ? this.holdDef : this.queue[0];
-    const swapOk = canPlaceAnywhere(swapDef);
-
-    // current も 交換先も置けない → 終了
-    const shouldEnd = !curOk && !swapOk;
-    if(!shouldEnd)return;
+    // 置けない かつ スキップも残っていない → 終了
 
     // 全て置けない → 終了
     this._doComplete();
   }
   // 完成処理（自動判定・手動「ここで完成」共通）
   _doComplete(){
-    const _ov=document.getElementById('btn-complete-overlay');
-    if(_ov.classList.contains('visible'))return; // 二重完成カウント防止
-    _ov.classList.add('visible');
-    try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
+    if(this.isFinished)return; // 二重完成カウント防止
+    this.isFinished=true;
     this._persist();
     this._clearPreview();
     // 収納の描画は表示後に（万一失敗しても完成表示を妨げない）
     try{ this.fillEmptyAsStorage(); }catch(e){ console.warn('[end] 収納描画スキップ:', e); }
     // 収納マス数を集計して上部バーに表示
-    try{ this._endStorage=collectMadoriStats().st; this._updateTopBar(); }catch(e){}
+    try{ this._updateTopBar(); }catch(e){ console.warn('[end] 完成表示に失敗:', e); }
   }
+  // 「まだ続ける」：完成をやめてゲームに戻る。
+  // 置ける場所が無い時は押せない（_updateActionBtns でグレーにしてある）
+  continuePlaying(){
+    if(!this.isFinished)return;
+    if(!this._canContinue())return;
+    playSE('tap');
+    this.isFinished=false;
+    // 完成時に描いた収納を消す
+    if(this._storageGfx){this._storageGfx.destroy();this._storageGfx=null;}
+    if(this._storageTexts){this._storageTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});this._storageTexts=[];}
+    this.drawBoard();
+    this.drawUI();
+    this._persist();
+  }
+  // 今のパーツが置ける、またはスキップが残っていれば続けられる
+  _canPlaceAnywhere(def){
+    if(!def)return false;
+    for(let rot=0;rot<4;rot++){
+      const shape=this.getShape(def,rot);
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(this.canPlace(shape,c,r))return true;
+    }
+    return false;
+  }
+  _canContinue(){ return this._canPlaceAnywhere(this.currentDef)||this.skipCount>0; }
   // ☰メニューの「ここで完成にする」（自動判定が拾えないケースの保険）
   forceComplete(){
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
     if(this.partCount<5){ showGameToast('パーツを5個以上置いてから完成できるよ！'); return; }
     this._doComplete();
   }
@@ -4116,14 +4368,18 @@ class PuzzleGame extends Phaser.Scene{
       }
     return true;
   }
-  placePiece(def,shape,c,r){
-    playSE('place');
+  // 直前の1手ぶんの状態を控える（設置・スキップ共通）
+  _pushUndo(def){
     this.undoStack.push({
       grid:this.grid.map(row=>row.map(cell=>cell?{...cell}:null)),
       currentDef:def,rotation:this.rotation,queue:this.queue.slice(),
-      holdDef:this.holdDef,holdUsed:this.holdUsed,partCount:this.partCount
+      skipCount:this.skipCount,partCount:this.partCount
     });
     if(this.undoStack.length>1)this.undoStack.shift();
+  }
+  placePiece(def,shape,c,r){
+    playSE('place');
+    this._pushUndo(def);
     const pid='p'+(++this.partCount);
     const color=def.color;
     for(let dr=0;dr<shape.length;dr++)
@@ -4139,21 +4395,73 @@ class PuzzleGame extends Phaser.Scene{
   drawBg(){
     const g=this.bgGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
-    // 欠け部分（土地外）：建築図面風ハッチング
+    // 欠け部分（土地外）＝駐車場。
+    // 「置けない場所」なので、間取り本体より必ず暗く・地味にして沈ませる。
+    if(this._parkTexts)this._parkTexts.forEach(t=>{if(t&&t.destroy)t.destroy();});
+    this._parkTexts=[];
+    // 欠けが階段状（台形の土地）だと区画線がガタガタに途切れて不自然なので、
+    // そこは駐車場にせず植え込みにする。現実の開発でも中途半端な三角地は緑地になる
+    // 各行の土地の左端・右端が上の行と何回変わるかを数える。
+    // 長方形＝0回／L字＝1回／台形＝複数回。2回以上なら階段状とみなす
+    let _steps=0, _prevL=-99, _prevR=-99;
+    for(let r=0;r<ROWS;r++){
+      let L=-1,R=-1;
+      for(let c=0;c<COLS;c++) if(isLand(r,c)){ if(L<0)L=c; R=c; }
+      if(r>0&&(L!==_prevL||R!==_prevR)) _steps++;
+      _prevL=L; _prevR=R;
+    }
+    const _stepped=_steps>=2;
+    this._outsideColor=_stepped?0xb9c4a8:0xa9a59e;   // 植え込み / アスファルト
+    let _pMinC=COLS,_pMaxC=-1,_pMinR=ROWS,_pMaxR=-1,_pCount=0;
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(isLand(r,c))continue;
-      const px=c*CS,py=r*CS;
-      g.fillStyle(0xeceae6,1);
-      g.fillRect(px,py,CS,CS);
-      g.lineStyle(1.5,0xc0b8b0,0.55);
-      const HSTEP=9;
-      for(let o=-(CS-1);o<CS;o+=HSTEP){
-        let x1=px,y1=py+o,x2=px+CS,y2=py+o+CS;
-        if(y1<py){const d=py-y1;x1+=d;y1=py;}
-        if(y2>py+CS){const d=y2-(py+CS);x2-=d;y2=py+CS;}
-        if(x1>=x2||y1>=y2)continue;
-        g.lineBetween(x1,y1,x2,y2);
-      }
+      _pCount++;
+      if(c<_pMinC)_pMinC=c; if(c>_pMaxC)_pMaxC=c;
+      if(r<_pMinR)_pMinR=r; if(r>_pMaxR)_pMaxR=r;
+      g.fillStyle(_stepped?0xb9c4a8:0xa9a59e,1);   // 植え込みの緑 / アスファルト
+      g.fillRect(c*CS,r*CS,CS,CS);
+    }
+    if(_pCount>0&&_stepped){
+      // 植え込み：小さな丸を散らして低木に見せる。
+      // マスごとに同じ配置だと格子が見えるので、位置から決まる値でずらす（毎回同じ絵になる）
+      const jitter=(r,c,k)=>{
+        const n=Math.sin((r*73.1+c*29.7+k*13.3))*43758.5453;
+        return (n-Math.floor(n))-0.5;   // -0.5〜0.5
+      };
+      const bush=(pts,color,alpha,rad)=>{
+        g.fillStyle(color,alpha);
+        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+          if(isLand(r,c))continue;
+          const px=c*CS,py=r*CS;
+          pts.forEach(([fx,fy],i)=>{
+            const ox=jitter(r,c,i)*0.26, oy=jitter(r,c,i+7)*0.26;
+            const rr=rad*(1+jitter(r,c,i+13)*0.5);
+            g.fillCircle(px+CS*(fx+ox),py+CS*(fy+oy),CS*rr);
+          });
+        }
+      };
+      bush([[0.28,0.30],[0.68,0.24],[0.44,0.58],[0.78,0.68],[0.20,0.76]],0x93a582,0.85,0.115);
+      bush([[0.50,0.36],[0.30,0.62],[0.72,0.46]],0xa8b795,0.7,0.075);
+    }
+    if(_pCount>0&&!_stepped){
+      // 駐車場ひとつ＝1台ぶん。マス目に合わせて区画を切ると台数が多すぎて
+      // 不自然になるので、区切り線は引かず、車止めを2本だけ置く
+      const cxMid=Math.floor((_pMinC+_pMaxC+1)/2);
+      const topIsHouse=isLand(_pMinR-1,cxMid);
+      const stopX=((_pMinC+_pMaxC+1)/2)*CS;
+      const stopY = topIsHouse ? _pMinR*CS+Math.round(CS*0.34)
+                               : (_pMaxR+1)*CS-Math.round(CS*0.34);
+      g.fillStyle(0xf2efe9,0.95);
+      const SW=Math.round(CS*0.42), SH=4, SGAP=Math.round(CS*0.30);
+      g.fillRect(stopX-SGAP-SW/2,stopY,SW,SH);
+      g.fillRect(stopX+SGAP-SW/2,stopY,SW,SH);
+      // 中央に控えめな「P」
+      const cx=((_pMinC+_pMaxC+1)/2)*CS, cy=((_pMinR+_pMaxR+1)/2)*CS;
+      const pTxt=this.add.text(cx,cy,'P',{
+        fontFamily:"'M PLUS Rounded 1c','Noto Sans JP',sans-serif",
+        fontSize:Math.round(CS*0.9)+'px',fontStyle:'bold',color:'#ffffff'
+      }).setOrigin(0.5,0.5).setDepth(1).setAlpha(0.28).setResolution(this._txtRes);
+      this._parkTexts=[pTxt];
     }
     // 有効な土地マスを床色で塗る
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
@@ -4180,16 +4488,9 @@ class PuzzleGame extends Phaser.Scene{
     const g=this.borderGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
     const BW=6;
-    // 外枠ソフトシャドウ（本体枠の外側1pxに半透明のにじみ）
-    g.fillStyle(0x3a2a1a,0.18);
-    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(!isLand(r,c))continue;
-      const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px-1,py-1,CS+2,1);
-      if(!isLand(r+1,c)) g.fillRect(px-1,py+CS,CS+2,1);
-      if(!isLand(r,c-1)) g.fillRect(px-1,py-1,1,CS+2);
-      if(!isLand(r,c+1)) g.fillRect(px+CS,py-1,1,CS+2);
-    }
+    // ※ 以前ここに半透明のにじみを描いていたが、マスごとに1pxずつ描くため
+    //   隣のマスと重なって交差部だけ濃く（＝枠が太く）見えていたので廃止した。
+    //   枠自体が十分濃いので、にじみは無くても輪郭は失われない
     // 外枠メイン：濃いダークブラウン
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
@@ -4229,8 +4530,16 @@ class PuzzleGame extends Phaser.Scene{
       const cnt2=(tl2?1:0)+(tr2?1:0)+(bl2?1:0)+(br2?1:0);
       if(cnt2!==1)continue;
       const X2=c*CS,Y2=r*CS;
-      // 角の四角をハッチ下地色で塗って消す
-      g.fillStyle(0xeceae6,1);
+      // 角の四角を「後ろにある色」で塗って消す。
+      // 盤の外なら画面の地色、盤の中なら駐車場／植え込みの色
+      const outAt=(rr,cc)=>(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)
+        ? (this._outsideColor||0xa9a59e) : 0xf5f0e8;
+      let ec;
+      if(br2)      ec=outAt(r-1,c-1);
+      else if(bl2) ec=outAt(r-1,c);
+      else if(tr2) ec=outAt(r,c-1);
+      else         ec=outAt(r,c);
+      g.fillStyle(ec,1);
       if(br2)      g.fillRect(X2,Y2,RC,RC);
       else if(bl2) g.fillRect(X2-RC,Y2,RC,RC);
       else if(tr2) g.fillRect(X2,Y2-RC,RC,RC);
@@ -4266,10 +4575,43 @@ class PuzzleGame extends Phaser.Scene{
     this._updateTopBar();
   }
 
+  // 完成・スキップ・中央ボタンの状態をまとめて更新。
+  // 完成前は上部の「この間取りで完成」、置けなくなったら盤面中央の「完成」。
+  // 同時に2つ出さないことで、押すべきボタンが常に1つになる。
+  _updateActionBtns(){
+    const fin=!!this.isFinished;
+    const ov=document.getElementById('btn-complete-overlay');
+    if(ov)ov.classList.toggle('visible',fin);
+    const keep=document.getElementById('btn-keep-playing');
+    if(keep)keep.classList.toggle('is-locked',fin&&!this._canContinue());
+    const done=document.getElementById('btn-complete');
+    if(done){
+      done.style.display=fin?'none':'';
+      done.classList.toggle('is-locked',this.partCount<5);
+    }
+    const skip=document.getElementById('btn-skip');
+    const skipLbl=document.getElementById('skip-count-label');
+    if(skip&&skipLbl){
+      const left=(typeof this.skipCount==='number')?this.skipCount:SKIP_MAX;
+      skipLbl.textContent=String(left);
+      skip.classList.toggle('is-locked',left<=0||fin);
+    }
+  }
   _updateTopBar(){
-    // ── 設置数グリッド ──
-    const grid=document.getElementById('part-count-grid');
-    if(grid){
+    // 終了判定はここで毎回行う。設置・スキップ・戻すの3か所に撒いていると
+    // 呼び忘れの経路ができるため、描画の度に必ず通るこの場所へ集約した
+    if(!this._inEndCheck){
+      this._inEndCheck=true;
+      try{ this.checkNoPlace(); }
+      catch(e){ console.warn('[end] 終了判定に失敗:', e); }
+      this._inEndCheck=false;
+    }
+    // ── 完成・スキップ・中央ボタンの状態 ──
+    this._updateActionBtns();
+
+    // ── リアルタイム間取り表示（例：2LDK+1WC+0B）──
+    const mlEl=document.querySelector('#madori-label .ml-value');
+    if(mlEl){
       const counts={};
       const seenPids=new Set();
       this.grid.forEach(row=>row.forEach(cell=>{
@@ -4278,39 +4620,18 @@ class PuzzleGame extends Phaser.Scene{
           counts[cell.type]=(counts[cell.type]||0)+1;
         }
       }));
-      const labels={youshitsu:'洋室',washitsu:'和室',roka:'廊下',kitchen:'キッチン',
-                    toilet:'トイレ',bath:'お風呂',balcony:'バルコニー',storage:'収納'};
-      grid.innerHTML='';
-      PARTS_DEF.forEach(d=>{
-        const item=document.createElement('div');
-        item.className='pc-item';
-        item.innerHTML=`<span class="pc-name">${labels[d.type]||d.name}</span><span class="pc-count">${counts[d.type]||0}</span><span class="pc-unit">コ</span>`;
-        grid.appendChild(item);
-      });
-      // 収納マス数（空き土地マス）を常時表示。完成後は確定値を使う
-      let stCount=this._endStorage;
-      if(stCount===null||stCount===undefined){
-        stCount=0;
-        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-          if(LAND_MAP[r][c]!==null&&!this.grid[r][c])stCount++;
-        }
-      }
-      const st=document.createElement('div');
-      st.className='pc-item pc-storage';
-      st.innerHTML=`<span class="pc-name">収納</span><span class="pc-count">${stCount}</span><span class="pc-unit">マス</span>`;
-      grid.appendChild(st);
+      mlEl.innerHTML=madoriLabelHTML(counts);
     }
 
-    // ── 次/次次/保留 canvas（次系は小さめ、今・保留は大きめ）──
-    const bigPx=this._unifiedCellPx();      // 今・保留
+    // ── 次/次次 canvas（次系は小さめ、今は大きめ）──
+    const bigPx=this._unifiedCellPx();      // 今のパーツ
     const smallPx=this._unifiedCellPxSmall();// 次・次の次
     const PAD=8;
-    const BIG_BOX=3*bigPx+PAD;     // 今・保留の枠
+    const BIG_BOX=3*bigPx+PAD;     // 今のパーツの枠
     const SMALL_BOX=3*smallPx+PAD; // 次・次の次の枠
     const slots=[
       {def:this.queue[1], canvasId:'canvas-next2', box:SMALL_BOX, px:smallPx},
       {def:this.queue[0], canvasId:'canvas-next1', box:SMALL_BOX, px:smallPx},
-      {def:this.holdDef,  canvasId:'canvas-hold',  box:BIG_BOX,   px:bigPx},
     ];
     const _slotDpr=Math.min(3,window.devicePixelRatio||1);
     for(const {def,canvasId,box,px} of slots){
@@ -4320,15 +4641,7 @@ class PuzzleGame extends Phaser.Scene{
       const ctx=cv.getContext('2d');
       ctx.scale(_slotDpr,_slotDpr);
       ctx.clearRect(0,0,box,box);
-      if(!def){
-        if(canvasId==='canvas-hold'){
-          ctx.fillStyle='rgba(90,74,58,.18)';
-          ctx.font="12px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
-          ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText('なし',box/2,box/2);
-        }
-        continue;
-      }
+      if(!def)continue;
       const sh=this.getShape(def,0);
       const sw=sh[0].length, sr=sh.length;
       const ox=Math.floor((box-sw*px)/2), oy=Math.floor((box-sr*px)/2);
@@ -4506,7 +4819,7 @@ class PuzzleGame extends Phaser.Scene{
   }
 
   updatePreview(c,r,snap=true){
-    if(document.getElementById('btn-complete-overlay').classList.contains('visible'))return;
+    if(this.isFinished)return;
     if(!this.currentDef)return;
     // 毎回クリアして再描画（シンプル・確実）
     this.stopPreviewTween();
@@ -4661,7 +4974,7 @@ function startPhaserGame(){
       if(cv){cv.width=sz;cv.height=sz;}
     };
     set('canvas-next2',SMALL); set('canvas-next1',SMALL);
-    set('canvas-current',BIG); set('canvas-hold',BIG);
+    set('canvas-current',BIG);
   };
   // screen-gameがdisplay:flexになった後、barのoffsetHeightを計測して起動
   const launch=()=>{
@@ -4692,7 +5005,7 @@ function startPhaserGame(){
     const dpr=window.devicePixelRatio||1;
     // 盤の余白係数：スマホは余白多め（盤小さめ）、PCは余白少なめ（盤大きめ）
     const isMobile=(window.innerWidth||400)<600;
-    const MARGIN=isMobile?0.86:0.98;
+    const MARGIN=isMobile?0.96:0.98;
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, 1.0);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
@@ -4716,6 +5029,12 @@ function startPhaserGame(){
   }
 }
 
+// スクロールや画面の向きが変わった時も、Phaserが覚えている盤面の位置を更新する
+['scroll','orientationchange'].forEach(ev=>{
+  window.addEventListener(ev,()=>{
+    try{ if(window._phaserGame&&window._phaserGame.scale)window._phaserGame.scale.refresh(); }catch(e){}
+  },{passive:true});
+});
 // ウィンドウサイズが変わったら盤の表示サイズを再計算（PCで上下が見切れる問題の対策）
 // ※Phaser内部のzoomは触らず、canvasの見た目サイズ（CSS）だけを変える。
 //   内部を触ると描画崩れ（黒枠）やタップ座標のずれが起きるため。
@@ -4734,7 +5053,7 @@ window.addEventListener('resize',()=>{
     const cH=container.clientHeight, cW=container.clientWidth;
     if(!cH||!cW)return;
     const isMobile=(window.innerWidth||400)<600;
-    const MARGIN=isMobile?0.86:0.98;
+    const MARGIN=isMobile?0.96:0.98;
     const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,1.0);
     window._gameScaleRatio=ratio;
     canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
@@ -4748,6 +5067,9 @@ const TIP_URL='';
   const el=document.getElementById('tip-link');
   if(el&&TIP_URL){ el.href=TIP_URL; el.style.display='inline-block'; }
 })();
+
+// 再抽選が無効なら、ボタン・吹き出し・注釈をまとめて隠す
+if(!ENABLE_REROLL){ try{ document.body.classList.add('no-reroll'); }catch(e){} }
 
 // 起動時プロフィール表示
 updateStartProfile();
