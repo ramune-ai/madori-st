@@ -14,7 +14,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 .title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
-.title-badge .tb-emoji{line-height:1;display:block;will-change:transform;}
+.title-badge .tb-emoji{line-height:1;display:block;will-change:transform;letter-spacing:0;text-indent:0;}
 .name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
@@ -225,15 +225,15 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* 現在パーツ（中央・大きく・ドラッグ可） */
 #current-piece-wrap{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  background:rgba(200,160,96,.08);border:2px solid var(--accent);border-radius:10px;
-  padding:4px 6px;cursor:grab;user-select:none;
-  box-shadow:0 2px 8px rgba(200,160,96,.22);
+  background:#fff;border:3.5px solid var(--accent);border-radius:14px;
+  padding:5px 8px;cursor:grab;user-select:none;
+  box-shadow:0 4px 16px rgba(200,160,96,.42), 0 0 0 4px rgba(200,160,96,.12);
   -webkit-tap-highlight-color:transparent;
   touch-action:none;
   position:relative;
 }
 #current-piece-wrap:active{cursor:grabbing;}
-#current-piece-wrap .piece-label{font-size:13px;color:var(--accent);letter-spacing:.08em;font-weight:700;}
+#current-piece-wrap .piece-label{font-size:13px;color:var(--accent);letter-spacing:.08em;font-weight:800;}
 #canvas-current{display:block;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
 #canvas-current{width:98px;height:98px;}
@@ -275,7 +275,19 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .pill:active{transform:scale(.95);}
 .pill-ico{display:flex;align-items:center;flex-shrink:0;}
 .pill-txt{white-space:nowrap;}
-.pill-primary{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(200,160,96,.45);}
+/* 完成は「先へ進む」操作。称号（金）と区別するため緑系にして、
+   押せるようになったらやわらかく脈打たせて視線を誘導する */
+.pill-primary{
+  background:var(--green);color:#fff;
+  box-shadow:0 3px 12px rgba(106,138,80,.45);
+  animation:readyPulse 2.2s ease-in-out infinite;
+}
+@keyframes readyPulse{
+  0%,100%{box-shadow:0 3px 12px rgba(106,138,80,.4);}
+  50%{box-shadow:0 4px 18px rgba(106,138,80,.75);}
+}
+/* まだ押せない間は動かさない */
+.pill.is-locked{animation:none;}
 .pill-secondary{background:#fff;color:var(--brown-dark);border-color:rgba(90,74,58,.22);box-shadow:0 2px 8px rgba(58,42,26,.12);}
 /* まだ押せない状態（押すと理由をトーストで出す） */
 .pill.is-locked{background:#fff;color:rgba(90,74,58,.32);border-color:rgba(90,74,58,.16);box-shadow:none;}
@@ -447,6 +459,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   will-change:transform;
 }
 .reroll-slot-btn.visible{visibility:visible;opacity:1;pointer-events:auto;}
+/* ENABLE_REROLL=false のとき、再抽選まわりをまとめて隠す */
+body.no-reroll .reroll-slot-btn,
+body.no-reroll .reroll-pop,
+body.no-reroll .reroll-note{display:none!important;}
 .reroll-slot-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(58,42,26,.45);}
 .reroll-slot-btn.used{background:rgba(90,74,58,.25);color:var(--brown-light);cursor:not-allowed;box-shadow:none;}
 .reroll-slot-btn.used:hover{transform:none;box-shadow:none;}
@@ -600,13 +616,13 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   display:grid;
   grid-template-columns:repeat(4,1fr);
   /* auto だと称号名が2行のカードだけ背が伸びて高さが揃わないので固定する */
-  grid-auto-rows:158px;
+  grid-auto-rows:178px;
   gap:10px;
   padding:4px 0;
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:152px;gap:12px;}
+  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:174px;gap:12px;}
   .title-grid-badge{font-size:34px;}
   .title-grid-name{font-size:17px;line-height:1.25;}
   .title-grid-card.locked .title-grid-name{font-size:16px;}
@@ -636,6 +652,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #game-bottom-bar{padding:10px 12px max(48px,calc(env(safe-area-inset-bottom) + 32px));gap:12px;}
 }
 .title-grid-card{
+  position:relative;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
   padding:12px 10px;border-radius:10px;text-align:center;
   background:#fff;border:1.5px solid rgba(90,74,58,.1);
@@ -677,10 +694,30 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   font-size:11px;color:var(--brown-light);
   line-height:1.45;letter-spacing:.02em;
 }
+/* NEWは右上の角に。縦の場所を取らないのでカードの中身が押し出されない */
 .title-grid-new-badge{
-  font-size:8px;font-weight:700;letter-spacing:.06em;
-  background:var(--accent);color:#fff;
-  padding:1px 5px;border-radius:3px;margin-top:1px;
+  position:absolute;top:-7px;right:-6px;
+  font-size:9px;font-weight:800;letter-spacing:.06em;
+  background:#e05a4e;color:#fff;
+  padding:2px 7px;border-radius:10px;
+  box-shadow:0 2px 7px rgba(224,90,78,.5);
+  animation:newPulse 1.8s ease-in-out infinite;
+}
+/* 新しく獲得した称号：やわらかく光らせて浮かせる */
+.title-grid-card.is-new{
+  border-color:var(--accent);
+  background:linear-gradient(160deg,#fffdf5,#fdf0d8);
+  box-shadow:0 4px 16px rgba(200,160,96,.45), 0 1px 0 #fff inset;
+  transform:translateY(-2px);
+  animation:newGlow 2.4s ease-in-out infinite;
+}
+@keyframes newPulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.08);opacity:.85;}
+}
+@keyframes newGlow{
+  0%,100%{box-shadow:0 4px 16px rgba(200,160,96,.35), 0 1px 0 #fff inset;}
+  50%{box-shadow:0 6px 24px rgba(200,160,96,.7), 0 1px 0 #fff inset;}
 }
 
 /* ── 間取り背景 ── */
@@ -891,7 +928,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   </div>
   <button class="btn-roulette-next" id="btn-rou-next" onclick="gotoTitles()">獲得称号を確認 →</button>
   <div style="font-size:10px;color:var(--brown-light);margin-top:8px;letter-spacing:.06em;text-align:center;">
-    ※ 再抽選は広告視聴で無料（実装予定）
+    <span class="reroll-note">※ 再抽選は広告視聴で無料（実装予定）</span>
   </div>
 </div>
 
@@ -940,7 +977,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
-      <div class="res-promo">間取りゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@madori_st</span></div>
+      <div class="res-promo">間取りパズルゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span></div>
     </div>
 
     <!-- ボタン（2段） -->
@@ -1010,6 +1047,8 @@ function _audioCtx(){
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC)return null;
     _actx=new AC();
+    // 割り込みで running から外れたら、次のタップで戻す準備をしておく
+    try{ _actx.onstatechange=()=>{ if(_actx.state!=='running'&&!document.hidden) _armAudioKick(); }; }catch(e){}
   }
   if(_actx.state==='suspended'){ _actx.resume().catch(()=>{}); }
   return _actx;
@@ -1072,6 +1111,8 @@ function startBGM(){
     const a=new Audio(encodeURI(SND_DIR+BGM_FILE));
     a.loop=true; a.volume=bgmVol;
     a.onerror=()=>{ if(_bgm===a)_bgm=null; };
+    // 割り込みで一時停止させられた時（画面は見えたまま）に備える
+    a.addEventListener('pause',()=>{ if(_bgm===a&&!document.hidden&&bgmVol>0) _armAudioKick(); });
     a.play().then(()=>{}).catch(()=>{ if(_bgm===a)_bgm=null; });
     _bgm=a;
   }catch(e){ _bgm=null; }
@@ -1121,6 +1162,20 @@ document.addEventListener('visibilitychange',()=>{
 });
 // iOS Safari でタブを閉じる／アプリを切り替える時の保険
 window.addEventListener('pagehide',_audioSuspend);
+
+// アラームや着信などの「割り込み」は、画面が隠れないので visibilitychange が
+// 起きないことがある。その場合タップ待ちも仕込まれないため、触っても直らない。
+// そこで「どのタップでも、鳴っているはずの音が止まっていたら鳴らし直す」
+// 見張りを常時置く。正常に鳴っている間は何もしないので負担はない
+function _audioWatchdog(){
+  try{
+    const ctxBad = _actx && _actx.state!=='running';
+    const bgmBad = bgmVol>0 && (!_bgm || _bgm.paused);
+    if(ctxBad||bgmBad) _audioResume();
+  }catch(e){}
+}
+document.addEventListener('pointerdown',_audioWatchdog,true);
+document.addEventListener('touchend',_audioWatchdog,true);
 function setSeVol(v){
   seVol=Math.max(0,Math.min(1,v));
   try{ localStorage.setItem('madori-se-vol',String(seVol)); }catch(e){}
@@ -1611,6 +1666,9 @@ const REROLL_POOLS={
   2:[70,80,90,100],       // 高級確定（家賃レア70以上）
 };
 // 再抽選済みフラグ（per slot）
+// 再抽選（リワード広告用）。課金を実装するまでは非表示にしておく。
+// true にするだけでボタン・吹き出し・注釈がまとめて戻る
+const ENABLE_REROLL=false;
 const rerollDone=[false,false,false];
 
 // 開発中：再抽選制限なし（将来：広告視聴で1日1回）
@@ -2370,7 +2428,8 @@ function renderTitlesPage(){
     const isOwned=owned.has(m.title);
     const isNew=newSet.has(m.title);
     const card=document.createElement('div');
-    card.className='title-grid-card '+(isOwned?'owned':'locked');
+    card.className='title-grid-card '+(isOwned?'owned':'locked')+(isNew?' is-new':'');
+
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
     badgeEl.innerHTML=titleBadgeHTML(m.badge,m.rar,54);
@@ -2887,7 +2946,7 @@ async function saveAndShare(){
   const tags=(window._shareTags||(r.titles||[]).slice(0,3)).map(titleToHashtag);
   // シェア文面：固定文＋間取り＋固定タグ＋称号タグ
   const titleTags=tags.join(' ');
-  const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #madori_st #間取りゲーム'+(titleTags?' '+titleTags:'');
+  const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル #ramune_aiai'+(titleTags?' '+titleTags:'');
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
@@ -3195,10 +3254,10 @@ function buildPropertyCard(opt){
     // 宣伝（フッターロゴの上）
     ctx.fillStyle='#5a4a3a';
     ctx.font="bold 27px 'Noto Serif JP',serif";
-    ctx.fillText('間取りゲームは「間取りすと」で検索！', W/2, yPromo+16);
+    ctx.fillText('間取りパズルゲームは「間取りすと」で検索！', W/2, yPromo+16);
     ctx.fillStyle='#7a5a30';
     ctx.font="500 20px 'Noto Sans JP',sans-serif";
-    ctx.fillText('X・Instagram・TikTok｜@madori_st', W/2, yPromo+50);
+    ctx.fillText('X・Instagram・TikTok｜@ramune_aiai', W/2, yPromo+50);
 
     // フッター
     ctx.fillStyle='#b0a090';
@@ -4352,6 +4411,7 @@ class PuzzleGame extends Phaser.Scene{
       _prevL=L; _prevR=R;
     }
     const _stepped=_steps>=2;
+    this._outsideColor=_stepped?0xb9c4a8:0xa9a59e;   // 植え込み / アスファルト
     let _pMinC=COLS,_pMaxC=-1,_pMinR=ROWS,_pMaxR=-1,_pCount=0;
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(isLand(r,c))continue;
@@ -4384,36 +4444,17 @@ class PuzzleGame extends Phaser.Scene{
       bush([[0.50,0.36],[0.30,0.62],[0.72,0.46]],0xa8b795,0.7,0.075);
     }
     if(_pCount>0&&!_stepped){
-      // 白い区画線。1マス＝1台ぶんの駐車スペースとして縦線を引く
-      g.fillStyle(0xe8e5df,0.85);
-      const LW=2;
-      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-        if(isLand(r,c))continue;
-        const px=c*CS,py=r*CS;
-        // 区画の仕切り（左右の隣も駐車場のときだけ内側に線を引く）
-        if(!isLand(r,c-1)&&c>0) g.fillRect(px,py+4,LW,CS-8);
-        // 車止め側のライン（下の隣が駐車場でない＝区画の端）
-        if(isLand(r+1,c)||r===ROWS-1) g.fillRect(px+4,py+CS-LW-3,CS-8,LW);
-      }
-      // 車止め（タイヤを受ける短い横棒2本）を、家に接している側に置く
+      // 駐車場ひとつ＝1台ぶん。マス目に合わせて区画を切ると台数が多すぎて
+      // 不自然になるので、区切り線は引かず、車止めを2本だけ置く
+      const cxMid=Math.floor((_pMinC+_pMaxC+1)/2);
+      const topIsHouse=isLand(_pMinR-1,cxMid);
+      const stopX=((_pMinC+_pMaxC+1)/2)*CS;
+      const stopY = topIsHouse ? _pMinR*CS+Math.round(CS*0.34)
+                               : (_pMaxR+1)*CS-Math.round(CS*0.34);
       g.fillStyle(0xf2efe9,0.95);
-      const SW=Math.round(CS*0.26), SH=3, SGAP=Math.round(CS*0.20);
-      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-        if(isLand(r,c))continue;
-        const px=c*CS,py=r*CS;
-        // 上が土地＝家側 → マスの上寄りに2本
-        if(isLand(r-1,c)){
-          const y=py+Math.round(CS*0.26);
-          g.fillRect(px+CS/2-SGAP-SW/2,y,SW,SH);
-          g.fillRect(px+CS/2+SGAP-SW/2,y,SW,SH);
-        }
-        // 下が土地＝家側 → マスの下寄りに2本
-        else if(isLand(r+1,c)){
-          const y=py+CS-Math.round(CS*0.26)-SH;
-          g.fillRect(px+CS/2-SGAP-SW/2,y,SW,SH);
-          g.fillRect(px+CS/2+SGAP-SW/2,y,SW,SH);
-        }
-      }
+      const SW=Math.round(CS*0.42), SH=4, SGAP=Math.round(CS*0.30);
+      g.fillRect(stopX-SGAP-SW/2,stopY,SW,SH);
+      g.fillRect(stopX+SGAP-SW/2,stopY,SW,SH);
       // 中央に控えめな「P」
       const cx=((_pMinC+_pMaxC+1)/2)*CS, cy=((_pMinR+_pMaxR+1)/2)*CS;
       const pTxt=this.add.text(cx,cy,'P',{
@@ -4447,16 +4488,9 @@ class PuzzleGame extends Phaser.Scene{
     const g=this.borderGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
     const BW=6;
-    // 外枠ソフトシャドウ（本体枠の外側1pxに半透明のにじみ）
-    g.fillStyle(0x3a2a1a,0.18);
-    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-      if(!isLand(r,c))continue;
-      const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px-1,py-1,CS+2,1);
-      if(!isLand(r+1,c)) g.fillRect(px-1,py+CS,CS+2,1);
-      if(!isLand(r,c-1)) g.fillRect(px-1,py-1,1,CS+2);
-      if(!isLand(r,c+1)) g.fillRect(px+CS,py-1,1,CS+2);
-    }
+    // ※ 以前ここに半透明のにじみを描いていたが、マスごとに1pxずつ描くため
+    //   隣のマスと重なって交差部だけ濃く（＝枠が太く）見えていたので廃止した。
+    //   枠自体が十分濃いので、にじみは無くても輪郭は失われない
     // 外枠メイン：濃いダークブラウン
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
@@ -4496,8 +4530,16 @@ class PuzzleGame extends Phaser.Scene{
       const cnt2=(tl2?1:0)+(tr2?1:0)+(bl2?1:0)+(br2?1:0);
       if(cnt2!==1)continue;
       const X2=c*CS,Y2=r*CS;
-      // 角の四角をハッチ下地色で塗って消す
-      g.fillStyle(0xeceae6,1);
+      // 角の四角を「後ろにある色」で塗って消す。
+      // 盤の外なら画面の地色、盤の中なら駐車場／植え込みの色
+      const outAt=(rr,cc)=>(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)
+        ? (this._outsideColor||0xa9a59e) : 0xf5f0e8;
+      let ec;
+      if(br2)      ec=outAt(r-1,c-1);
+      else if(bl2) ec=outAt(r-1,c);
+      else if(tr2) ec=outAt(r,c-1);
+      else         ec=outAt(r,c);
+      g.fillStyle(ec,1);
       if(br2)      g.fillRect(X2,Y2,RC,RC);
       else if(bl2) g.fillRect(X2-RC,Y2,RC,RC);
       else if(tr2) g.fillRect(X2,Y2-RC,RC,RC);
@@ -5025,6 +5067,9 @@ const TIP_URL='';
   const el=document.getElementById('tip-link');
   if(el&&TIP_URL){ el.href=TIP_URL; el.style.display='inline-block'; }
 })();
+
+// 再抽選が無効なら、ボタン・吹き出し・注釈をまとめて隠す
+if(!ENABLE_REROLL){ try{ document.body.classList.add('no-reroll'); }catch(e){} }
 
 // 起動時プロフィール表示
 updateStartProfile();
