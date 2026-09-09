@@ -40,6 +40,31 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #screen-start{background:var(--cream);position:relative;overflow:hidden;justify-content:center;}
 #screen-start::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(200,160,96,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(106,138,80,.08) 0%,transparent 60%);pointer-events:none;}
 .logo-wrap{text-align:center;margin-bottom:48px;animation:fadeDown .8s ease both;}
+/* ゲームの目的をひと言。ふわふわ浮かせて楽しい雰囲気に */
+.start-bubble{
+  position:absolute;right:max(14px, calc(50% - 178px));
+  top:calc(env(safe-area-inset-top, 0px) + 96px);
+  background:#fff;border:2px solid var(--accent);border-radius:18px;
+  padding:11px 16px;z-index:4;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:14px;font-weight:800;line-height:1.5;color:var(--brown-dark);
+  text-align:center;letter-spacing:.02em;
+  box-shadow:0 4px 16px rgba(200,160,96,.35);
+  transform:rotate(-4deg);
+  animation:bubbleFloat 3.2s ease-in-out infinite;
+}
+.start-bubble::after{
+  content:'';position:absolute;left:26px;bottom:-11px;
+  border:10px solid transparent;border-top-color:var(--accent);border-bottom:0;
+}
+.start-bubble::before{
+  content:'';position:absolute;left:28px;bottom:-7px;z-index:1;
+  border:8px solid transparent;border-top-color:#fff;border-bottom:0;
+}
+@keyframes bubbleFloat{
+  0%,100%{transform:rotate(-4deg) translateY(-4px);}
+  50%{transform:rotate(-4deg) translateY(4px);}
+}
 .logo-icon{font-size:56px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(90,74,58,.15));}
 .logo-title{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);letter-spacing:.15em;line-height:1;}
 .logo-sub{font-size:20px;font-weight:700;color:var(--brown-light);letter-spacing:.34em;margin-top:10px;padding-left:.34em;}
@@ -88,7 +113,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   display:flex;flex-direction:column;flex-shrink:0;
   background:rgba(245,240,232,.98);
   position:relative;z-index:30;
-  width:100%;max-width:100vw;overflow-x:hidden;
+  width:100%;max-width:100vw;
   min-height:190px;
 }
 @media(min-width:600px){#game-top-bar{min-height:172px;}}
@@ -193,7 +218,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #game-top-row2{
   display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;
   padding:2px 3px 5px;column-gap:6px;
-  width:100%;height:158px;box-sizing:content-box;
+  width:100%;height:176px;box-sizing:content-box;
 }
 #next-col,#current-piece-wrap,#action-col{height:100%;box-sizing:border-box;overflow:visible;}
 #next-col{justify-self:center;}
@@ -269,18 +294,18 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #canvas-current{display:block;margin:auto 0;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
 #canvas-current{width:98px;height:98px;}
-#canvas-next1,#canvas-next2{width:40px;height:40px;}
+#canvas-next1,#canvas-next2{width:54px;height:54px;}
 @media(max-width:599px){
   #canvas-current{width:122px;height:122px;}
   #canvas-next1,#canvas-next2{width:72px;height:72px;}
 }
 @media(max-width:419px){
-  #canvas-current{width:98px;height:98px;}
-  #canvas-next1,#canvas-next2{width:40px;height:40px;}
+  #canvas-current{width:104px;height:104px;}
+  #canvas-next1,#canvas-next2{width:54px;height:54px;}
 }
 @media(max-width:359px){
   #canvas-current{width:96px;height:96px;}
-  #canvas-next1,#canvas-next2{width:38px;height:38px;}
+  #canvas-next1,#canvas-next2{width:50px;height:50px;}
   .pill{font-size:12px;padding:9px 12px;}
 }
 
@@ -907,6 +932,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
   <!-- 左上：名前＋称号コーナー -->
+  <div class="start-bubble">自分だけの<br>間取り物件を作ろう！</div>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
@@ -1017,8 +1043,11 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         </svg>
       </div>
     </div>
+    <div id="tut-move" class="tut-hint">
+      <div class="tut-text">長押しやスライドで動かせるよ！</div>
+    </div>
     <div id="tut-confirm" class="tut-hint">
-      <div class="tut-text">もう一度タップで決定</div>
+      <div class="tut-text">もう一度タップで位置決定！</div>
     </div>
   </div>
 
@@ -1417,17 +1446,18 @@ function markTutorialDone(){
 }
 // which: 'drop'（土地をタップ）／'confirm'（もう一度タップ）／null（消す）
 let _tutState='';
+// which: 'drop'（土地をタップ）→'move'（動かせる）→'confirm'（もう一度タップで決定）
 function showTutHint(which){
-  const drop=document.getElementById('tut-drop');
-  const conf=document.getElementById('tut-confirm');
   const cont=document.getElementById('game-container');
-  if(!drop||!conf)return;
+  const ids={drop:'tut-drop',move:'tut-move',confirm:'tut-confirm'};
   const on = which && !tutorialDone();
   const next = on ? which : '';
   if(next===_tutState)return;   // 同じ状態なら触らない（点滅の原因になる）
   _tutState=next;
-  drop.classList.toggle('show', next==='drop');
-  conf.classList.toggle('show', next==='confirm');
+  Object.keys(ids).forEach(k=>{
+    const el=document.getElementById(ids[k]);
+    if(el)el.classList.toggle('show', next===k);
+  });
   if(cont) cont.classList.toggle('tut-glow', next==='drop');
 }
 // ☰の「遊び方」：いつでも同じ内容を見返せる
@@ -1440,7 +1470,7 @@ function openHowTo(){
     '<div class="howto-step"><div class="howto-num">1</div>'+
     '<div><b>土地をタップ</b><br>「今のパーツ」を置きたい場所をタップすると、置ける位置に薄く表示されます。</div></div>'+
     '<div class="howto-step"><div class="howto-num">2</div>'+
-    '<div><b>もう一度タップで決定</b><br>薄く出たパーツをもう一度タップすると確定します。<br>place: 位置を変えたい時は、指をすべらせて動かせます（タップでもOK）。</div></div>'+
+    '<div><b>もう一度タップで決定</b><br>薄く出たパーツをもう一度タップすると確定します。<br>位置を変えたい時は、指をすべらせて動かせます（タップでもOK）。</div></div>'+
     '<div class="howto-step"><div class="howto-num">3</div>'+
     '<div><b>置けなくなったら完成</b><br>置きたくないパーツは「スキップ」（3回まで）。好きなところで「完成」も押せます。</div></div>'+
     '</div>');
@@ -1784,27 +1814,28 @@ function persistFlow(screen){
 // B.駅徒歩  ①0-5(レア) ②6-15(最頻1) ③16-29(最頻2) ④30-50(10刻み,50が逆レア)
 // C.家賃    ①5-9(5が逆レア) ②10-20(最頻) ③21-39 ④40-75(5刻み) ⑤80-100(レア,10刻み)
 const GACHA_BLOCKS=[
+  // ※重みは「ブロック全体」に効くので、候補の少ないブロックほど
+  //   1つ1つの値が出やすくなる。候補数を見て重みを決めること
   // A.築年数
   [
-    {lo:0,  hi:5,  step:1, weight:6},   // ①レア
-    {lo:6,  hi:29, step:1, weight:60},  // ②最頻
-    {lo:30, hi:50, step:5, weight:18},  // ③（50が逆レア）
+    {lo:0,  hi:5,  step:1, weight:6},   // ①レア（6通り）
+    {lo:6,  hi:29, step:1, weight:68},  // ②最頻（24通り）
+    {lo:30, hi:50, step:5, weight:10},  // ③（5通り／50が逆レア）
   ],
   // B.駅徒歩
   [
-    {lo:0,  hi:5,  step:1, weight:6},   // ①レア
-    {lo:6,  hi:15, step:1, weight:42},  // ②最頻1
-    {lo:16, hi:29, step:1, weight:32},  // ③最頻2
-    {lo:30, hi:50, step:10,weight:12},  // ④（50が逆レア）
+    {lo:0,  hi:5,  step:1, weight:6},   // ①レア（6通り）
+    {lo:6,  hi:15, step:1, weight:46},  // ②最頻1（10通り）
+    {lo:16, hi:29, step:1, weight:32},  // ③最頻2（14通り）
+    {lo:30, hi:50, step:10,weight:6},   // ④（3通り／50が逆レア）
   ],
   // C.家賃  ①5-9(5が逆レア) ②10-20(最頻) ③21-39 ④40-65(5刻み) ⑤70-100(レア,10刻み)
-  // 確率の多い順：②①③④⑤
   [
-    {lo:5,  hi:9,  step:1, weight:26},  // ①（5が逆レア）2番目に多い
-    {lo:10, hi:20, step:1, weight:46},  // ②最頻（最多）
-    {lo:21, hi:39, step:1, weight:16},  // ③3番目
-    {lo:40, hi:65, step:5, weight:8},   // ④4番目
-    {lo:70, hi:100,step:10,weight:4},   // ⑤レア（最少）
+    {lo:5,  hi:9,  step:1, weight:16},  // ①（5通り／5が逆レア）
+    {lo:10, hi:20, step:1, weight:56},  // ②最頻（11通り）
+    {lo:21, hi:39, step:1, weight:16},  // ③（19通り）
+    {lo:40, hi:65, step:5, weight:8},   // ④（6通り）
+    {lo:70, hi:100,step:10,weight:4},   // ⑤レア（4通り）
   ],
 ];
 // レア値（プレミアム）：A①0-5, B①0-5, C 50以上
@@ -2180,17 +2211,18 @@ function renderSavesList(){
   const wrap=document.createElement('div');
   wrap.style.cssText='position:relative;width:340px;max-width:86vw;margin:0 auto;';
 
-  // 上段：件数カウンター＋お気に入り絞り込み
-  const ctrl=document.createElement('div');
-  ctrl.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;';
-  const counter=document.createElement('div');
-  counter.style.cssText='font-size:16px;font-weight:700;color:var(--brown-dark);letter-spacing:.08em;';
+  // 絞り込みはタイトルの隣に置く（各物件の★ボタンと紛らわしくないように）
   const favFilterBtn=document.createElement('button');
-  favFilterBtn.style.cssText='border:1px solid #c8a060;background:'+(_savesFavOnly?'#f4d06a':'#fff')+';color:'+(_savesFavOnly?'#6a4a10':'#b8860b')+';font-size:13px;padding:7px 14px;border-radius:18px;cursor:pointer;white-space:nowrap;font-family:\'Noto Sans JP\',sans-serif;';
-  favFilterBtn.textContent=_savesFavOnly?'★ お気に入りだけ':'☆ お気に入りだけ';
+  favFilterBtn.style.cssText='margin-left:12px;vertical-align:middle;border:1px solid #c8a060;background:'+(_savesFavOnly?'#f4d06a':'#fff')+';color:'+(_savesFavOnly?'#6a4a10':'#b8860b')+';font-size:12px;font-weight:700;padding:6px 12px;border-radius:16px;cursor:pointer;white-space:nowrap;font-family:inherit;';
+  favFilterBtn.textContent=_savesFavOnly?'★ お気に入りだけ表示中':'☆ お気に入りだけ表示';
   favFilterBtn.onclick=()=>{ _savesFavOnly=!_savesFavOnly; _savesIdx=0; renderSavesList(); };
-  ctrl.appendChild(counter); ctrl.appendChild(favFilterBtn);
-  wrap.appendChild(ctrl);
+  title.textContent='マイ物件ファイル';
+  title.appendChild(favFilterBtn);
+  // 保存できる件数のめやす
+  const counter=document.createElement('div');
+  counter.style.cssText='font-size:15px;font-weight:700;color:var(--brown-dark);letter-spacing:.06em;text-align:center;margin-bottom:8px;';
+  wrap.appendChild(counter);
+
 
   if(list.length===0){
     const e=document.createElement('div');
@@ -2219,10 +2251,10 @@ function renderSavesList(){
   const prevBtn=mkArrow(-1,'‹'), nextBtn=mkArrow(1,'›');
   stage.appendChild(prevBtn); stage.appendChild(nextBtn);
 
-  // 下段：日付・★・✕
+  // 日付と★はチラシの上に置く
   const info=document.createElement('div');
-  info.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;';
-  wrap.appendChild(info);
+  info.style.cssText='display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px;';
+  wrap.insertBefore(info,stage);
 
   // スマホ向けヒント
   if('ontouchstart' in window){
@@ -2231,13 +2263,20 @@ function renderSavesList(){
     hint.textContent='← スワイプでめくれるよ →';
     wrap.appendChild(hint);
   }
+  const rule=document.createElement('div');
+  rule.style.cssText='text-align:center;font-size:11px;color:#b0a090;margin-top:10px;line-height:1.8;letter-spacing:.04em;';
+  rule.innerHTML='保存は最新'+HISTORY_MAX+'件まで。いっぱいになると古いものから消えます。<br>★お気に入りにした物件は消えません。';
+  wrap.appendChild(rule);
+
   body.appendChild(wrap);
 
   function entry(){ return list[_savesIdx]; }
 
   function renderPage(){
     const s=entry();
-    counter.textContent=(_savesIdx+1)+' / '+list.length+(_savesFavOnly?'（お気に入り）':'');
+    counter.textContent=_savesFavOnly
+      ? (_savesIdx+1)+' / '+list.length+'（お気に入り）'
+      : (_savesIdx+1)+' 件目 ／ 保存 '+all.length+' / '+HISTORY_MAX;
     pageEl.innerHTML='';
     if(s.img){
       const img=document.createElement('img');
@@ -2267,18 +2306,7 @@ function renderSavesList(){
       showGameToast(cur[i]&&cur[i].fav?'お気に入りに登録したよ！':'お気に入りを解除したよ');
       renderSavesList();
     };
-    const delBtn=document.createElement('button');
-    delBtn.textContent='✕';
-    delBtn.title='削除';
-    delBtn.style.cssText='border:1px solid rgba(176,58,46,.4);background:#fff;color:#b03a2e;font-size:15px;width:40px;height:40px;border-radius:50%;cursor:pointer;';
-    delBtn.onclick=async()=>{
-      const ok=await showGameConfirm('この物件を削除する？','削除する','やめる');
-      if(!ok)return;
-      const cur=loadHistory();
-      saveHistory(cur.filter(x=>x.id!==s.id));
-      renderSavesList();
-    };
-    info.appendChild(d); info.appendChild(favBtn); info.appendChild(delBtn);
+    info.appendChild(d); info.appendChild(favBtn);
     prevBtn.style.display=list.length>1?'flex':'none';
     nextBtn.style.display=list.length>1?'flex':'none';
   }
@@ -2577,6 +2605,12 @@ function openModal(type){
 }
 // 称号一覧（ページ制）
 function renderTitlesPage(){
+  // 完成回数の称号は誰でも最初に手に入るので先頭に並べる
+  if(!window._titlesOrdered){
+    const cc=ALL_TITLES_MASTER.filter(m=>m.ccStep);
+    const rest=ALL_TITLES_MASTER.filter(m=>!m.ccStep);
+    window._titlesOrdered=[...cc,...rest];
+  }
   const title=document.getElementById('modal-title');
   const body=document.getElementById('modal-body');
   const owned=new Set(JSON.parse(localStorage.getItem('madori-titles')||'[]'));
@@ -2589,7 +2623,7 @@ function renderTitlesPage(){
     return;
   }
   // 並びはマスター定義順（物件情報：単独→複合 → パーツ配置：単独→複合）で固定
-  const sorted=ALL_TITLES_MASTER;
+  const sorted=window._titlesOrdered||ALL_TITLES_MASTER;
   const isMobileW=window.innerWidth<=520;
   const perPage=isMobileW?6:8; // スマホ6件(2×3)・PC8件(4×2)
   const totalPages=Math.ceil(sorted.length/perPage);
@@ -3508,10 +3542,10 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:17},
+  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:18},
   {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:13},
   {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:22},
-  {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:15},
+  {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:14},
   {name:'トイレ',    w:1,h:2,color:0xD4EEF8,label:'トイレ',      type:'toilet',   weight:11},
   {name:'お風呂',    w:2,h:2,color:0xB8DFF0,label:'お風呂',      type:'bath',     weight:11},
   {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',  type:'balcony',  weight:11},
@@ -4605,11 +4639,7 @@ class PuzzleGame extends Phaser.Scene{
     playSE('place');
     // 1個置けたら遊び方ヒントは役目を終える。
     // そのうえで「置いたあとも動かせる」ことを、その場で一度だけ伝える
-    let _wasFirst=false;
-    try{ _wasFirst=!tutorialDone(); markTutorialDone(); }catch(e){}
-    if(_wasFirst){
-      setTimeout(()=>{ try{ showGameToast('長押しやスライドでも動かせるよ！'); }catch(e){} },700);
-    }
+    try{ markTutorialDone(); }catch(e){}
     this._pushUndo(def);
     const pid='p'+(++this.partCount);
     const color=def.color;
@@ -5032,14 +5062,14 @@ class PuzzleGame extends Phaser.Scene{
     if(this._previewTween){this._previewTween.stop();this._previewTween=null;}
     this._clearPreviewLabels();
   }
-  // 遊び方ヒントの出し分け。まだ1個も置いていない間だけ出す
+  // 遊び方ヒントの出し分け。1個目を置くまでの間に、置く→動かす→決めるを順に伝える
   _syncTutHint(){
     try{
-      if(!this.isFinished && this.partCount===0 && this.currentDef){
-        showTutHint(this._previewActive?'confirm':'drop');
-      }else{
-        showTutHint(null);
-      }
+      if(this.isFinished||this.partCount!==0||!this.currentDef){ showTutHint(null); return; }
+      if(!this._previewActive){ showTutHint('drop'); return; }
+      // プレビューが出ている間：まだ動かしていなければ「動かせるよ」、
+      // 一度動かして指を離したら「もう一度タップで決定」
+      showTutHint(this._tutMoved?'confirm':'move');
     }catch(e){}
   }
   _clearPreview(){
@@ -5156,6 +5186,9 @@ class PuzzleGame extends Phaser.Scene{
     lbl.setOrigin(0.5,0.5).setDepth(6).setAlpha(ok?0.95:0.6);
     if(!this._previewLabels)this._previewLabels=[];
     this._previewLabels.push(lbl);
+    // 前回と違う場所に出たら「動かした」とみなす（初回の案内の切り替えに使う）
+    if(this._previewActive && (this._tutLastC!==c || this._tutLastR!==r)) this._tutMoved=true;
+    this._tutLastC=c; this._tutLastR=r;
     this._previewActive=true;
     this._syncTutHint();
   }
