@@ -88,7 +88,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* 1段目：リアルタイム間取り + ☰ */
 #game-top-row1{
   display:flex;align-items:center;justify-content:space-between;
-  padding:4px 8px 3px;gap:8px;
+  padding:14px 8px 6px;gap:8px;
 }
 /* リアルタイム間取り表示 */
 /* 見出しを上、値を下に積む。大きさの差が主従として働くので揃えなくてよくなる */
@@ -99,11 +99,11 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   white-space:nowrap;overflow:hidden;
 }
 .ml-cap{
-  font-size:11px;font-weight:700;letter-spacing:.2em;
+  font-size:12px;font-weight:700;letter-spacing:.2em;
   color:var(--brown-light);line-height:1.2;
 }
 .ml-value{
-  font-weight:800;font-size:27px;letter-spacing:.01em;line-height:1.15;
+  font-weight:800;font-size:32px;letter-spacing:.01em;line-height:1.15;
   color:var(--brown-dark);
   max-width:100%;overflow:hidden;text-overflow:ellipsis;
 }
@@ -169,13 +169,15 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
    左右の中身が増減しても中央はぶれない */
 /* 左右を同じ幅の「余り」にすると、中央の今のパーツが必ず画面の真ん中に来る。
    文字は折り返させない（.pill-txt が nowrap）ので、狭くても崩れない */
+/* 左右を同じ幅の「余り」にすると中央の今のパーツが画面の真ん中に来る。
+   左右の列は中央側に寄せ、grid の gap で左右の隙間を等しくする */
 #game-top-row2{
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
-  padding:3px 4px 5px;
+  padding:3px 4px 6px;column-gap:8px;
   width:100%;
 }
-#next-col{justify-self:start;}
-#action-col{justify-self:end;}
+#next-col{justify-self:end;}
+#action-col{justify-self:start;}
 /* 完成（上）／スキップ（下） */
 #action-col{
   display:flex;flex-direction:column;align-items:stretch;justify-content:center;
@@ -187,12 +189,12 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* このあと来るパーツ（左）。上が先に来る。
    枠の強さ＝近さ：今のパーツ（アクセント枠）＞ 次（白いカード）＞ その次（枠なし） */
 #next-col{
-  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
   padding:2px 2px;
 }
 .next-cap{
-  font-size:10px;font-weight:700;letter-spacing:.16em;
-  color:var(--brown-light);padding-left:4px;margin-bottom:1px;
+  font-size:11px;font-weight:700;letter-spacing:.16em;
+  color:var(--brown-light);text-align:center;margin-bottom:1px;
 }
 /* ラベルはパーツの横。縦を使わないぶんパーツを大きくできる */
 .next-row{
@@ -209,7 +211,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   letter-spacing:.04em;flex-shrink:0;
 }
 /* カードなし側は「次」より1段奥に見せる */
-.next-row:not(.is-soon){opacity:.72;padding-left:24px;}
+.next-row:not(.is-soon){opacity:.72;}
 .next-row.is-soon .next-sublabel{color:var(--brown-dark);}
 /* 操作ヒント共通デザイン（3つ統一） */
 .ui-hint{
@@ -294,8 +296,8 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* スキップの残り回数 */
 .pill-badge{
   display:inline-flex;align-items:center;justify-content:center;
-  min-width:20px;height:20px;padding:0 5px;border-radius:999px;
-  background:var(--accent);color:#fff;font-size:12px;font-weight:800;
+  min-width:18px;height:18px;padding:0 4px;border-radius:999px;
+  background:var(--accent);color:#fff;font-size:11px;font-weight:800;
 }
 .pill.is-locked .pill-badge{background:rgba(90,74,58,.22);}
 
@@ -334,7 +336,13 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   padding:20px 20px 18px;
   box-shadow:0 10px 34px rgba(58,42,26,.35);
 }
+.cf-stuck{
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:13px;font-weight:700;color:#c05a3e;
+  text-align:center;white-space:nowrap;margin:-4px 0 2px;
+}
 .cf-title{
+
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:14px;font-weight:700;color:var(--brown);
   text-align:center;white-space:nowrap;margin-bottom:2px;
@@ -486,6 +494,15 @@ body.no-reroll .reroll-note{display:none!important;}
   bottom:calc(26px + env(safe-area-inset-bottom));
   margin-top:0;z-index:40;white-space:nowrap;
 }
+/* 称号（金）と役割が被って見えないよう、進む操作は緑＋大きめに */
+#btn-rou-next,#title-next-btn{
+  font-size:20px!important;letter-spacing:.22em!important;
+  padding:20px 52px!important;border-radius:999px!important;
+  background:var(--green)!important;color:#fff!important;
+  box-shadow:0 6px 22px rgba(106,138,80,.5)!important;
+  animation:readyPulse 2.2s ease-in-out infinite;
+}
+#btn-rou-next:active,#title-next-btn:active{transform:translateX(-50%) scale(.96);}
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
 /* ── ④ 結果 ── */
@@ -572,16 +589,66 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .btn-result:hover{transform:translateY(-2px);}
 .btn-result.primary:hover{box-shadow:0 6px 18px rgba(58,42,26,.3);}
 
+/* ── 遊び方モーダル ── */
+.howto{display:flex;flex-direction:column;gap:18px;padding:2px 0 6px;}
+.howto-step{
+  display:flex;align-items:flex-start;gap:12px;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:14px;line-height:1.7;color:var(--brown-dark);
+}
+.howto-step b{font-size:15px;}
+.howto-num{
+  flex-shrink:0;width:26px;height:26px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;
+}
+
+/* ── 遊び方ヒント（初回だけ） ── */
+.tut-hint{
+  display:none;position:absolute;left:50%;transform:translateX(-50%);
+  z-index:70;pointer-events:none;
+  flex-direction:column;align-items:center;gap:2px;
+}
+.tut-hint.show{display:flex;}
+#tut-drop{top:14px;}
+#tut-confirm{bottom:14px;}
+.tut-finger{
+  font-size:38px;line-height:1;
+  filter:drop-shadow(0 3px 6px rgba(58,42,26,.35));
+  animation:tutFinger 1.5s ease-in-out infinite;
+}
+.tut-text{
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:15px;font-weight:800;letter-spacing:.06em;
+  color:#fff;background:rgba(58,42,26,.92);
+  padding:9px 18px;border-radius:999px;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(58,42,26,.4);
+}
+@keyframes tutFinger{
+  0%,100%{transform:translateY(-6px);}
+  50%{transform:translateY(6px);}
+}
+/* 置ける場所を示す、土地のやわらかい点滅 */
+#game-container.tut-glow canvas{
+  animation:tutGlow 1.6s ease-in-out infinite;
+}
+@keyframes tutGlow{
+  0%,100%{box-shadow:0 2px 10px rgba(58,42,26,.10);}
+  50%{box-shadow:0 2px 10px rgba(58,42,26,.10), 0 0 0 5px rgba(200,160,96,.5);}
+}
+
 /* ── ゲーム風トースト ── */
 #game-toast{
-  position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 16px);transform:translateX(-50%) translateY(-24px);
+  /* 画面上端だと視線から外れるので、盤面の少し上＝目線の中に出す */
+  position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.92);
   background:rgba(58,42,26,.94);color:#f5f0e8;
   font-family:'Noto Sans JP',sans-serif;font-size:14px;letter-spacing:.04em;
   padding:13px 24px;border-radius:30px;z-index:400;
   box-shadow:0 6px 24px rgba(58,42,26,.35);
   opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;white-space:nowrap;
 }
-#game-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#game-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
 /* ── ゲーム風確認ダイアログ ── */
 #game-confirm-overlay{
   display:none;position:fixed;inset:0;z-index:500;
@@ -606,7 +673,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 /* ── モーダル ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,42,26,.6);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.active{display:flex;}
-.modal-box{background:var(--cream);border-radius:12px;padding:24px 20px 28px;width:92%;max-width:480px;max-height:80vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;}
+.modal-box{background:var(--cream);border-radius:12px;padding:24px 20px 28px;width:92%;max-width:480px;max-height:80vh;max-height:80dvh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;}
 .modal-title{font-family:'Noto Serif JP',serif;font-size:18px;color:var(--brown-dark);margin-bottom:20px;letter-spacing:.1em;}
 .modal-close{float:right;background:none;border:none;font-size:20px;color:var(--brown-light);cursor:pointer;margin-top:-4px;}
 .modal-empty{font-size:13px;color:var(--brown-light);text-align:center;padding:24px 0;line-height:2;}
@@ -631,11 +698,11 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
-  #game-top-row1{padding:3px 4px 2px;gap:4px;}
+  #game-top-row1{padding:12px 4px 5px;gap:4px;}
   .ml-cap{font-size:10px;letter-spacing:.18em;}
-  .ml-value{font-size:25px;}
+  .ml-value{font-size:30px;}
   #game-menu-btn{width:48px;height:48px;font-size:24px;}
-  .pill{font-size:13px;padding:10px 11px;gap:5px;}
+  .pill{font-size:12px;padding:9px 10px;gap:5px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
   .res-main-row{flex-wrap:nowrap;gap:8px;}
   .res-side{min-width:104px;}
@@ -643,7 +710,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .rsv-val{font-size:21px;}
   #game-top-row2{padding:2px 5px 4px;gap:6px;}
   #action-col{gap:8px;}
-  #action-col .pill{padding:11px 11px;gap:5px;}
+  #action-col .pill{padding:10px 10px;gap:5px;}
   #current-piece-wrap{padding:3px 5px;}
   #next-col{padding:2px 2px;gap:6px;}
   #current-piece-wrap .piece-label{font-size:12px;}
@@ -696,7 +763,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 }
 /* NEWは右上の角に。縦の場所を取らないのでカードの中身が押し出されない */
 .title-grid-new-badge{
-  position:absolute;top:-7px;right:-6px;
+  position:absolute;top:6px;right:6px;
   font-size:9px;font-weight:800;letter-spacing:.06em;
   background:#e05a4e;color:#fff;
   padding:2px 7px;border-radius:10px;
@@ -742,7 +809,22 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   padding:14px 24px;border-radius:6px;width:100%;box-sizing:border-box;
   will-change:opacity,transform;
 }
-.title-new-badge-inline{font-size:10px;background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;letter-spacing:.08em;flex-shrink:0;}
+.title-new-badge-inline{
+  font-size:11px;font-weight:800;background:#e05a4e;color:#fff;
+  padding:3px 9px;border-radius:10px;letter-spacing:.06em;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(224,90,78,.55);
+  animation:newPulse 1.8s ease-in-out infinite;
+}
+/* 新しく獲得した称号：一覧と同じくやわらかく光らせる */
+.title-new-item{
+  box-shadow:0 6px 22px rgba(200,160,96,.5);
+  border:1.5px solid rgba(200,160,96,.75);
+  animation:revealGlow 2.4s ease-in-out infinite;
+}
+@keyframes revealGlow{
+  0%,100%{box-shadow:0 5px 18px rgba(200,160,96,.38);}
+  50%{box-shadow:0 8px 30px rgba(200,160,96,.8);}
+}
 /* 称号発表：名前を大きく＋獲得条件を併記 */
 .title-reveal-text{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
 .title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.1em;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere;line-break:strict;}
@@ -826,6 +908,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div id="game-menu-wrap">
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
+          <button onclick="toggleGameMenu();openHowTo()">遊び方</button>
           <button onclick="toggleGameMenu();gotoGame()">リトライ</button>
           <button onclick="toggleGameMenu();gotoStart()">タイトルへ戻る</button>
           <button onclick="toggleGameMenu();openSoundSettings()">音の設定</button>
@@ -865,11 +948,23 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     </div>
   </div>
 
-  <div id="game-container"></div>
+  <div id="game-container">
+    <!-- 初めて遊ぶ人向けのヒント。1個置いたら二度と出ない -->
+    <div id="tut-drop" class="tut-hint">
+      <div class="tut-finger">☝</div>
+      <div class="tut-text">土地をタップ</div>
+    </div>
+    <div id="tut-confirm" class="tut-hint">
+      <div class="tut-text">もう一度タップで決定</div>
+    </div>
+  </div>
+
   <!-- 完成の確認ダイアログ（手動完成・置き場所切れの両方でここに出る） -->
   <div id="btn-complete-overlay">
     <div class="cf-card">
       <div class="cf-title">この間取りで完成にしますか？</div>
+      <div class="cf-stuck" id="cf-stuck-note" style="display:none;">もう置ける場所がありません！</div>
+
       <button class="cf-yes" onclick="proceedFromComplete()">完　成</button>
       <button class="cf-no" id="btn-keep-playing" onclick="if(gameScene)gameScene.continuePlaying()">まだ続ける</button>
     </div>
@@ -1247,6 +1342,43 @@ function closeSoundSettings(){
 // ゲーム風 トースト / 確認ダイアログ
 // ────────────────────────────────────────
 let _gameToastTimer=null;
+// ── 遊び方ヒント（初回だけ） ──
+// 初見でつまずくのは「まず何をするのか」と「決定はもう一度タップ」の2つだけ。
+// 説明画面は作らず、その2つを必要な瞬間にだけ本物の画面に重ねて出す。
+// 1個置けたら二度と出さない（見返したい人は☰の「遊び方」から）
+const TUT_KEY='madori-tutorial-done';
+function tutorialDone(){ try{ return localStorage.getItem(TUT_KEY)==='1'; }catch(e){ return true; } }
+function markTutorialDone(){
+  try{ localStorage.setItem(TUT_KEY,'1'); }catch(e){}
+  showTutHint(null);
+}
+// which: 'drop'（土地をタップ）／'confirm'（もう一度タップ）／null（消す）
+function showTutHint(which){
+  const drop=document.getElementById('tut-drop');
+  const conf=document.getElementById('tut-confirm');
+  const cont=document.getElementById('game-container');
+  if(!drop||!conf)return;
+  const on = which && !tutorialDone();
+  drop.classList.toggle('show', on&&which==='drop');
+  conf.classList.toggle('show', on&&which==='confirm');
+  if(cont) cont.classList.toggle('tut-glow', !!(on&&which==='drop'));
+}
+// ☰の「遊び方」：いつでも同じ内容を見返せる
+function openHowTo(){
+  playSE('page');
+  try{ window.scrollTo(0,0); }catch(e){}
+  document.getElementById('modal-title').textContent='遊び方';
+  document.getElementById('modal-body').innerHTML=(
+    '<div class="howto">'+
+    '<div class="howto-step"><div class="howto-num">1</div>'+
+    '<div><b>土地をタップ</b><br>「今のパーツ」を置きたい場所をタップすると、置ける位置に薄く表示されます。</div></div>'+
+    '<div class="howto-step"><div class="howto-num">2</div>'+
+    '<div><b>もう一度タップで決定</b><br>薄く出たパーツをもう一度タップすると確定します。ドラッグして置くこともできます。</div></div>'+
+    '<div class="howto-step"><div class="howto-num">3</div>'+
+    '<div><b>置けなくなったら完成</b><br>置きたくないパーツは「スキップ」（3回まで）。好きなところで「完成」も押せます。</div></div>'+
+    '</div>');
+  document.getElementById('modal-overlay').classList.add('active');
+}
 function showGameToast(msg){
   const el=document.getElementById('game-toast');
   if(!el)return;
@@ -4331,7 +4463,10 @@ class PuzzleGame extends Phaser.Scene{
   // 置ける場所が無い時は押せない（_updateActionBtns でグレーにしてある）
   continuePlaying(){
     if(!this.isFinished)return;
-    if(!this._canContinue())return;
+    if(!this._canContinue()){
+      showGameToast('もう置ける場所がありません！');
+      return;
+    }
     playSE('tap');
     this.isFinished=false;
     // 完成時に描いた収納を消す
@@ -4379,6 +4514,8 @@ class PuzzleGame extends Phaser.Scene{
   }
   placePiece(def,shape,c,r){
     playSE('place');
+    // 1個置けたら遊び方ヒントは役目を終える
+    try{ markTutorialDone(); }catch(e){}
     this._pushUndo(def);
     const pid='p'+(++this.partCount);
     const color=def.color;
@@ -4449,12 +4586,13 @@ class PuzzleGame extends Phaser.Scene{
       const cxMid=Math.floor((_pMinC+_pMaxC+1)/2);
       const topIsHouse=isLand(_pMinR-1,cxMid);
       const stopX=((_pMinC+_pMaxC+1)/2)*CS;
-      const stopY = topIsHouse ? _pMinR*CS+Math.round(CS*0.34)
-                               : (_pMaxR+1)*CS-Math.round(CS*0.34);
+      const stopY = topIsHouse ? _pMinR*CS+Math.round(CS*0.62)
+                               : (_pMaxR+1)*CS-Math.round(CS*0.62);
       g.fillStyle(0xf2efe9,0.95);
-      const SW=Math.round(CS*0.42), SH=4, SGAP=Math.round(CS*0.30);
+      const SW=Math.round(CS*0.84), SH=6, SGAP=Math.round(CS*0.56);
       g.fillRect(stopX-SGAP-SW/2,stopY,SW,SH);
       g.fillRect(stopX+SGAP-SW/2,stopY,SW,SH);
+
       // 中央に控えめな「P」
       const cx=((_pMinC+_pMaxC+1)/2)*CS, cy=((_pMinR+_pMaxR+1)/2)*CS;
       const pTxt=this.add.text(cx,cy,'P',{
@@ -4463,7 +4601,34 @@ class PuzzleGame extends Phaser.Scene{
       }).setOrigin(0.5,0.5).setDepth(1).setAlpha(0.28).setResolution(this._txtRes);
       this._parkTexts=[pTxt];
     }
+    // 駐車場・植え込みの外側の角も、土地枠と同じ半径で丸める。
+    // 角が直角のままだと、丸みのある土地枠との間に隙間が見えてしまう
+    if(_pCount>0){
+      const RC2=6;
+      const isOut=(rr,cc)=>(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&!isLand(rr,cc));
+      g.fillStyle(0xf5f0e8,1);   // 画面の地色で角を削る
+      for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
+        const tl=isOut(r-1,c-1),tr=isOut(r-1,c),bl=isOut(r,c-1),br=isOut(r,c);
+        if((tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0)!==1)continue;
+        // 土地に接している角は削らない（枠が覆うので隙間になる）
+        const near=(rr,cc)=>(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&isLand(rr,cc));
+        if(near(r-1,c-1)||near(r-1,c)||near(r,c-1)||near(r,c))continue;
+        const X=c*CS,Y=r*CS;
+        if(br)      g.fillRect(X,Y,RC2,RC2);
+        else if(bl) g.fillRect(X-RC2,Y,RC2,RC2);
+        else if(tr) g.fillRect(X,Y-RC2,RC2,RC2);
+        else        g.fillRect(X-RC2,Y-RC2,RC2,RC2);
+        g.fillStyle(_stepped?0xb9c4a8:0xa9a59e,1);
+        if(br)      g.slice(X+RC2,Y+RC2,RC2,Math.PI,1.5*Math.PI);
+        else if(bl) g.slice(X-RC2,Y+RC2,RC2,1.5*Math.PI,2*Math.PI);
+        else if(tr) g.slice(X+RC2,Y-RC2,RC2,0.5*Math.PI,Math.PI);
+        else        g.slice(X-RC2,Y-RC2,RC2,0,0.5*Math.PI);
+        g.fillPath();
+        g.fillStyle(0xf5f0e8,1);
+      }
+    }
     // 有効な土地マスを床色で塗る
+
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(isLand(r,c)){
         g.fillStyle(0xf8f4ee,1);
@@ -4501,16 +4666,19 @@ class PuzzleGame extends Phaser.Scene{
       if(!isLand(r,c-1)) g.fillRect(px,py,BW,CS);
       if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,BW,CS);
     }
-    // 内側ハイライト（二重線効果）：明るいブラウン1px
+    // 内側ハイライト（二重線効果）：明るいブラウン1px。
+    // マスの幅いっぱいに描く。以前は両端をBWぶん詰めていたため、マスの境目で
+    // ハイライトが途切れ、そこだけ枠が太く（濃く）見えていた
     g.fillStyle(0xb09070,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px+BW,py+BW-1,CS-BW*2,1);
-      if(!isLand(r+1,c)) g.fillRect(px+BW,py+CS-BW,CS-BW*2,1);
-      if(!isLand(r,c-1)) g.fillRect(px+BW-1,py+BW,1,CS-BW*2);
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py+BW,1,CS-BW*2);
+      if(!isLand(r-1,c)) g.fillRect(px,py+BW-1,CS,1);
+      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,1);
+      if(!isLand(r,c-1)) g.fillRect(px+BW-1,py,1,CS);
+      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,1,CS);
     }
+
     // L字土地の内側コーナーで欠ける交点
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
@@ -4582,12 +4750,16 @@ class PuzzleGame extends Phaser.Scene{
     const fin=!!this.isFinished;
     const ov=document.getElementById('btn-complete-overlay');
     if(ov)ov.classList.toggle('visible',fin);
+    const stuck=fin&&!this._canContinue();
     const keep=document.getElementById('btn-keep-playing');
-    if(keep)keep.classList.toggle('is-locked',fin&&!this._canContinue());
+    if(keep)keep.classList.toggle('is-locked',stuck);
+    const note=document.getElementById('cf-stuck-note');
+    if(note)note.style.display=stuck?'block':'none';
     const done=document.getElementById('btn-complete');
     if(done){
-      done.style.display=fin?'none':'';
-      done.classList.toggle('is-locked',this.partCount<5);
+      // 完成後も消さない。場所が空くと画面が動いて分かりにくくなるため
+      done.style.display='';
+      done.classList.toggle('is-locked',!fin&&this.partCount<5);
     }
     const skip=document.getElementById('btn-skip');
     const skipLbl=document.getElementById('skip-count-label');
@@ -4608,6 +4780,9 @@ class PuzzleGame extends Phaser.Scene{
     }
     // ── 完成・スキップ・中央ボタンの状態 ──
     this._updateActionBtns();
+
+    // ── 遊び方ヒント（初回のみ・1個置いたら消える） ──
+    this._syncTutHint();
 
     // ── リアルタイム間取り表示（例：2LDK+1WC+0B）──
     const mlEl=document.querySelector('#madori-label .ml-value');
@@ -4753,6 +4928,16 @@ class PuzzleGame extends Phaser.Scene{
     if(this._previewTween){this._previewTween.stop();this._previewTween=null;}
     this._clearPreviewLabels();
   }
+  // 遊び方ヒントの出し分け。まだ1個も置いていない間だけ出す
+  _syncTutHint(){
+    try{
+      if(!this.isFinished && this.partCount===0 && this.currentDef){
+        showTutHint(this._previewActive?'confirm':'drop');
+      }else{
+        showTutHint(null);
+      }
+    }catch(e){}
+  }
   _clearPreview(){
     this.stopPreviewTween();
     if(this.previewImg){this.previewImg.destroy();this.previewImg=null;}
@@ -4760,6 +4945,7 @@ class PuzzleGame extends Phaser.Scene{
     this.previewGfx.clear();
     this._previewActive=false;
     this._previewDefKey=null;
+    this._syncTutHint();
   }
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
@@ -4867,6 +5053,7 @@ class PuzzleGame extends Phaser.Scene{
     if(!this._previewLabels)this._previewLabels=[];
     this._previewLabels.push(lbl);
     this._previewActive=true;
+    this._syncTutHint();
   }
 
   _clearPreviewLabels(){
