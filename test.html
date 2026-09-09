@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
@@ -44,7 +45,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* もこもこ雲の吹き出し。形はSVGで描き、文字はその上に重ねる */
 .start-bubble{
   position:absolute;right:max(10px, calc(50% - 182px));
-  top:calc(env(safe-area-inset-top, 0px) + 92px);
+  top:calc(env(safe-area-inset-top, 0px) + 62px);
   width:196px;height:96px;z-index:4;
   display:flex;align-items:center;justify-content:center;
   animation:bubbleFloat 3.4s ease-in-out infinite;
@@ -240,7 +241,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* 左も1枚のカードにして、今のパーツと上端・下端をそろえる */
 #next-col{
   display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;
-  padding:3px 7px 4px;
+  padding:3px 6px 4px;
   background:rgba(255,255,255,.55);
   border:1.5px solid rgba(90,74,58,.16);
   border-radius:14px;
@@ -268,6 +269,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   writing-mode:vertical-rl;text-orientation:upright;
   font-size:11px;font-weight:800;color:var(--brown-dark);
   letter-spacing:.02em;flex-shrink:0;line-height:1;
+  width:1.1em;text-align:center;
 }
 /* カードなし側は「次」より1段奥に見せる */
 .next-row:not(.is-soon){opacity:.72;}
@@ -299,14 +301,14 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #canvas-current{display:block;margin:auto 0;}
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
 #canvas-current{width:98px;height:98px;}
-#canvas-next1,#canvas-next2{width:54px;height:54px;}
+#canvas-next1,#canvas-next2{width:54px;height:54px;flex-shrink:0;}
 @media(max-width:599px){
   #canvas-current{width:122px;height:122px;}
   #canvas-next1,#canvas-next2{width:72px;height:72px;}
 }
 @media(max-width:419px){
-  #canvas-current{width:104px;height:104px;}
-  #canvas-next1,#canvas-next2{width:54px;height:54px;}
+  #canvas-current{width:92px;height:92px;}
+  #canvas-next1,#canvas-next2{width:54px;height:54px;flex-shrink:0;}
 }
 @media(max-width:359px){
   #canvas-current{width:96px;height:96px;}
@@ -596,9 +598,11 @@ body.no-reroll .reroll-note{display:none!important;}
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{position:relative;font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1.05;margin-bottom:6px;letter-spacing:.02em;display:flex;align-items:flex-end;justify-content:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;padding:0 4px;}
+.result-ldk-hero{position:relative;font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1.05;margin-bottom:10px;padding-top:6px;letter-spacing:.02em;display:flex;align-items:flex-end;justify-content:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;padding:0 4px;}
 .ldk-main{display:inline-flex;align-items:flex-end;gap:6px;}
-.ldk-legend{position:absolute;right:2px;bottom:2px;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;color:#8a7060;line-height:1.35;letter-spacing:0;text-align:right;white-space:nowrap;}
+/* WC・B の上に振るフリガナ */
+.ldk-sub{font-size:.6em;color:#3a2a1a;letter-spacing:.04em;font-weight:700;}
+.ldk-sub ruby rt{font-family:'Noto Sans JP',sans-serif;font-size:.42em;font-weight:700;color:#8a7060;letter-spacing:0;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -635,20 +639,45 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:10px 8px 0;}
 .res-promo{margin-top:8px;padding-bottom:2px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.45;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
+.res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;}
+/* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
+.res-card-title{
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:19px;font-weight:800;letter-spacing:.12em;
+  color:var(--brown-dark);text-align:center;
+  margin-bottom:6px;
+}
 .res-pop{margin:6px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
 .res-title-owned-chip{background:rgba(90,74,58,.07);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
 /* ボタン（2x2グリッド） */
-.result-btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
-.btn-result{padding:13px 0;border-radius:8px;font-family:'Noto Serif JP',serif;font-size:14px;letter-spacing:.08em;cursor:pointer;transition:transform .15s,box-shadow .15s;border:none;}
-.btn-result.primary{background:var(--brown-dark);color:#f5f0e8;box-shadow:0 4px 14px rgba(58,42,26,.22);}
-.btn-result.secondary{background:#fff;border:1px solid rgba(90,74,58,.22);color:var(--brown-light);}
-.btn-result.fav{background:#fff;border:1px solid #c8a060;color:#b8860b;}
+/* 押してほしい順：もう一度あそぶ ＞ 称号・お気に入り・シェア ＞ タイトルへ */
+.result-actions{display:flex;flex-direction:column;gap:10px;margin-top:10px;align-items:stretch;}
+.btn-again{
+  width:100%;padding:19px 0;border:none;border-radius:999px;cursor:pointer;
+  background:var(--green);color:#fff;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:19px;font-weight:800;letter-spacing:.14em;
+  box-shadow:0 6px 20px rgba(106,138,80,.45);
+  animation:readyPulse 2.2s ease-in-out infinite;
+}
+.btn-again:active{transform:scale(.97);}
+.result-sub-row{display:flex;gap:8px;}
+.btn-result{padding:12px 2px;border-radius:999px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;transition:transform .15s;border:none;}
+.btn-result.sub{flex:1;min-width:0;background:#fff;border:1.5px solid rgba(90,74,58,.22);color:var(--brown-dark);box-shadow:0 2px 8px rgba(58,42,26,.1);white-space:nowrap;}
+.btn-result.fav{border-color:#c8a060;color:#b8860b;}
 .btn-result.fav.active{background:#f4d06a;color:#6a4a10;border-color:#d4a020;}
-.btn-result:hover{transform:translateY(-2px);}
-.btn-result.primary:hover{box-shadow:0 6px 18px rgba(58,42,26,.3);}
+.btn-result:active{transform:scale(.95);}
+.btn-tolink{
+  background:none;border:none;cursor:pointer;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+  font-size:13px;font-weight:700;color:var(--brown-light);
+  letter-spacing:.08em;padding:8px 0 2px;text-decoration:underline;
+  text-underline-offset:3px;
+}
+
 
 /* ── ゲーム画面の立ち上がり ── */
 #game-loading{
@@ -1155,6 +1184,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="result-wrap">
     <div class="res-note-bar">※これはゲーム画面です</div>
     <div id="res-card" class="res-card">
+      <div class="res-card-title">🏠 間取りすと</div>
       <div class="res-card-band">賃 貸 物 件 情 報</div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
@@ -1177,15 +1207,18 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
-      <div class="res-promo">間取りパズルゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span></div>
+      <div class="res-promo">間取りパズルゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span><br><span class="res-promo-author">制作：らむねあい</span></div>
     </div>
 
-    <!-- ボタン（2段） -->
-    <div class="result-btn-grid">
-      <button class="btn-result fav" id="res-fav-btn" onclick="toggleResultFav()">☆ お気に入り</button>
-      <button class="btn-result primary" onclick="saveAndShare()">📤 保存＆シェア</button>
-      <button class="btn-result secondary" onclick="gotoStart()">タイトルへ</button>
-      <button class="btn-result secondary" onclick="gotoGame()">もう一度</button>
+    <!-- ボタン：押してほしい順に大きさを変える -->
+    <div class="result-actions">
+      <button class="btn-again" onclick="gotoGame()">もう一度あそぶ</button>
+      <div class="result-sub-row">
+        <button class="btn-result sub" onclick="openModal('titles')">🏅 称号</button>
+        <button class="btn-result sub fav" id="res-fav-btn" onclick="toggleResultFav()">☆ お気に入り</button>
+        <button class="btn-result sub" onclick="saveAndShare()">📤 シェア</button>
+      </div>
+      <button class="btn-tolink" onclick="gotoStart()">タイトルへもどる</button>
     </div>
     <div id="save-toast" style="display:none;margin-top:10px;font-size:12px;color:var(--green);letter-spacing:.1em;text-align:center;">✓ 保存しました</div>
   </div>
@@ -2216,7 +2249,7 @@ function renderSavesList(){
     body.innerHTML='<div class="modal-empty">まだ物件の履歴がありません。<br>ゲームをプレイして物件を完成させると、自動で保存されます（最新30件）。</div>';
     return;
   }
-  if(_savesFavOnly&&!all.some(x=>x.fav))_savesFavOnly=false;
+  if(_savesFavOnly&&!all.some(x=>x.fav)){ _savesFavOnly=false; showGameToast('お気に入りはまだないよ。★ボタンで登録できます'); }
   const list=_savesFavOnly?all.filter(x=>x.fav):all;
   if(_savesIdx>=list.length)_savesIdx=Math.max(0,list.length-1);
 
@@ -3011,13 +3044,18 @@ function showResult(){
   if(heroEl){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
-    heroEl.innerHTML='<span class="ldk-main">'+main+(sub?`<span style="font-size:0.6em;color:#3a2a1a;letter-spacing:.04em;font-weight:700;">${sub}</span>`:'')+'</span>'+'<span class="ldk-legend">WC=トイレ<br>B=お風呂</span>';
-    // 横幅に収まるよう本体を自動縮小（凡例の幅を避ける）
+    // WC・B の意味は、隅に凡例を置くのではなく英字の上にフリガナで振る
+    const withRuby=(s)=>s
+      .replace(/WC/g,'\u0001')
+      .replace(/B/g,'<ruby>B<rt>お風呂</rt></ruby>')
+      .replace(/\u0001/g,'<ruby>WC<rt>トイレ</rt></ruby>');
+    heroEl.innerHTML='<span class="ldk-main">'+main+
+      (sub?`<span class="ldk-sub">${withRuby(sub)}</span>`:'')+'</span>';
+    // 横幅に収まるよう本体を自動縮小
     requestAnimationFrame(()=>{
       const mainEl=heroEl.querySelector('.ldk-main');
-      const legend=heroEl.querySelector('.ldk-legend');
       if(!mainEl)return;
-      const avail=heroEl.clientWidth-(legend?legend.offsetWidth:0)-16;
+      const avail=heroEl.clientWidth-12;
       let fs=42, guard=40;
       heroEl.style.fontSize=fs+'px';
       while(fs>20&&guard-->0&&mainEl.scrollWidth>avail){ fs-=1; heroEl.style.fontSize=fs+'px'; }
@@ -3255,7 +3293,28 @@ function titleToHashtag(t){
   return '#'+String(t).replace(/[\s　・！!？?]/g,'');
 }
 // カードを1枚のcanvasに描画して返す（Promise<canvas>）
+// 保存＆シェアの画像は、画面に見えているカードをそのまま写し取る。
+// 手描きのcanvas版と二重に作ると、片方を直すともう片方とズレるため。
+// 過去の履歴カードを作り直す時（opt.snapshot あり）だけは、画面に無いので旧方式を使う
 function buildPropertyCard(opt){
+  opt=opt||{};
+  const card=document.getElementById('res-card');
+  const canUseDom = !opt.snapshot && window.html2canvas && card && card.offsetWidth>0;
+  if(canUseDom){
+    try{
+      return html2canvas(card,{
+        backgroundColor:'#ffffff',
+        scale:Math.min(3,(window.devicePixelRatio||1)*1.5),
+        useCORS:true, logging:false,
+      }).then(cv=>{
+        if(!cv||!cv.width) throw new Error('empty canvas');
+        return cv;
+      }).catch(e=>{ console.warn('[card] 画面からの生成に失敗→旧方式:',e); return buildPropertyCardLegacy(opt); });
+    }catch(e){ console.warn('[card] 画面からの生成に失敗→旧方式:',e); }
+  }
+  return buildPropertyCardLegacy(opt);
+}
+function buildPropertyCardLegacy(opt){
   opt=opt||{};
   return new Promise((resolve)=>{
     const r=window._lastResult||{};
