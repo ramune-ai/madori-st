@@ -1277,6 +1277,9 @@ const BGM_FILE='カスタードクリームクッキーサンド.mp3'; // ★BGM
 let seVol =parseFloat(localStorage.getItem('madori-se-vol') ??'0.7');
 let bgmVol=parseFloat(localStorage.getItem('madori-bgm-vol')??'0.4');
 if(isNaN(seVol))seVol=0.7; if(isNaN(bgmVol))bgmVol=0.4;
+// iOSの消音スイッチ（マナーモード）を尊重する。
+// 既定は 'playback' 相当でスイッチを無視して鳴ってしまうため 'ambient' にする
+try{ if(navigator.audioSession) navigator.audioSession.type='ambient'; }catch(e){}
 // WebAudio方式：先読みした音をミリ秒遅延なしで重ねて鳴らせる
 let _actx=null;
 const _seBuf={};   // 読み込み済みの音データ
@@ -1498,6 +1501,7 @@ function markTutorialDone(){
 }
 // which: 'drop'（土地をタップ）／'confirm'（もう一度タップ）／null（消す）
 let _tutState='';
+let _tutMoveShownAt=0;   // 「動かせるよ」を出した時刻（読む時間を確保するため）
 // which: 'drop'（土地をタップ）→'move'（動かせる）→'confirm'（もう一度タップで決定）
 function showTutHint(which){
   const cont=document.getElementById('game-container');
@@ -1506,6 +1510,7 @@ function showTutHint(which){
   const next = on ? which : '';
   if(next===_tutState)return;   // 同じ状態なら触らない（点滅の原因になる）
   _tutState=next;
+  if(next==='move')_tutMoveShownAt=Date.now();
   Object.keys(ids).forEach(k=>{
     const el=document.getElementById(ids[k]);
     if(el)el.classList.toggle('show', next===k);
@@ -2546,100 +2551,104 @@ function titleBadgeHTML(emoji,rar,size){
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
+// rar … バッジの見た目の階級（1が最上位）
+// rp  … 1ゲームで出る推定確率。小さいほどレア。赤文字のキャッチコピーは
+//       獲得した中で rp が一番小さい＝一番レアな称号から採る。
+//       物件情報系はガチャの重みから、パーツ系は1ゲーム約12個設置の二項分布から算出
 const ALL_TITLES_MASTER=[
   // ══ 物件情報面・単独 ══
-  {title:'新築の香りソムリエ', badge:'🌸', rar:2, condition:'築0年',
+  {title:'新築の香りソムリエ', badge:'🌸', rar:2, rp:.012, condition:'築0年',
     pop:'新築の香り、ここにあります！', check:x=>x.age===0},
-  {title:'美品コレクター', badge:'🫧', rar:5, condition:'築1〜5年',
+  {title:'美品コレクター', badge:'🫧', rar:5, rp:.060, condition:'築1〜5年',
     pop:'美品好きな人、必見！', check:x=>x.age>=1&&x.age<=5},
-  {title:'レトロ愛好家', badge:'🏚️', rar:5, condition:'築40〜49年',
+  {title:'レトロ愛好家', badge:'🏚️', rar:5, rp:.048, condition:'築40〜49年',
     pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
-  {title:'古民家ロマンチスト', badge:'🏮', rar:4, condition:'築50年（最古）',
+  {title:'古民家ロマンチスト', badge:'🏮', rar:4, rp:.024, condition:'築50年（最古）',
     pop:'ロマンを感じたい人へ！', check:x=>x.age>=50},
-  {title:'もはや駅の住人', badge:'🚉', rar:2, condition:'駅徒歩0分',
+  {title:'もはや駅の住人', badge:'🚉', rar:2, rp:.011, condition:'駅徒歩0分',
     pop:'もう改札が玄関です！', check:x=>x.walk===0},
-  {title:'ギリギリまで寝てたい', badge:'⏰', rar:5, condition:'駅徒歩1〜5分',
+  {title:'ギリギリまで寝てたい', badge:'⏰', rar:5, rp:.056, condition:'駅徒歩1〜5分',
     pop:'朝に弱い人、必見！', check:x=>x.walk>=1&&x.walk<=5},
-  {title:'いい運動になる', badge:'👟', rar:5, condition:'駅徒歩30〜49分',
+  {title:'いい運動になる', badge:'👟', rar:5, rp:.044, condition:'駅徒歩30〜49分',
     pop:'健康第一な人へおすすめ！', check:x=>x.walk>=30&&x.walk<50},
-  {title:'通勤という名の小旅行', badge:'🧳', rar:4, condition:'駅徒歩50分（最遠）',
+  {title:'通勤という名の小旅行', badge:'🧳', rar:4, rp:.022, condition:'駅徒歩50分（最遠）',
     pop:'旅気分を味わいたい人へ！', check:x=>x.walk>=50},
-  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, condition:'家賃5万円（最安値）',
+  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, rp:.032, condition:'家賃5万円（最安値）',
     pop:'掘り出し物件、見つかりました！', check:x=>x.rent===5},
-  {title:'コスパ王', badge:'👑', rar:5, condition:'家賃6〜9万円',
+  {title:'コスパ王', badge:'👑', rar:5, rp:.128, condition:'家賃6〜9万円',
     pop:'コスパ重視な人、必見！', check:x=>x.rent>=6&&x.rent<=9},
-  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, condition:'家賃50〜90万円',
+  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, rp:.083, condition:'家賃50〜90万円',
     pop:'ワンランク上を求める人へ！', check:x=>x.rent>=50&&x.rent<100},
-  {title:'新時代の宮殿', badge:'🏰', rar:2, condition:'家賃100万円（最高値）',
+  {title:'新時代の宮殿', badge:'🏰', rar:2, rp:.010, condition:'家賃100万円（最高値）',
     pop:'宮殿暮らし、はじめませんか！', check:x=>x.rent>=100},
   // ══ 物件情報面・複合（レア値の掛け算） ══
-  {title:'憧れの都会ライフ', badge:'✨', rar:3, condition:'築0〜5年、かつ駅徒歩0〜5分',
+  {title:'憧れの都会ライフ', badge:'✨', rar:3, rp:.0043, condition:'築0〜5年、かつ駅徒歩0〜5分',
     pop:'都会ライフに憧れる人へ！', check:x=>x.age<=5&&x.walk<=5&&!(x.rent>=50)},
-  {title:'腕利きマドリスト', badge:'🔨', rar:3, condition:'築0〜5年、かつ家賃50万円以上',
+  {title:'腕利きマドリスト', badge:'🔨', rar:3, rp:.0062, condition:'築0〜5年、かつ家賃50万円以上',
     pop:'腕利きの自信作です！', check:x=>x.age<=5&&x.rent>=50&&!(x.walk<=5)},
-  {title:'立地こそ正義', badge:'📍', rar:3, condition:'駅徒歩0〜5分、かつ家賃50万円以上',
+  {title:'立地こそ正義', badge:'📍', rar:3, rp:.0058, condition:'駅徒歩0〜5分、かつ家賃50万円以上',
     pop:'立地で選びたい人、必見！', check:x=>x.walk<=5&&x.rent>=50&&!(x.age<=5)},
-  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
+  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.00044, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
     pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=50},
   // ══ パーツ配置面・単独 ══
-  {title:'洋室はおあずけ', badge:'🛋️', rar:4, condition:'洋室0個で完成',
+  {title:'洋室はおあずけ', badge:'🛋️', rar:4, rp:.076, condition:'洋室0個で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
-  {title:'フローリング王国', badge:'🪵', rar:4, condition:'洋室4個以上',
+  {title:'フローリング王国', badge:'🪵', rar:4, rp:.155, condition:'洋室4個以上',
     pop:'フローリング好き、集まれ！', check:x=>x.n.youshitsu>=4},
-  {title:'畳はおあずけ', badge:'🪑', rar:4, condition:'和室0個で完成',
+  {title:'畳はおあずけ', badge:'🪑', rar:4, rp:.172, condition:'和室0個で完成',
     pop:'畳なし物件、あります！', check:x=>x.n.washitsu===0&&x.n.youshitsu>0},
-  {title:'サザエさん家', badge:'🐟', rar:4, condition:'和室4個以上',
+  {title:'サザエさん家', badge:'🐟', rar:4, rp:.060, condition:'和室4個以上',
     pop:'大きな茶の間に憧れる人へ！', check:x=>x.n.washitsu>=4},
-  {title:'洗練された都会', badge:'🏙️', rar:4, condition:'バルコニー0個で完成',
+  {title:'洗練された都会', badge:'🏙️', rar:4, rp:.248, condition:'バルコニー0個で完成',
     pop:'都会派なあなたへ！', check:x=>x.n.balcony===0},
-  {title:'園芸師', badge:'🪴', rar:4, condition:'バルコニー4個以上',
+  {title:'園芸師', badge:'🪴', rar:4, rp:.035, condition:'バルコニー4個以上',
     pop:'植物と暮らしたい人、必見！', check:x=>x.n.balcony>=4},
-  {title:'銭湯派', badge:'♨️', rar:4, condition:'お風呂0個で完成',
+  {title:'銭湯派', badge:'♨️', rar:4, rp:.193, condition:'お風呂0個で完成',
     pop:'銭湯めぐりが好きな人へ！', check:x=>x.n.bath===0&&x.n.toilet>0},
-  {title:'圧倒的清潔感', badge:'🛁', rar:4, condition:'お風呂4個以上',
+  {title:'圧倒的清潔感', badge:'🛁', rar:4, rp:.035, condition:'お風呂4個以上',
     pop:'いつでもピカピカでいたい人へ！', check:x=>x.n.bath>=4},
-  {title:'コンビニトイレの常連', badge:'🏪', rar:4, condition:'トイレ0個で完成',
+  {title:'コンビニトイレの常連', badge:'🏪', rar:4, rp:.193, condition:'トイレ0個で完成',
     pop:'おおらかに暮らしたい人へ！', check:x=>x.n.toilet===0&&x.n.bath>0},
-  {title:'1秒も待てない', badge:'🚽', rar:4, condition:'トイレ4個以上',
+  {title:'1秒も待てない', badge:'🚽', rar:4, rp:.035, condition:'トイレ4個以上',
     pop:'順番待ちにサヨナラしたい人へ！', check:x=>x.n.toilet>=4},
-  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:4, condition:'キッチン0個で完成',
+  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:4, rp:.165, condition:'キッチン0個で完成',
     pop:'ウーバーヘビーユーザー必見！', check:x=>x.n.kitchen===0},
-  {title:'厨房', badge:'🍳', rar:4, condition:'キッチン4個以上',
+  {title:'厨房', badge:'🍳', rar:4, rp:.075, condition:'キッチン4個以上',
     pop:'料理が主役の暮らし、いかが！', check:x=>x.n.kitchen>=4},
-  {title:'動線が命', badge:'🧭', rar:4, condition:'廊下0個で完成',
+  {title:'動線が命', badge:'🧭', rar:4, rp:.051, condition:'廊下0個で完成',
     pop:'ムダのない動線、求む人へ！', check:x=>x.n.roka===0},
-  {title:'ウォーキングコース', badge:'🚶', rar:4, condition:'廊下5個以上',
+  {title:'ウォーキングコース', badge:'🚶', rar:4, rp:.100, condition:'廊下5個以上',
     pop:'家の中でお散歩したい人へ！', check:x=>x.n.roka>=5},
-  {title:'ミニマリスト', badge:'🍃', rar:4, condition:'収納0マスで完成',
+  {title:'ミニマリスト', badge:'🍃', rar:4, rp:.050, condition:'収納0マスで完成',
     pop:'ミニマリスト必見！', check:x=>x.st===0},
-  {title:'いつか使うかも', badge:'📦', rar:5, condition:'収納10〜19マス',
+  {title:'いつか使うかも', badge:'📦', rar:5, rp:.300, condition:'収納10〜19マス',
     pop:'捨てられない人、安心です！', check:x=>x.st>=10&&x.st<20},
-  {title:'トランクルーム', badge:'🗄️', rar:4, condition:'収納20マス以上',
+  {title:'トランクルーム', badge:'🗄️', rar:4, rp:.150, condition:'収納20マス以上',
     pop:'荷物が多い人、必見！', check:x=>x.st>=20},
   // ══ パーツ配置面・複合 ══
-  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, condition:'洋室も和室も0個で完成',
+  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, rp:.012, condition:'洋室も和室も0個で完成',
     pop:'部屋がなくても夢はある！', check:x=>x.n.youshitsu===0&&x.n.washitsu===0},
-  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, condition:'お風呂もトイレも0個で完成',
+  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, rp:.051, condition:'お風呂もトイレも0個で完成',
     pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
-  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, condition:'和室＋洋室が合計5個以上',
+  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, rp:.300, condition:'和室＋洋室が合計5個以上',
     pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
   // ══ 完成回数（プレイを重ねるほど昇格） ══
-  {title:'駆け出しマドリスト', badge:'📐', rar:6, condition:'はじめて物件を完成させる',
+  {title:'駆け出しマドリスト', badge:'📐', rar:6, rp:.5, condition:'はじめて物件を完成させる',
     ccStep:1,
     pop:'記念すべき第一歩です！', check:x=>x.cc===1},
-  {title:'一人前マドリスト', badge:'🔑', rar:5, condition:'物件を10回完成させる',
+  {title:'一人前マドリスト', badge:'🔑', rar:5, rp:.1, condition:'物件を10回完成させる',
     ccStep:10,
     pop:'もう一人前です！', check:x=>x.cc===10},
-  {title:'ベテランマドリスト', badge:'🛠️', rar:4, condition:'物件を50回完成させる',
+  {title:'ベテランマドリスト', badge:'🛠️', rar:4, rp:.02, condition:'物件を50回完成させる',
     ccStep:50,
     pop:'場数が違います！', check:x=>x.cc===50},
-  {title:'カリスママドリスト', badge:'🌟', rar:3, condition:'物件を100回完成させる',
+  {title:'カリスママドリスト', badge:'🌟', rar:3, rp:.01, condition:'物件を100回完成させる',
     ccStep:100,
     pop:'カリスマの風格…！', check:x=>x.cc===100},
-  {title:'伝説のマドリスト', badge:'🏅', rar:2, condition:'物件を500回完成させる',
+  {title:'伝説のマドリスト', badge:'🏅', rar:2, rp:.002, condition:'物件を500回完成させる',
     ccStep:500,
     pop:'もはや伝説の域…！', check:x=>x.cc===500},
-  {title:'神域のマドリスト', badge:'👑', rar:2, condition:'物件を1000回完成させる',
+  {title:'神域のマドリスト', badge:'👑', rar:2, rp:.001, condition:'物件を1000回完成させる',
     ccStep:1000,
     pop:'神の領域に到達…！', check:x=>x.cc===1000},
 ];
@@ -2879,7 +2888,6 @@ function lockRoulette(idx){
 // リロード復帰用：確定済みスロットの値と見た目を再現（紙吹雪等の演出なし）
 function restoreRouletteLocks(rv,rl,rd){
   if(Array.isArray(rd)){for(let i=0;i<3;i++)rerollDone[i]=!!rd[i];}
-  if(Array.isArray(st.nt))window._restoredNewTitles=st.nt.slice();
   let cnt=0;
   for(let i=0;i<3;i++){
     if(!rl[i]||rv[i]===null||rv[i]===undefined)break; // 確定は必ず先頭から連続
@@ -2946,7 +2954,7 @@ function generateTitles(age,walk,rent){
   const x={age:+age,walk:+walk,rent:+rent,n,st,cc};
   const earned=[];
   for(const m of ALL_TITLES_MASTER){
-    if(m.check&&m.check(x)) earned.push({title:m.title,pop:m.pop||'',rar:m.rar||9});
+    if(m.check&&m.check(x)) earned.push({title:m.title,pop:m.pop||'',rar:m.rar||9,rp:(m.rp==null?1:m.rp)});
   }
   if(earned.length===0){
     // 何も取れなかった時の保険。完成回数の称号のうち「到達済みで一番上のもの」を出す
@@ -2954,9 +2962,10 @@ function generateTitles(age,walk,rent){
     const reached=ALL_TITLES_MASTER
       .filter(m=>m.ccStep&&cc>=m.ccStep)
       .sort((a,b)=>b.ccStep-a.ccStep)[0];
-    if(reached)earned.push({title:reached.title,pop:reached.pop,rar:reached.rar});
+    if(reached)earned.push({title:reached.title,pop:reached.pop,rar:reached.rar,rp:(reached.rp==null?1:reached.rp)});
   }
-  earned.sort((a,b)=>a.rar-b.rar);
+  // レアな順（＝出にくい順）。先頭が赤文字のキャッチコピーになる
+  earned.sort((a,b)=>(a.rp-b.rp)||(a.rar-b.rar));
   return earned;
 }
 function generateTitle(age,walk,rent,roomTypes){
@@ -5170,8 +5179,17 @@ class PuzzleGame extends Phaser.Scene{
       if(this.isFinished||this.partCount!==0||!this.currentDef){ showTutHint(null); return; }
       if(!this._previewActive){ showTutHint('drop'); return; }
       // プレビューが出ている間：まだ動かしていなければ「動かせるよ」、
-      // 一度動かして指を離したら「もう一度タップで決定」
-      showTutHint(this._tutMoved?'confirm':'move');
+      // 一度動かして指を離したら「もう一度タップで決定」。
+      // 土地を長押しするとその場で動いた判定になり、2つ目の案内が
+      // 目にも止まらぬ速さで次に飛んでしまうので、
+      // 「指を離すまで」かつ「最低1.6秒は出す」まで切り替えない
+      const dragging=!!(this.input&&this.input.activePointer&&this.input.activePointer.isDown);
+      const held=_tutMoveShownAt&&(Date.now()-_tutMoveShownAt>=1600);
+      if(this._tutMoved&&!dragging&&held){ showTutHint('confirm'); return; }
+      showTutHint('move');
+      if(this._tutMoved&&!this._tutHintTimer){
+        this._tutHintTimer=setTimeout(()=>{ this._tutHintTimer=null; this._syncTutHint(); },300);
+      }
     }catch(e){}
   }
   _clearPreview(){
@@ -5541,6 +5559,9 @@ function tryResumeGame(){
     const st=JSON.parse(raw);
     if(!st||(st.v!==1&&st.v!==2)||!Array.isArray(st.grid)||st.grid.length!==ROWS)return;
     window._restoreState=st;
+    // 新規獲得称号は「保存済みリストに無いか」で判定するため、
+    // 一度保存したあとに再計算すると必ず空になる。保存しておいた分を使う
+    if(Array.isArray(st.nt))window._restoredNewTitles=st.nt.slice();
     gotoGame();
   }catch(e){ try{localStorage.removeItem('madori-game-state');}catch(_){} }
 }
