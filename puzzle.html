@@ -34,7 +34,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;}
 body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;overflow-x:hidden;padding-top:env(safe-area-inset-top);}
 
 /* ── 共通 ── */
-.screen{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.screen{display:none;height:100vh;height:100dvh;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 20px 28px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .screen.active{display:flex;}
 
 /* ── ① スタート ── */
@@ -569,7 +569,7 @@ body.no-reroll .reroll-note{display:none!important;}
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
 /* ── ④ 結果 ── */
-#screen-result{background:rgba(245,240,232,0.82);padding-top:20px;}
+#screen-result{background:rgba(245,240,232,0.82);padding-top:8px;}
 .result-wrap{text-align:center;max-width:420px;width:100%;}
 .result-title-hero{font-family:'Noto Serif JP',serif;font-size:22px;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:10px;animation:popIn .5s ease both;text-shadow:0 2px 20px rgba(200,160,96,.5);}
 /* 広告カード本体 */
@@ -598,11 +598,12 @@ body.no-reroll .reroll-note{display:none!important;}
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{position:relative;font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1.05;margin-bottom:10px;padding-top:6px;letter-spacing:.02em;display:flex;align-items:flex-end;justify-content:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;padding:0 4px;}
+.result-ldk-hero{position:relative;font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;padding-top:2px;letter-spacing:.02em;display:flex;align-items:flex-end;justify-content:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;padding:0 4px;}
 .ldk-main{display:inline-flex;align-items:flex-end;gap:6px;}
 /* WC・B の上に振るフリガナ */
 .ldk-sub{font-size:.6em;color:#3a2a1a;letter-spacing:.04em;font-weight:700;}
-.ldk-sub ruby rt{font-family:'Noto Sans JP',sans-serif;font-size:.42em;font-weight:700;color:#8a7060;letter-spacing:0;}
+.ldk-sub ruby{ruby-position:over;}
+.ldk-sub ruby rt{font-family:'Noto Sans JP',sans-serif;font-size:.5em;font-weight:700;color:#8a7060;letter-spacing:.02em;line-height:1;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -637,15 +638,20 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:10px 8px 0;}
-.res-promo{margin-top:8px;padding-bottom:2px;font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:#5a4a3a;letter-spacing:.05em;line-height:1.45;}
+.res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
-.res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;}
+.res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
 /* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
 .res-card-title{
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
-  font-size:19px;font-weight:800;letter-spacing:.12em;
+  font-size:19px;font-weight:800;letter-spacing:.1em;
   color:var(--brown-dark);text-align:center;
-  margin-bottom:6px;
+  margin-bottom:4px;line-height:1.2;
+}
+/* 「間取りパズルゲーム」はサブタイトルとしてゲーム名の下に */
+.res-card-sub{
+  display:block;font-size:11px;font-weight:700;letter-spacing:.18em;
+  color:var(--brown-light);margin-top:1px;
 }
 .res-pop{margin:6px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
@@ -654,9 +660,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-title-owned-chip{background:rgba(90,74,58,.07);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
 /* ボタン（2x2グリッド） */
 /* 押してほしい順：もう一度あそぶ ＞ 称号・お気に入り・シェア ＞ タイトルへ */
-.result-actions{display:flex;flex-direction:column;gap:10px;margin-top:10px;align-items:stretch;}
+.result-actions{display:flex;flex-direction:column;gap:8px;margin-top:8px;align-items:stretch;padding-bottom:8px;}
 .btn-again{
-  width:100%;padding:19px 0;border:none;border-radius:999px;cursor:pointer;
+  width:100%;padding:16px 0;border:none;border-radius:999px;cursor:pointer;
   background:var(--green);color:#fff;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:19px;font-weight:800;letter-spacing:.14em;
@@ -894,8 +900,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   animation:newGlow 2.4s ease-in-out infinite;
 }
 @keyframes newPulse{
-  0%,100%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.08);opacity:.85;}
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.09);}
 }
 @keyframes newGlow{
   0%,100%{box-shadow:0 4px 16px rgba(200,160,96,.35), 0 1px 0 #fff inset;}
@@ -1184,7 +1190,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="result-wrap">
     <div class="res-note-bar">※これはゲーム画面です</div>
     <div id="res-card" class="res-card">
-      <div class="res-card-title">🏠 間取りすと</div>
+      <div class="res-card-title">🏠 間取りすと<span class="res-card-sub">間取りパズルゲーム</span></div>
       <div class="res-card-band">賃 貸 物 件 情 報</div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
@@ -1207,7 +1213,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
       </div>
       <div class="res-promo-sep"></div>
-      <div class="res-promo">間取りパズルゲームは「間取りすと」で検索！<br><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span><br><span class="res-promo-author">制作：らむねあい</span></div>
+      <div class="res-promo"><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span><span class="res-promo-author">　制作：らむねあい</span></div>
     </div>
 
     <!-- ボタン：押してほしい順に大きさを変える -->
@@ -1837,7 +1843,8 @@ function persistFlow(screen){
       land:(typeof window._landIndex==='number')?window._landIndex:0,
       rv:(typeof rouletteValues!=='undefined')?rouletteValues.slice():[null,null,null],
       rl:(typeof rouletteLocked!=='undefined')?rouletteLocked.slice():[false,false,false],
-      rd:(typeof rerollDone!=='undefined')?rerollDone.slice():[false,false,false]
+      rd:(typeof rerollDone!=='undefined')?rerollDone.slice():[false,false,false],
+      nt:(window._newTitles||[]).slice()   // 新規獲得称号（再計算すると消えるので保存する）
     };
     if(gs&&gs.grid){
       st.grid=gs.grid;
@@ -2149,7 +2156,10 @@ function showTitlesReveal(){
   });
   localStorage.setItem('madori-titles',JSON.stringify(saved));
   window._earnedTitles=earned;
-  window._newTitles=newTitles;
+  // リロード復帰時は、保存しておいた新規リストを使う（再計算すると空になるため）
+  const restoredNew=window._restoredNewTitles;
+  window._newTitles=(restoredNew&&restoredNew.length)?earned.filter(t=>restoredNew.includes(t.title)).map(t=>t.title):newTitles;
+  window._restoredNewTitles=null;
 
   const listEl=document.getElementById('title-reveal-list');
   listEl.innerHTML='';
@@ -2869,6 +2879,7 @@ function lockRoulette(idx){
 // リロード復帰用：確定済みスロットの値と見た目を再現（紙吹雪等の演出なし）
 function restoreRouletteLocks(rv,rl,rd){
   if(Array.isArray(rd)){for(let i=0;i<3;i++)rerollDone[i]=!!rd[i];}
+  if(Array.isArray(st.nt))window._restoredNewTitles=st.nt.slice();
   let cnt=0;
   for(let i=0;i<3;i++){
     if(!rl[i]||rv[i]===null||rv[i]===undefined)break; // 確定は必ず先頭から連続
@@ -3047,7 +3058,7 @@ function showResult(){
     // WC・B の意味は、隅に凡例を置くのではなく英字の上にフリガナで振る
     const withRuby=(s)=>s
       .replace(/WC/g,'\u0001')
-      .replace(/B/g,'<ruby>B<rt>お風呂</rt></ruby>')
+      .replace(/B/g,'<ruby>B<rt>おふろ</rt></ruby>')
       .replace(/\u0001/g,'<ruby>WC<rt>トイレ</rt></ruby>');
     heroEl.innerHTML='<span class="ldk-main">'+main+
       (sub?`<span class="ldk-sub">${withRuby(sub)}</span>`:'')+'</span>';
@@ -3119,7 +3130,7 @@ function showResult(){
     const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
     const dpr=Math.min(3,window.devicePixelRatio||1);
     cv.width=Math.round(dispW*dpr); cv.height=Math.round(dispH*dpr);
-    cv.style.cssText='display:block;border-radius:10px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:'+Math.round(dispH)+'px;';
+    cv.style.cssText='display:block;border-radius:2px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:'+Math.round(dispH)+'px;';
     const ctx=cv.getContext('2d');
     ctx.imageSmoothingQuality='high';
     ctx.drawImage(madoriSnapshot,0,0,cv.width,cv.height);
@@ -3298,14 +3309,28 @@ function titleToHashtag(t){
 // 過去の履歴カードを作り直す時（opt.snapshot あり）だけは、画面に無いので旧方式を使う
 function buildPropertyCard(opt){
   opt=opt||{};
+  // ※ html2canvas で画面をそのまま写す方式を試したが、複製側で位置が合わず
+  //   真っ白な画像になったため保留。原因が分かるまでは従来方式で作る
+  const canUseDom = false;
   const card=document.getElementById('res-card');
-  const canUseDom = !opt.snapshot && window.html2canvas && card && card.offsetWidth>0;
   if(canUseDom){
     try{
       return html2canvas(card,{
         backgroundColor:'#ffffff',
         scale:Math.min(3,(window.devicePixelRatio||1)*1.5),
         useCORS:true, logging:false,
+        // 画面はスクロール禁止・高さ固定で作ってあるが、その指定のままだと
+        // html2canvasの複製側で位置が合わず真っ白になる。複製の中だけ解除する
+        onclone:(doc)=>{
+          try{
+            doc.documentElement.style.cssText+=';overflow:visible!important;height:auto!important;';
+            doc.body.style.cssText+=';overflow:visible!important;height:auto!important;';
+            const s=doc.getElementById('screen-result');
+            if(s)s.style.cssText+=';display:flex!important;height:auto!important;overflow:visible!important;';
+            const bg=doc.getElementById('madori-bg');
+            if(bg)bg.style.display='none';
+          }catch(e){}
+        },
       }).then(cv=>{
         if(!cv||!cv.width) throw new Error('empty canvas');
         return cv;
@@ -3401,11 +3426,18 @@ function buildPropertyCardLegacy(opt){
     ctx.fillStyle='#7a5a30';
     ctx.font="bold 19px 'Noto Sans JP',sans-serif";
     ctx.fillText('※ こ れ は ゲ ー ム 画 面 で す', W/2, 12+NOTE_H/2+1);
-    // 帯
+    // 帯：ゲーム名とサブタイトルも入れて、スクショで下が切れても名前が残るように
     ctx.fillStyle='#5a4a3a'; ctx.fillRect(12,12+NOTE_H,W-24,BAND_H);
+    const bandTop=12+NOTE_H;
     ctx.fillStyle='#f5f0e8';
-    ctx.font="bold 30px 'Noto Serif JP',serif";
-    ctx.fillText('賃 貸 物 件 情 報', W/2, 12+NOTE_H+BAND_H/2);
+    ctx.font="800 26px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
+    ctx.fillText('間取りすと', W/2, bandTop+BAND_H*0.30);
+    ctx.fillStyle='rgba(245,240,232,.75)';
+    ctx.font="bold 14px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
+    ctx.fillText('間 取 り パ ズ ル ゲ ー ム', W/2, bandTop+BAND_H*0.56);
+    ctx.fillStyle='#f5f0e8';
+    ctx.font="bold 22px 'Noto Serif JP',serif";
+    ctx.fillText('賃 貸 物 件 情 報', W/2, bandTop+BAND_H*0.82);
     // 最レア称号POP（必ず1段：入りきらなければ文字を縮小）
     if(pop){
       let pfs=27;
@@ -3570,12 +3602,12 @@ function buildPropertyCardLegacy(opt){
     ctx.beginPath(); ctx.moveTo(PADX, yPromo-14); ctx.lineTo(W-PADX, yPromo-14); ctx.stroke();
     ctx.restore();
     // 宣伝（フッターロゴの上）
-    ctx.fillStyle='#5a4a3a';
-    ctx.font="bold 27px 'Noto Serif JP',serif";
-    ctx.fillText('間取りパズルゲームは「間取りすと」で検索！', W/2, yPromo+16);
     ctx.fillStyle='#7a5a30';
-    ctx.font="500 20px 'Noto Sans JP',sans-serif";
-    ctx.fillText('X・Instagram・TikTok｜@ramune_aiai', W/2, yPromo+50);
+    ctx.font="500 21px 'Noto Sans JP',sans-serif";
+    ctx.fillText('X・Instagram・TikTok｜@ramune_aiai', W/2, yPromo+20);
+    ctx.fillStyle='#a08a70';
+    ctx.font="400 17px 'Noto Sans JP',sans-serif";
+    ctx.fillText('制作：らむねあい', W/2, yPromo+50);
 
     // フッター
     ctx.fillStyle='#b0a090';
