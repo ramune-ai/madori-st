@@ -1026,10 +1026,32 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
    ・画面が広いぶん全体を大きくする
    ══════════════════════════════════════════════ */
 @media(min-width:600px){
-  /* ゲーム画面：スマホと同じ「かたまり」に見えるよう幅を絞って中央へ */
-  #game-top-bar{min-height:236px;}
-  #game-top-row1,#game-top-row2{max-width:640px;margin-left:auto;margin-right:auto;}
-  #game-top-row2{height:196px;}
+  /* ゲーム画面：横の余白が余っているので、パーツと操作を盤の左へ移す。
+     上に積むのをやめたぶん、盤が画面の高さいっぱいまで使える */
+  #screen-game.active{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    grid-template-rows:1fr auto;
+  }
+  #game-top-bar{
+    grid-column:1;grid-row:1 / 3;
+    min-height:0;width:auto;max-width:none;
+    justify-content:center;
+    padding:0 6px 0 14px;
+    background:transparent;
+  }
+  #game-container{grid-column:2;grid-row:1;}
+  #game-bottom-bar{grid-column:2;grid-row:2;}
+  #game-top-row1,#game-top-row2{max-width:none;margin:0;}
+  /* 左の列では縦に積む */
+  #game-top-row2{
+    display:flex;flex-direction:column;align-items:center;
+    height:auto;gap:14px;padding:14px 0 0;
+  }
+  #next-col,#current-piece-wrap,#action-col{height:auto;}
+  #action-col{width:100%;}
+  /* ☰ は画面の右上へ（左の列に置くと遠い） */
+  #game-menu-wrap{position:fixed;right:14px;top:14px;}
   #canvas-current{width:140px;height:140px;}
   #canvas-next1,#canvas-next2{width:83px;height:83px;}
   #madori-label{width:300px;}
@@ -3054,8 +3076,9 @@ const rouletteValues=[null,null,null];
 const rouletteUnits=['年','分','万円'];
 let rouletteIntervals=[null,null,null];
 let lockedCount=0;
-function startRoulette(){
-  startSpinSE();
+// silent=true で回転音を鳴らさずに開始する（リロード復帰用）
+function startRoulette(silent){
+  if(!silent)startSpinSE();
   lockedCount=0;
   rerollDone[0]=rerollDone[1]=rerollDone[2]=false;
   for(let i=0;i<3;i++){
@@ -4219,8 +4242,10 @@ class PuzzleGame extends Phaser.Scene{
               if(scr==='screen-roulette'){
                 showMadoriBg(true);
                 showScreen('screen-roulette');
-                startRoulette();
+                startRoulette(true);   // 復帰時は回転音を鳴らさない
                 restoreRouletteLocks(rv,rl,this._restoreRd);
+                // まだ回っているスロットが残っている時だけ音を出す
+                if(lockedCount<3)startSpinSE();
               }else{
                 // 称号・結果：称号データを再計算してから表示
                 showTitlesReveal();
