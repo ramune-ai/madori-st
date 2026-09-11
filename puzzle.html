@@ -1688,10 +1688,13 @@ function showScreen(id){
   // 前の画面のスクロール位置を引きずらない（タイトルに戻ると上にズレ・判定ズレの対策）
   try{
     if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    const _el=document.getElementById(id);
     const _rst=()=>{
       window.scrollTo(0,0);
       document.documentElement.scrollTop=0;
       document.body.scrollTop=0;
+      // 実際に縦スクロールするのは .screen 自身なので、ここも戻す
+      if(_el)_el.scrollTop=0;
     };
     _rst();
     requestAnimationFrame(_rst);
