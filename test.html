@@ -611,7 +611,6 @@ body.no-reroll .reroll-note{display:none!important;}
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-note-bar{font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;color:#7a5a30;letter-spacing:.08em;text-align:center;margin-bottom:6px;background:rgba(200,160,96,.16);border:1px dashed rgba(122,90,48,.4);border-radius:8px;padding:6px 10px;}
 .res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
@@ -629,7 +628,7 @@ body.no-reroll .reroll-note{display:none!important;}
 /* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
 #screen-titles{overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable both-edges;}
 html{overflow-y:scroll;}html,body{overflow-x:hidden;}
-#screen-result{overflow-y:auto;justify-content:flex-start;padding-top:24px;scrollbar-gutter:stable both-edges;}
+#screen-result{overflow-y:auto;justify-content:flex-start;padding-top:8px;scrollbar-gutter:stable both-edges;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
@@ -643,15 +642,17 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
 /* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
 .res-card-title{
+  display:flex;align-items:baseline;justify-content:center;
+  gap:9px;flex-wrap:nowrap;white-space:nowrap;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
-  font-size:19px;font-weight:800;letter-spacing:.1em;
+  font-size:19px;font-weight:800;letter-spacing:.08em;
   color:var(--brown-dark);text-align:center;
-  margin-bottom:4px;line-height:1.2;
+  padding:9px 0 7px;margin-bottom:0;line-height:1.2;
 }
-/* 「間取りパズルゲーム」はサブタイトルとしてゲーム名の下に */
+/* 「間取りパズルゲーム」はゲーム名の右に並べる（これが何かは一目で分かる） */
 .res-card-sub{
-  display:block;font-size:11px;font-weight:700;letter-spacing:.18em;
-  color:var(--brown-light);margin-top:1px;
+  font-size:13px;font-weight:700;letter-spacing:.06em;
+  color:var(--brown-light);
 }
 .res-pop{margin:6px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
@@ -1188,7 +1189,6 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 <!-- ⑤ 結果画面（賃貸広告風） -->
 <div id="screen-result" class="screen">
   <div class="result-wrap">
-    <div class="res-note-bar">※これはゲーム画面です</div>
     <div id="res-card" class="res-card">
       <div class="res-card-title">🏠 間取りすと<span class="res-card-sub">間取りパズルゲーム</span></div>
       <div class="res-card-band">賃 貸 物 件 情 報</div>
