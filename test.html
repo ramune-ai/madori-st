@@ -80,10 +80,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .flyer-main{
   display:flex;flex-direction:column;align-items:center;
   font-family:'Yomogi','Noto Sans JP',sans-serif;
-  /* 紙の幅に合わせて字も伸縮させる。一番長い行（9文字）が
+  /* 紙の幅に合わせて字も伸縮させる。一番長い行（8文字）が
      ちょうど収まる大きさを画面幅から直接出している */
-  font-size:clamp(11px, calc((100vw - 240px) / 10.6), 14px);
-  /* Yomogi ã¯1ã¦ã§ã¤ãããç¡ãã®ã§ãè¼ªé­ãå°ãå¤ªããã¦å¤ªå­ã«è¦ãã */
+  font-size:clamp(11px, calc((100vw - 240px) / 9.4), 15px);
+  /* Yomogi は1ウェイトしか無いので、輪郭を少し太らせて太字に見せる */
   font-weight:400;-webkit-text-stroke:0.4px currentColor;
   letter-spacing:.01em;line-height:1.55;
   color:var(--brown-dark);text-align:center;
@@ -614,24 +614,24 @@ body.no-reroll .reroll-note{display:none!important;}
 }
 .res-card-band{
   background:#5a4a3a;color:#f5f0e8;margin:0 -16px 12px;padding:9px 10px;
-  display:flex;align-items:baseline;justify-content:center;gap:9px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
   font-family:'Noto Serif JP',serif;font-size:17px;letter-spacing:.18em;font-weight:700;
 }
 .res-band-title{white-space:nowrap;}
 /* 細い端末では帯が1行に入らないので、字間と注記を詰める */
 @media (max-width:386px){
-  .res-card-band{gap:7px;font-size:16px;letter-spacing:.07em;padding:9px 8px;}
-  .res-band-note{font-size:8px;}
+  .res-card-band{gap:8px;font-size:16px;letter-spacing:.10em;padding:9px 8px;}
 }
 @media (max-width:340px){
-  .res-card-band{gap:5px;font-size:15px;letter-spacing:.02em;padding:9px 6px;}
-  .res-band-note{font-size:7.5px;}
+  .res-card-band{gap:6px;font-size:15px;letter-spacing:.04em;padding:9px 6px;}
 }
 /* 実在の物件と誤解されないための注記。SNSに流れる前提なので必ず入れる */
 .res-band-note{
   font-family:'Noto Sans JP',sans-serif;
-  font-size:9px;font-weight:400;letter-spacing:.01em;
-  color:rgba(245,240,232,.72);white-space:nowrap;
+  font-size:12px;font-weight:400;letter-spacing:.01em;line-height:1.35;
+  color:rgba(245,240,232,.78);white-space:nowrap;text-align:left;
+  /* 2行目を「※ 」のぶん下げて頭を揃える */
+  text-indent:-1.35em;padding-left:1.35em;
 }
 .res-equipped{
   display:inline-block;background:#c8a060;color:#fff;
@@ -1028,7 +1028,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="start-flyer">
     <span class="flyer-tape flyer-tape-l" aria-hidden="true"></span>
     <span class="flyer-tape flyer-tape-r" aria-hidden="true"></span>
-    <span class="flyer-main"><span>自分だけの間取りを</span><span>作るパズル</span></span>
+    <span class="flyer-main"><span>自分だけの間取り</span><span>を作るパズル</span></span>
   </div>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
@@ -1239,7 +1239,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="result-wrap">
     <div id="res-card" class="res-card">
       <div class="res-card-title">🏠 間取りすと<span class="res-card-sub">間取りパズルゲーム</span></div>
-      <div class="res-card-band"><span class="res-band-title">賃 貸 物 件 情 報</span><span class="res-band-note">※ これはゲームで作った架空の物件です</span></div>
+      <div class="res-card-band"><span class="res-band-title">賃 貸 物 件 情 報</span><span class="res-band-note">※ これはゲームで作った<br>架空の物件です</span></div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
       <!-- 間取りラベル -->
