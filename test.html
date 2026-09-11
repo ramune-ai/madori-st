@@ -1038,7 +1038,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     display:grid;
     grid-template-columns:288px 1fr 288px;
     grid-template-rows:auto auto auto auto 1fr auto auto auto;
-    column-gap:18px;padding:14px 20px 6px;
+    column-gap:18px;padding:14px 64px 6px;
     align-items:start;justify-items:center;
   }
   #game-top-bar,#game-top-row1,#game-top-row2,#game-bottom-bar{display:contents;}
@@ -1050,7 +1050,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #game-container{grid-column:2;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
   /* ── B（左）：戻す/回転 → 今のパーツ → このあと。上端は土地の上端にそろえる ── */
   /* 戻す・回転の上端が土地の上端より高くならないよう少し下げる */
-  #game-bottom-row{grid-column:1;grid-row:2;display:flex;gap:10px;width:100%;margin-top:74px;}
+  #game-bottom-row{grid-column:1;grid-row:2;display:flex;gap:10px;width:100%;margin-top:var(--board-top-gap,0px);}
   #game-bottom-row .bigbtn{flex:1;padding:19px 10px;font-size:18px;gap:9px;}
   #current-piece-wrap{grid-column:1;grid-row:3;height:auto;width:100%;margin:16px 0 0;padding:10px 12px 14px;}
   #current-piece-wrap .piece-label{font-size:16px;height:22px;}
@@ -1064,8 +1064,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #pc-game-logo{font-size:32px;}
   #pc-game-logo span{font-size:15px;}
   #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
-  #action-col{grid-column:3;grid-row:6 / 8;width:100%;height:auto;
-    display:flex;flex-direction:column-reverse;gap:14px;align-self:end;margin-bottom:8px;}
+  /* 完成の下端が土地の下端より下がらないようにする */
+  #action-col{grid-column:3;grid-row:2 / 8;width:100%;height:auto;
+    display:flex;flex-direction:column-reverse;gap:14px;align-self:end;
+    margin-bottom:var(--board-bot-gap,0px);}
   #action-col .pill{width:100%;box-sizing:border-box;justify-content:center;
     padding:20px 10px;font-size:18px;gap:9px;border-radius:999px;}
   #action-col .pill-ico svg{width:22px;height:22px;}
@@ -1097,13 +1099,11 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .next-sublabel{font-size:13px;}
   #current-piece-wrap .piece-label{font-size:14px;height:19px;}
   /* 完成・スキップが小さかったので枠の高さを約1.7倍に */
-  #action-col .pill{padding:23px 22px;font-size:16px;}
-  #action-col{gap:12px;}
   /* 下部バー：操作の説明を1行足す */
   /* 盤の高さを稼ぐため、上下バーの余白はできるだけ詰める */
   #pc-ctrl-hint{
     display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
-    font-size:16px;color:var(--brown-light);letter-spacing:.03em;
+    font-size:19px;color:var(--brown-light);letter-spacing:.03em;
   }
   #pc-ctrl-hint b{color:var(--brown-dark);font-weight:800;}
 
@@ -1127,7 +1127,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #screen-roulette{justify-content:center;}
   /* 称号は1件ずつ増えるので、中央寄せだと出るたびに全体がずれる。
      画面の高さだけで決まる上余白にして、位置を動かさない */
-  #screen-titles{justify-content:flex-start;padding-top:clamp(24px, calc((100vh - 520px)/2), 200px);}
+  #screen-titles{justify-content:flex-start;padding-top:clamp(40px, calc((100vh - 940px)/2), 80px);}
   /* 結果は中身が高い。中央寄せだと溢れた時に上が切れて戻れないので、
      上の余白で中央に寄せる（溢れてもスクロールで全部見られる） */
   #screen-result{justify-content:flex-start;padding-top:clamp(12px, calc((100vh - 900px)/2), 90px);}
@@ -1897,6 +1897,20 @@ function showGameAlert(msg){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  // ゲーム画面に重ねて出しているものは、別の画面へ移ったら必ず全部消す
+  if(id!=='screen-game'){
+    try{
+      const ov=document.getElementById('btn-complete-overlay');
+      if(ov)ov.classList.remove('visible');
+      document.querySelectorAll('.tut-hint').forEach(e=>e.classList.remove('show'));
+      const tst=document.getElementById('game-toast');
+      if(tst)tst.classList.remove('show');
+      const cf=document.getElementById('game-confirm-overlay');
+      if(cf)cf.classList.remove('active');
+      const gm=document.getElementById('game-menu');
+      if(gm)gm.classList.remove('open');
+    }catch(e){}
+  }
   // 前の画面のスクロール位置を引きずらない（タイトルに戻ると上にズレ・判定ズレの対策）
   try{
     if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
@@ -5835,6 +5849,10 @@ function refitBoard(){
     const rc=canvas.getBoundingClientRect();
     document.documentElement.style.setProperty('--msg-top',Math.max(60,Math.round(top))+'px');
     document.documentElement.style.setProperty('--board-mid',Math.round(rc.top+rc.height/2)+'px');
+    // 左右の列を土地の上端・下端にそろえるための余白（PCレイアウトで使う）
+    const cr=container.getBoundingClientRect();
+    document.documentElement.style.setProperty('--board-top-gap',Math.max(0,Math.round(rc.top-cr.top))+'px');
+    document.documentElement.style.setProperty('--board-bot-gap',Math.max(0,Math.round(cr.bottom-rc.bottom))+'px');
   }catch(e){}
 }
 // 上下バーの高さは、フォント読み込みやcanvasサイズ確定のあとで変わる。
