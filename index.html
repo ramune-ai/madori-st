@@ -2,9 +2,17 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=puzzle.html">
 <link rel="canonical" href="puzzle.html">
 <title>間取りすと</title>
+<!-- ここは puzzle.html へ転送するだけのページ。
+     ?start=1 のような「?のうしろ」を付けて来たとき、
+     meta refresh だとそれが捨てられて puzzle.html だけに飛んでしまうので、
+     JSで引き継いで転送する。
+     （JSが動かない環境のために、下の meta refresh と手動リンクも残してある） -->
+<script>
+  location.replace('puzzle.html' + location.search + location.hash);
+</script>
+<meta http-equiv="refresh" content="0; url=puzzle.html">
 </head>
 <body>
 <p>読み込み中… <a href="puzzle.html">間取りすと</a></p>
