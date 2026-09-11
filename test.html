@@ -614,16 +614,16 @@ body.no-reroll .reroll-note{display:none!important;}
 }
 .res-card-band{
   background:#5a4a3a;color:#f5f0e8;margin:0 -16px 12px;padding:9px 10px;
-  display:flex;align-items:center;justify-content:center;gap:10px;
+  display:flex;align-items:center;justify-content:center;gap:18px;
   font-family:'Noto Serif JP',serif;font-size:17px;font-weight:700;
 }
 .res-band-title{white-space:nowrap;letter-spacing:.02em;}
 /* 細い端末では帯が1行に入らないので、字間と注記を詰める */
 @media (max-width:386px){
-  .res-card-band{gap:8px;font-size:16px;padding:9px 8px;}
+  .res-card-band{gap:14px;font-size:16px;padding:9px 8px;}
 }
 @media (max-width:340px){
-  .res-card-band{gap:6px;font-size:15px;padding:9px 6px;}
+  .res-card-band{gap:10px;font-size:15px;padding:9px 6px;}
 }
 /* 実在の物件と誤解されないための注記。SNSに流れる前提なので必ず入れる */
 .res-band-note{
@@ -2625,6 +2625,43 @@ function wbrBoundaries(text){
 }
 // 1行のまま横幅に収める。nowrap の要素は行数が増えないので
 // fitToLines では縮まず、枠から飛び出してしまうためこちらを使う
+// ふりがなの上端を「LDK」の字面の上端にそろえる（2乗の部分は無視）。
+// 端末によって使われるフォントが違い、同じ指定でも高さがずれるので、
+// CSSの固定値ではなく、その場で測って合わせる。
+function alignHeroRuby(heroEl){
+  try{
+    const main=heroEl&&heroEl.querySelector('.ldk-main');
+    const rts=heroEl?heroEl.querySelectorAll('ruby rt .rt-in'):[];
+    if(!main||!rts.length)return;
+    const cx=alignHeroRuby._cx||(alignHeroRuby._cx=document.createElement('canvas').getContext('2d'));
+    const met=(font,txt)=>{
+      cx.font=font;
+      const m=cx.measureText(txt);
+      return {A:m.fontBoundingBoxAscent,D:m.fontBoundingBoxDescent,ink:m.actualBoundingBoxAscent};
+    };
+    const ok=(o)=>o&&[o.A,o.D,o.ink].every(v=>typeof v==='number'&&isFinite(v));
+    // 行の高さと文字の高さの差は上下に半分ずつ配られる。そこからベースラインを出す
+    const baseOf=(top,lh,m)=>top+(lh-(m.A+m.D))/2+m.A;
+    const ms=getComputedStyle(main);
+    const fs=parseFloat(getComputedStyle(heroEl).fontSize);
+    const M=met(ms.fontWeight+' '+fs+'px '+ms.fontFamily,'LDK');
+    if(!ok(M))return;   // 測れない端末ではCSSの既定値のままにする
+    const mb=main.getBoundingClientRect();
+    const ldkInkTop=baseOf(mb.top,parseFloat(ms.lineHeight)||fs,M)-M.ink;
+    rts.forEach(el=>{
+      el.style.transform='none';
+      const st=getComputedStyle(el);
+      const rfs=parseFloat(st.fontSize);
+      const R=met(st.fontWeight+' '+rfs+'px '+st.fontFamily,el.textContent||'ア');
+      if(!ok(R)){ el.style.transform=''; return; }
+      const rb=el.getBoundingClientRect();
+      const inkTop=baseOf(rb.top,parseFloat(st.lineHeight)||rfs,R)-R.ink;
+      const dy=ldkInkTop-inkTop;
+      el.style.transform='translateY('+(dy>0?dy:0).toFixed(2)+'px)';
+    });
+  }catch(e){}
+}
+
 function fitToWidth(el,startFs,minFs){
   if(!el)return;
   el.style.fontSize=startFs+'px';
@@ -3188,6 +3225,9 @@ function showResult(){
       let fs=42, guard=40;
       heroEl.style.fontSize=fs+'px';
       while(fs>20&&guard-->0&&mainEl.scrollWidth>avail){ fs-=1; heroEl.style.fontSize=fs+'px'; }
+      alignHeroRuby(heroEl);
+      // フォント読み込みが後から終わるとずれるので、確定後にもう一度合わせる
+      if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>alignHeroRuby(heroEl));
     });
   }
   // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
