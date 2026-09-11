@@ -2154,10 +2154,9 @@ function showTitlesReveal(){
   }
   const earned=generateTitles(age,walk,rent,roomTypes);
   const saved=JSON.parse(localStorage.getItem('madori-titles')||'[]');
-  const newTitles=[], ownedTitles=[];
+  const newTitles=[];
   earned.forEach(t=>{
     if(!saved.includes(t.title)){newTitles.push(t.title);saved.unshift(t.title);}
-    else ownedTitles.push(t.title);
   });
   localStorage.setItem('madori-titles',JSON.stringify(saved));
   window._earnedTitles=earned;
@@ -2178,10 +2177,12 @@ function showTitlesReveal(){
   btn.style.opacity='0'; btn.style.pointerEvents='none';
 
   // 全称号を順番に優しく出現（NEW → 既所持の順）
-  const allItems=[
-    ...newTitles.map(t=>({title:t,isNew:true})),
-    ...ownedTitles.map(t=>({title:t,isNew:false}))
-  ];
+  // 新規かどうかは window._newTitles を見る。リロード復帰時は
+  // 保存済みリストとの差分が必ず空になるため、上のローカル変数は使えない
+  const _newSet=new Set(window._newTitles||[]);
+  const allItems=earned
+    .map(t=>({title:t.title,isNew:_newSet.has(t.title)}))
+    .sort((a,b)=>(b.isNew?1:0)-(a.isNew?1:0));
 
   const INTERVAL=220; // 1件ごとの間隔ms
   const DURATION=320; // フェード時間ms
