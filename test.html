@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="image/favicon.png?v=2">
 <link rel="apple-touch-icon" href="image/icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -38,7 +38,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .screen.active{display:flex;}
 
 /* ── ① スタート ── */
-#screen-start{background:var(--cream);position:relative;overflow:hidden;justify-content:center;}
+#screen-start{background:var(--cream);position:relative;overflow:hidden;justify-content:center;
+  /* 上部リンクと貼り紙は絶対配置で中央寄せの計算に入らないため、
+     そのぶん上が詰まって見える。画面の高さに応じて下へずらす */
+  padding-top:calc(env(safe-area-inset-top, 0px) + clamp(20px, 14vh, 120px));}
 #screen-start::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(200,160,96,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(106,138,80,.08) 0%,transparent 60%);pointer-events:none;}
 .logo-wrap{text-align:center;margin-bottom:48px;animation:fadeDown .8s ease both;}
 /* 右上：不動産屋の窓に内側から貼ってある物件紙。
@@ -48,7 +51,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   position:absolute;right:max(17px, calc(50% - 176px));
   top:calc(env(safe-area-inset-top, 0px) + 58px);
   /* 左上のリンクとぶつからない幅まで自動で細くする */
-  width:clamp(134px, calc(100vw - 215px), 162px);
+  width:clamp(134px, calc(100vw - 215px), 168px);
   z-index:4;box-sizing:border-box;
   padding:15px 11px 14px;
   background:#fffdf6;border:1.5px solid #c05a48;
@@ -72,12 +75,18 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 }
 .flyer-tape-l{left:-9px;transform:rotate(-30deg);}
 .flyer-tape-r{right:-9px;transform:rotate(30deg);}
-/* 手書きの自然さがありつつ読みやすい硬筆楷書体。紙に書いた雰囲気を出す */
+/* ゆるく可愛い手書き。1ウェイトしか無いので、字を少し大きめにして
+   紙の上でも読めるようにする */
 .flyer-main{
-  font-family:'Klee One','Noto Sans JP',sans-serif;
-  font-size:15px;font-weight:600;letter-spacing:.02em;line-height:1.6;
+  display:flex;flex-direction:column;align-items:center;
+  font-family:'Yomogi','Noto Sans JP',sans-serif;
+  /* 紙の幅に合わせて字も伸縮させる。一番長い行（9文字）が
+     ちょうど収まる大きさを画面幅から直接出している */
+  font-size:clamp(11px, calc((100vw - 240px) / 10.6), 14px);
+  font-weight:400;letter-spacing:.01em;line-height:1.55;
   color:var(--brown-dark);text-align:center;
 }
+.flyer-main>span{white-space:nowrap;}
 /* 浮かせるのではなく、テープを支点に紙がわずかに動く */
 @keyframes flyerSway{
   0%,100%{transform:rotate(-2.6deg);}
@@ -86,7 +95,11 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* 細い端末では紙も字も一回り小さくして、右上に収まったままにする */
 @media (max-width:374px){
   .start-flyer{padding:13px 9px 12px;}
-  .flyer-main{font-size:13px;}
+}
+/* 320pxç´ã®ç«¯æ«ã§ã¯å·¦ä¸ãªã³ã¯ãè©°ããªãã¨è²¼ãç´ã¨ã¶ã¤ãã */
+@media (max-width:344px){
+  .start-toplinks-left{gap:10px;}
+  .start-toplinks-left .top-link{font-size:12px;padding:7px 11px;}
 }
 .logo-icon{font-size:56px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(90,74,58,.15));}
 .logo-title{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);letter-spacing:.15em;line-height:1;}
@@ -598,8 +611,25 @@ body.no-reroll .reroll-note{display:none!important;}
   animation:popIn .5s ease both;
 }
 .res-card-band{
-  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 12px;padding:9px 0;
+  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 12px;padding:9px 10px;
+  display:flex;align-items:baseline;justify-content:center;gap:9px;
   font-family:'Noto Serif JP',serif;font-size:17px;letter-spacing:.18em;font-weight:700;
+}
+.res-band-title{white-space:nowrap;}
+/* 細い端末では帯が1行に入らないので、字間と注記を詰める */
+@media (max-width:386px){
+  .res-card-band{gap:7px;font-size:16px;letter-spacing:.07em;padding:9px 8px;}
+  .res-band-note{font-size:8px;}
+}
+@media (max-width:340px){
+  .res-card-band{gap:5px;font-size:15px;letter-spacing:.02em;padding:9px 6px;}
+  .res-band-note{font-size:7.5px;}
+}
+/* 実在の物件と誤解されないための注記。SNSに流れる前提なので必ず入れる */
+.res-band-note{
+  font-family:'Noto Sans JP',sans-serif;
+  font-size:9px;font-weight:400;letter-spacing:.01em;
+  color:rgba(245,240,232,.72);white-space:nowrap;
 }
 .res-equipped{
   display:inline-block;background:#c8a060;color:#fff;
@@ -658,8 +688,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
 .res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
-/* 実在の物件と誤解されないための注記。SNSに流れる前提なので必ず入れる */
-.res-promo-note{font-family:'Noto Sans JP',sans-serif;font-size:10px;font-weight:400;color:#b0a090;letter-spacing:.04em;margin-top:3px;}
+
 /* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
 .res-card-title{
   display:flex;align-items:baseline;justify-content:center;
@@ -997,7 +1026,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="start-flyer">
     <span class="flyer-tape flyer-tape-l" aria-hidden="true"></span>
     <span class="flyer-tape flyer-tape-r" aria-hidden="true"></span>
-    <span class="flyer-main">自分だけの間取りを<br>作るパズル</span>
+    <span class="flyer-main"><span>自分だけの間取りを</span><span>作るパズル</span></span>
   </div>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
@@ -1208,7 +1237,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="result-wrap">
     <div id="res-card" class="res-card">
       <div class="res-card-title">🏠 間取りすと<span class="res-card-sub">間取りパズルゲーム</span></div>
-      <div class="res-card-band">賃 貸 物 件 情 報</div>
+      <div class="res-card-band"><span class="res-band-title">賃 貸 物 件 情 報</span><span class="res-band-note">※ これはゲームで作った架空の物件です</span></div>
       <!-- 最レア称号POP -->
       <div id="res-pop" class="res-pop" style="display:none;"></div>
       <!-- 間取りラベル -->
@@ -1231,7 +1260,6 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       </div>
       <div class="res-promo-sep"></div>
       <div class="res-promo"><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span><span class="res-promo-author">　制作：らむねあい</span></div>
-      <div class="res-promo-note">※ これはゲームで作った架空の物件です</div>
     </div>
 
     <!-- ボタン：押してほしい順に大きさを変える -->
@@ -2227,7 +2255,7 @@ function showTitlesReveal(){
       listEl.appendChild(el);
       const nm=el.querySelector('.title-reveal-name');
       if(nm)fitToWidth(nm,21,11);
-      // æ¡ä»¶ã¯2è¡ã¾ã§ãé·ããã®ã¯å­ãå°ãããã¦åãã
+      // 条件は2行まで。長いものは字を小さくして収める
       const cd=el.querySelector(".title-reveal-cond");
       if(cd)fitToLines(cd,2,15,10);
 
