@@ -5702,8 +5702,17 @@ if(!ENABLE_REROLL){ try{ document.body.classList.add('no-reroll'); }catch(e){} }
 updateStartProfile();
 updateTitlesNewBadge();
 
+// URLに ?start が付いていたら、続きから再開せず必ずスタート画面から始める。
+// ホームページの「今すぐ無料で遊ぶ」など、外から新しく遊びに来る人が
+// 前回の途中（シェア画面など）に飛ばされないようにするための入口。
+// 保存データは消していないので、普通にこのページを開き直せば続きから再開できる。
+function wantsFreshStart(){
+  try{ return new URLSearchParams(location.search).has('start'); }catch(e){ return false; }
+}
+
 // リロード時：進行中のゲームがあれば続きから再開（無ければスタート画面のまま）
 function tryResumeGame(){
+  if(wantsFreshStart()) return;
   try{
     const raw=localStorage.getItem('madori-game-state');
     if(!raw)return;
