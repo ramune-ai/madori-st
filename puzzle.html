@@ -41,34 +41,58 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #screen-start{background:var(--cream);position:relative;overflow:hidden;justify-content:center;}
 #screen-start::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 80%,rgba(200,160,96,.12) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 20%,rgba(106,138,80,.08) 0%,transparent 60%);pointer-events:none;}
 .logo-wrap{text-align:center;margin-bottom:48px;animation:fadeDown .8s ease both;}
-/* ゲームの目的をひと言。ふわふわ浮かせて楽しい雰囲気に */
-/* もこもこ雲の吹き出し。形はSVGで描き、文字はその上に重ねる */
-.start-bubble{
-  position:absolute;right:max(10px, calc(50% - 182px));
-  top:calc(env(safe-area-inset-top, 0px) + 62px);
-  width:196px;height:96px;z-index:4;
-  display:flex;align-items:center;justify-content:center;
-  animation:bubbleFloat 3.4s ease-in-out infinite;
-  filter:drop-shadow(0 4px 10px rgba(200,160,96,.35));
+/* 右上：不動産屋の窓に内側から貼ってある物件紙。
+   吹き出しをやめたのは、喋る人がいないのに尻尾だけが宙に浮いていたため。
+   結果画面の「賃貸物件情報」チラシと同じ一族にして、画面をまたいで世界観をつなぐ */
+.start-flyer{
+  position:absolute;right:max(17px, calc(50% - 176px));
+  top:calc(env(safe-area-inset-top, 0px) + 58px);
+  /* 左上のリンクとぶつからない幅まで自動で細くする */
+  width:clamp(134px, calc(100vw - 215px), 162px);
+  z-index:4;box-sizing:border-box;
+  padding:13px 11px 11px;
+  background:#fffdf6;border:1.5px solid #c05a48;
+  box-shadow:0 3px 10px rgba(58,42,26,.16);
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  transform-origin:50% 0;   /* テープを支点に揺らす */
+  animation:flyerSway 4.4s ease-in-out infinite;
 }
-.bubble-cloud{
-  position:absolute;inset:0;width:100%;height:100%;
-  fill:#fff;stroke:var(--accent);stroke-width:5;
-  vector-effect:non-scaling-stroke;
+/* 内側にもう一本の細い罫。物件紙の二重枠感 */
+.start-flyer::after{
+  content:'';position:absolute;inset:3px;
+  border:1px solid rgba(192,90,72,.28);pointer-events:none;
 }
-.bubble-tail{
-  position:absolute;left:16px;bottom:-22px;width:34px;height:34px;
-  fill:#fff;stroke:var(--accent);stroke-width:2.4;
+/* 上の両端に貼ったマスキングテープ */
+.flyer-tape{
+  position:absolute;top:-6px;width:33px;height:13px;z-index:2;
+  background:rgba(228,210,172,.78);
+  border-left:1px solid rgba(255,255,255,.5);
+  border-right:1px solid rgba(160,138,112,.22);
+  box-shadow:0 1px 2px rgba(58,42,26,.1);
 }
-.bubble-text{
-  position:relative;z-index:1;
-  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
-  font-size:14px;font-weight:800;line-height:1.55;color:var(--brown-dark);
-  text-align:center;letter-spacing:.02em;
+.flyer-tape-l{left:-9px;transform:rotate(-30deg);}
+.flyer-tape-r{right:-9px;transform:rotate(30deg);}
+/* 見出しは明朝の赤、本文は太ゴシック。紙らしく役割で書き分ける */
+.flyer-lead{
+  font-family:'Noto Serif JP',serif;
+  font-size:11px;font-weight:700;letter-spacing:.1em;
+  color:#c0392b;line-height:1;
 }
-@keyframes bubbleFloat{
-  0%,100%{transform:translateY(-5px);}
-  50%{transform:translateY(5px);}
+.flyer-main{
+  font-family:'Noto Sans JP',sans-serif;
+  font-size:13px;font-weight:800;letter-spacing:.01em;line-height:1.5;
+  color:var(--brown-dark);text-align:center;
+}
+/* 浮かせるのではなく、テープを支点に紙がわずかに動く */
+@keyframes flyerSway{
+  0%,100%{transform:rotate(-2.6deg);}
+  50%{transform:rotate(-1.1deg);}
+}
+/* 細い端末では紙も字も一回り小さくして、右上に収まったままにする */
+@media (max-width:374px){
+  .start-flyer{padding:11px 9px 9px;}
+  .flyer-lead{font-size:10px;letter-spacing:.06em;}
+  .flyer-main{font-size:12px;}
 }
 .logo-icon{font-size:56px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(90,74,58,.15));}
 .logo-title{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);letter-spacing:.15em;line-height:1;}
@@ -640,6 +664,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
 .res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
+/* 実在の物件と誤解されないための注記。SNSに流れる前提なので必ず入れる */
+.res-promo-note{font-family:'Noto Sans JP',sans-serif;font-size:10px;font-weight:400;color:#b0a090;letter-spacing:.04em;margin-top:3px;}
 /* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
 .res-card-title{
   display:flex;align-items:baseline;justify-content:center;
@@ -952,8 +978,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 /* 称号発表：名前を大きく＋獲得条件を併記 */
 .title-reveal-text{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;}
 /* 称号名は必ず1行。長い名前は字間を詰めて収める */
-.title-reveal-name{font-size:21px;font-weight:700;letter-spacing:.06em;line-height:1.2;white-space:nowrap;}
-.title-reveal-cond{font-size:15px;font-weight:500;letter-spacing:.03em;line-height:1.25;opacity:1;white-space:nowrap;}
+.title-reveal-name{display:block;width:100%;font-size:21px;font-weight:700;letter-spacing:.06em;line-height:1.2;white-space:nowrap;overflow:hidden;}
+/* 条件は補足情報なので、長いものは2行に折り返してよい */
+.title-reveal-cond{display:block;width:100%;font-size:15px;font-weight:500;letter-spacing:.03em;line-height:1.25;opacity:1;white-space:normal;}
 .title-owned-chip.is-reveal{display:flex !important;align-items:center;justify-content:center;gap:10px;width:100%;box-sizing:border-box;padding:8px 20px;border-radius:8px;background:#ece3d3;color:var(--brown-dark);border:1px solid rgba(90,74,58,.18);}
 .title-owned-chip.is-reveal .title-reveal-name{font-size:19px;color:var(--brown-dark);}
 .title-owned-chip.is-reveal .title-reveal-cond{color:#4a3a2a;}
@@ -972,15 +999,12 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <a class="top-link" href="guideline.html" target="_blank" rel="noopener">📋 配信ガイドライン</a>
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
-  <!-- 左上：名前＋称号コーナー -->
-  <div class="start-bubble">
-    <svg class="bubble-cloud" viewBox="0 0 240 120" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M30 104C10 104 2 84 16 72 4 52 24 30 46 38 52 14 88 6 104 24 120 2 158 6 166 30 192 22 216 42 208 66 228 74 224 104 202 104Z"/>
-    </svg>
-    <svg class="bubble-tail" viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="26" cy="12" r="9"/><circle cx="12" cy="28" r="6"/>
-    </svg>
-    <span class="bubble-text">自分だけの<br>間取り物件を作ろう！</span>
+  <!-- 右上：ゲーム内容を伝える物件貼り紙 -->
+  <div class="start-flyer">
+    <span class="flyer-tape flyer-tape-l" aria-hidden="true"></span>
+    <span class="flyer-tape flyer-tape-r" aria-hidden="true"></span>
+    <span class="flyer-lead">◇ 本日のおすすめ ◇</span>
+    <span class="flyer-main">自分だけの間取りを<br>作るパズル</span>
   </div>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
@@ -1214,6 +1238,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       </div>
       <div class="res-promo-sep"></div>
       <div class="res-promo"><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span><span class="res-promo-author">　制作：らむねあい</span></div>
+      <div class="res-promo-note">※ これはゲームで作った架空の物件です</div>
     </div>
 
     <!-- ボタン：押してほしい順に大きさを変える -->
@@ -2192,7 +2217,7 @@ function showTitlesReveal(){
     const cond=condByTitle[title]||'';
     setTimeout(()=>{
       const el=document.createElement('div');
-      const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${wbrBoundaries(title)}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
+      const inner=`<span class="title-reveal-text"><span class="title-reveal-name">${title}</span>${cond?`<span class="title-reveal-cond">${cond}</span>`:''}</span>`;
       const rar=titleRarOf(title), emoji=titleBadgeOf(title);
       const badge=`<span class="title-reveal-badge">${titleBadgeHTML(emoji,rar,46)}</span>`;
       if(isNew){
@@ -2208,7 +2233,11 @@ function showTitlesReveal(){
       el.style.transition=`opacity ${DURATION}ms ease, transform ${DURATION}ms ease`;
       listEl.appendChild(el);
       const nm=el.querySelector('.title-reveal-name');
-      if(nm)fitToLines(nm,2,21,12);
+      if(nm)fitToWidth(nm,21,11);
+      // æ¡ä»¶ã¯2è¡ã¾ã§ãé·ããã®ã¯å­ãå°ãããã¦åãã
+      const cd=el.querySelector(".title-reveal-cond");
+      if(cd)fitToLines(cd,2,15,10);
+
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         el.style.opacity='1';
         el.style.transform='translateY(0)';
@@ -2529,7 +2558,21 @@ function wbrBoundaries(text){
   }
   return out;
 }
+// 1行のまま横幅に収める。nowrap の要素は行数が増えないので
+// fitToLines では縮まず、枠から飛び出してしまうためこちらを使う
+function fitToWidth(el,startFs,minFs){
+  if(!el)return;
+  el.style.fontSize=startFs+'px';
+  // 枠に収まりきらない分は scrollWidth に出る。
+  // getBoundingClientRect は枠側の幅で頭打ちになるので使えない
+  let fs=startFs, guard=40;
+  while(fs>minFs && guard-->0){
+    if(el.scrollWidth<=el.clientWidth+1)break;
+    fs-=1; el.style.fontSize=fs+'px';
+  }
+}
 function fitToLines(el,maxLines,startFs,minFs){
+
   if(!el)return;
   el.style.fontSize=startFs+'px';
   let fs=startFs, guard=40;
@@ -3140,7 +3183,9 @@ function showResult(){
     const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
     const dpr=Math.min(3,window.devicePixelRatio||1);
     cv.width=Math.round(dispW*dpr); cv.height=Math.round(dispH*dpr);
-    cv.style.cssText='display:block;border-radius:2px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:'+Math.round(dispH)+'px;';
+    // 高さを固定すると、横が詰められた時に縦だけ伸びて間取りが歪む。
+    // height:auto なら canvas 本来の縦横比が保たれる
+    cv.style.cssText='display:block;border-radius:2px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:auto;';
     const ctx=cv.getContext('2d');
     ctx.imageSmoothingQuality='high';
     ctx.drawImage(madoriSnapshot,0,0,cv.width,cv.height);
