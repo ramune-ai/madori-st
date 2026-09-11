@@ -316,8 +316,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   padding:3px 10px;background:rgba(255,255,255,.6);
 }
 /* PC専用：右クリック回転ヒント（スマホでは非表示） */
-#pc-rotate-hint{ display:none; }
-@media(min-width:600px){#pc-rotate-hint{display:block;}}
+#pc-ctrl-hint{ display:none; }   /* PC幅のときだけ出す（下のメディアクエリ） */
 
 /* 現在パーツ（中央・大きく・ドラッグ可） */
 #current-piece-wrap{
@@ -475,11 +474,14 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
   cursor:pointer;
   transition:border-color .2s,outline-color .2s;
-  overflow:visible;opacity:.45;pointer-events:none;
+  overflow:visible;pointer-events:none;
   outline:3px solid transparent;outline-offset:2px;
 }
-.roulette-item.active-slot{opacity:1;pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
-.roulette-item.locked{opacity:1;pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
+/* 未確定の枠は紙自体は白のまま、文字だけ薄くして「まだ」を表す */
+.roulette-item:not(.active-slot):not(.locked) .roulette-item-label,
+.roulette-item:not(.active-slot):not(.locked) .roulette-item-value{opacity:.4;}
+.roulette-item.active-slot{pointer-events:auto;border-color:var(--accent);outline-color:rgba(200,160,96,.4);}
+.roulette-item.locked{pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
 /* ラベルは枠中央のやや上、値は枠中央に絶対配置（状態でズレない） */
 .roulette-item-label{position:absolute;left:0;right:0;top:50%;transform:translateY(-34px);font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
@@ -609,11 +611,11 @@ body.no-reroll .reroll-note{display:none!important;}
 .res-card{
   position:relative;
   background:#f5f0e8;border:3px solid #8a7060;border-radius:12px;
-  padding:0 16px 14px;margin-bottom:14px;overflow:hidden;
+  padding:0 16px 9px;margin-bottom:10px;overflow:hidden;
   animation:popIn .5s ease both;
 }
 .res-card-band{
-  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 12px;padding:9px 10px;
+  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 9px;padding:6px 10px;
   display:flex;align-items:center;justify-content:center;gap:18px;
   font-family:'Noto Serif JP',serif;font-size:17px;font-weight:700;
 }
@@ -648,7 +650,7 @@ body.no-reroll .reroll-note{display:none!important;}
   padding:3px 10px;border-radius:14px;letter-spacing:.02em;
 }
 .res-hashtag.new{background:#6a8a50;color:#fff;}
-.result-ldk-hero{position:relative;font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:6px;letter-spacing:.02em;display:flex;align-items:baseline;justify-content:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;padding:0 4px;}
+.result-ldk-hero{position:relative;font-family:'Noto Serif JP',serif;font-size:42px;font-weight:700;color:#3a2a1a;line-height:1;margin-bottom:3px;letter-spacing:.02em;display:flex;align-items:baseline;justify-content:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;padding:0 4px;}
 /* 下端をそろえるのは baseline。flex-end だと文字サイズ違いで箱の高さがずれる */
 .ldk-main{display:inline-flex;align-items:baseline;gap:6px;}
 /* WC・B の上に振るフリガナ */
@@ -665,7 +667,7 @@ body.no-reroll .reroll-note{display:none!important;}
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:8px 0 4px;flex-wrap:nowrap;}
+.res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:4px 0 2px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
 .res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
@@ -685,12 +687,12 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:8px;scrollbar-gutter:stable both-edges;}
 .result-wrap{padding-bottom:40px;}
 #title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
-.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.5;padding:8px 8px 0;max-width:100%;}
+.res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.4;padding:4px 8px 0;max-width:100%;}
 .res-meta-name{font-family:'Noto Serif JP',serif;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:3px;}
 .res-name-text{white-space:nowrap;}
 .res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
-.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:10px 8px 0;}
+.res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:6px 8px 0;}
 .res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
 .res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
@@ -702,23 +704,23 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:19px;font-weight:800;letter-spacing:.08em;
   color:var(--brown-dark);text-align:center;
-  padding:9px 0 7px;margin-bottom:0;line-height:1.2;
+  padding:7px 0 5px;margin-bottom:0;line-height:1.2;
 }
 /* 「間取りパズルゲーム」はゲーム名の右に並べる（これが何かは一目で分かる） */
 .res-card-sub{
   font-size:13px;font-weight:700;letter-spacing:.06em;
   color:var(--brown-light);
 }
-.res-pop{margin:6px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
+.res-pop{margin:3px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
 .res-title-owned-chip{background:rgba(90,74,58,.07);color:var(--brown-light);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:20px;border:1px solid rgba(90,74,58,.12);}
 /* ボタン（2x2グリッド） */
 /* 押してほしい順：もう一度あそぶ ＞ 称号・お気に入り・シェア ＞ タイトルへ */
-.result-actions{display:flex;flex-direction:column;gap:8px;margin-top:8px;align-items:stretch;padding-bottom:8px;}
+.result-actions{display:flex;flex-direction:column;gap:7px;margin-top:6px;align-items:stretch;padding-bottom:4px;}
 .btn-again{
-  width:100%;padding:16px 0;border:none;border-radius:999px;cursor:pointer;
+  width:100%;padding:13px 0;border:none;border-radius:999px;cursor:pointer;
   background:var(--green);color:#fff;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:19px;font-weight:800;letter-spacing:.14em;
@@ -727,7 +729,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 }
 .btn-again:active{transform:scale(.97);}
 .result-sub-row{display:flex;gap:8px;}
-.btn-result{padding:12px 2px;border-radius:999px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;transition:transform .15s;border:none;}
+.btn-result{padding:11px 2px;border-radius:999px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:12px;font-weight:700;letter-spacing:.03em;cursor:pointer;transition:transform .15s;border:none;}
 .btn-result.sub{flex:1;min-width:0;background:#fff;border:1.5px solid rgba(90,74,58,.22);color:var(--brown-dark);box-shadow:0 2px 8px rgba(58,42,26,.1);white-space:nowrap;}
 .btn-result.fav{border-color:#c8a060;color:#b8860b;}
 .btn-result.fav.active{background:#f4d06a;color:#6a4a10;border-color:#d4a020;}
@@ -736,7 +738,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   background:none;border:none;cursor:pointer;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:13px;font-weight:700;color:var(--brown-light);
-  letter-spacing:.08em;padding:8px 0 2px;text-decoration:underline;
+  letter-spacing:.08em;padding:5px 0 2px;text-decoration:underline;
   text-underline-offset:3px;
 }
 
@@ -967,7 +969,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 /* ── 間取り背景 ── */
 .madori-bg{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .6s ease;}
 .madori-bg.visible{opacity:1;}
-.madori-bg canvas{max-width:80vw;max-height:80vh;opacity:.18;filter:blur(1px) sepia(.2);border-radius:8px;}
+.madori-bg canvas{max-width:80vw;max-height:80vh;opacity:.10;filter:blur(2px) sepia(.2);border-radius:8px;}
 #screen-roulette,#screen-result{position:relative;z-index:1;background:transparent!important;}
 
 /* ── アニメーション ── */
@@ -978,6 +980,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 @keyframes gentlePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,160,96,0);}50%{opacity:1;box-shadow:0 0 20px 6px rgba(200,160,96,.35);}}
 .pop-in{animation:popIn .4s ease both;}
 /* 称号画面 */
+.titles-wrap{text-align:center;max-width:420px;width:100%;}
 .titles-heading{font-family:'Noto Serif JP',serif;font-size:24px;font-weight:700;letter-spacing:.2em;color:var(--brown-dark);margin-bottom:28px;}
 .title-new-item{
   position:relative;
@@ -1017,6 +1020,95 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .titles-owned-label-sm{font-size:11px;letter-spacing:.2em;color:var(--brown-light);margin-bottom:8px;opacity:.7;}
 .titles-owned-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;opacity:.5;}
 .title-owned-chip{background:rgba(90,74,58,.08);color:var(--brown-light);font-size:12px;letter-spacing:.08em;padding:6px 16px;border-radius:20px;border:1px solid rgba(90,74,58,.15);font-family:'Noto Serif JP',serif;will-change:opacity,transform;}
+/* ══════════════════════════════════════════════
+   PC（600px以上）向けの調整
+   ・中身を中央の一定幅に収める（左右に散らばって見えるのを防ぐ）
+   ・画面が広いぶん全体を大きくする
+   ══════════════════════════════════════════════ */
+@media(min-width:600px){
+  /* ゲーム画面：スマホと同じ「かたまり」に見えるよう幅を絞って中央へ */
+  #game-top-bar{min-height:236px;}
+  #game-top-row1,#game-top-row2{max-width:640px;margin-left:auto;margin-right:auto;}
+  #game-top-row2{height:196px;}
+  #canvas-current{width:140px;height:140px;}
+  #canvas-next1,#canvas-next2{width:83px;height:83px;}
+  #madori-label{width:300px;}
+  .ml-cap{font-size:15px;}
+  .ml-value{font-size:34px;height:40px;}
+  .next-cap{font-size:14px;height:19px;}
+  .next-sublabel{font-size:13px;}
+  #current-piece-wrap .piece-label{font-size:14px;height:19px;}
+  /* 完成・スキップが小さかったので枠の高さを約1.7倍に */
+  #action-col .pill{padding:23px 22px;font-size:16px;}
+  #action-col{gap:12px;}
+  /* 下部バー：操作の説明を1行足す */
+  /* 盤の高さを稼ぐため、上下バーの余白はできるだけ詰める */
+  #game-top-row1{padding:8px 8px 2px;}
+  #game-top-row2{padding-bottom:8px;}
+  #game-bottom-bar{flex-direction:column;gap:7px;padding:9px 16px 11px;}
+  .bigbtn{padding:13px 30px;}
+  #game-bottom-row{display:flex;align-items:center;justify-content:center;gap:14px;}
+  #pc-ctrl-hint{
+    display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
+    font-size:13px;color:var(--brown-light);letter-spacing:.03em;
+  }
+  #pc-ctrl-hint b{color:var(--brown-dark);font-weight:800;}
+
+  /* ガチャ・称号・結果は上に寄りすぎていたので、縦の真ん中に置く */
+  #screen-roulette,#screen-titles{justify-content:center;}
+  /* 結果は中身が高い。中央寄せだと溢れた時に上が切れて戻れないので、
+     上の余白で中央に寄せる（溢れてもスクロールで全部見られる） */
+  #screen-result{justify-content:flex-start;padding-top:clamp(8px, calc((100vh - 980px)/2), 100px);}
+  /* ガチャ：画面が広いぶん大きく */
+  .roulette-title{font-size:26px;margin-bottom:34px;}
+  .roulette-item-wrap{width:420px;height:148px;margin-bottom:46px;}
+  .roulette-item-label{font-size:24px;transform:translateY(-42px);}
+  .roulette-item-value{font-size:46px;transform:translateY(6px);}
+  .roulette-item.rare .roulette-item-value{font-size:54px;}
+  /* 称号：画面いっぱいに大きく見せる */
+  .titles-heading{font-size:30px;margin-bottom:32px;}
+  .titles-wrap{max-width:560px;}
+  #title-reveal-list{max-width:560px;padding-bottom:120px;}
+  .title-reveal-name{font-size:24px;}
+  .title-reveal-cond{font-size:16px;}
+  .title-new-item,.title-owned-chip.is-reveal{padding:14px 24px;}
+  /* 結果：中の文字までまとめて拡大する（幅だけ広げても字が小さいままのため） */
+  .result-wrap{zoom:1.25;}
+}
+/* PCは縦が広いので、称号一覧は下の余白を詰めて中央に収める */
+@media(min-width:600px) and (min-height:760px){
+  #title-reveal-list{padding-bottom:40px;}
+}
+
+/* ══════════════════════════════════════════════
+   ▼ テスト版だけの開発用ツール（本番 puzzle.html には入れない）
+   ══════════════════════════════════════════════ */
+#dev-fab{
+  position:fixed;right:10px;bottom:10px;z-index:500;
+  width:42px;height:42px;border-radius:50%;
+  border:1.5px solid rgba(90,74,58,.3);background:rgba(255,255,255,.9);
+  font-size:19px;line-height:1;cursor:pointer;
+  box-shadow:0 2px 10px rgba(58,42,26,.2);
+}
+#dev-panel{
+  display:none;position:fixed;right:10px;bottom:60px;z-index:500;
+  width:224px;max-height:70vh;overflow:auto;
+  background:#fff;border:1.5px solid rgba(90,74,58,.3);border-radius:12px;
+  box-shadow:0 6px 22px rgba(58,42,26,.25);padding:10px;
+  font-family:'Noto Sans JP',sans-serif;
+}
+#dev-panel.open{display:block;}
+.dev-sec{font-size:11px;font-weight:800;color:var(--brown-light);letter-spacing:.1em;margin:6px 0 5px;}
+.dev-grid{display:flex;flex-wrap:wrap;gap:5px;}
+.dev-btn{
+  font-family:inherit;font-size:12px;font-weight:700;
+  padding:7px 9px;border-radius:8px;cursor:pointer;
+  border:1px solid rgba(90,74,58,.25);background:#f7f2ea;color:var(--brown-dark);
+}
+.dev-btn:active{background:rgba(200,160,96,.2);}
+.dev-wide{width:100%;}
+.dev-note{font-size:10px;color:var(--brown-light);line-height:1.5;margin-top:8px;}
+
 </style>
 </head>
 <body>
@@ -1165,8 +1257,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
   <!-- 下部ボタンバー -->
   <div id="game-bottom-bar">
-    <!-- 戻す（左） -->
-    <button id="btn-undo" class="bigbtn bigbtn-light" onclick="if(gameScene)gameScene.doUndo()" title="戻す（Ctrl+Z）">
+    <div id="game-bottom-row">
+    <!-- 戻す（左） -->    <button id="btn-undo" class="bigbtn bigbtn-light" onclick="if(gameScene)gameScene.doUndo()" title="戻す（Ctrl+Z）">
       <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12 H19 A 7 7 0 1 1 19 26 H13"/><polyline points="13.5,6.5 8 12 13.5,17.5"/></svg></span>
       <span class="bigbtn-txt">戻す</span>
     </button>
@@ -1175,8 +1267,14 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7 A 10 10 0 1 1 8.9 9.9"/><polyline points="12.4,3.2 17.2,7 12.4,10.8"/></svg></span>
       <span class="bigbtn-txt">回転</span>
     </button>
-  </div>
-</div>
+    </div>
+    <!-- PCだけに出す操作の説明（スマホはタップ操作なので不要） -->
+    <div id="pc-ctrl-hint">
+      <span><b>左クリック</b>でつかむ・ドラッグで動かす</span>
+      <span><b>もう一度クリック</b>で位置を決定</span>
+      <span><b>右クリック</b>で回転</span>
+    </div>
+  </div></div>
 
 <!-- ドラッグゴースト -->
 <canvas id="drag-ghost" width="120" height="120"></canvas>
@@ -1222,7 +1320,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
 <!-- ④ 称号発表画面（物件完成の手前） -->
 <div id="screen-titles" class="screen">
-  <div style="text-align:center;max-width:420px;width:100%;">
+  <div class="titles-wrap">
     <div class="titles-heading">獲 得 称 号</div>
     <div id="title-reveal-list" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;"></div>
     <div class="titles-owned-section" id="titles-owned-section" style="display:none;">
@@ -5358,13 +5456,13 @@ class PuzzleGame extends Phaser.Scene{
     const w=window.innerWidth||400;
     if(w<420)return 34;
     if(w<600)return 38;
-    return 30;
+    return 44;   // PCは画面が広いぶん大きく
   }
   _unifiedCellPxSmall(){
     const w=window.innerWidth||400;
     if(w<420)return 17;
     if(w<600)return 19;
-    return 16;
+    return 25;
   }
 
   // パーツが土地内（LAND_MAP!==null）に完全に収まるかチェック（グレー侵入も他パーツ重なりも見る）
@@ -5560,8 +5658,8 @@ function startPhaserGame(){
   // 起動前にパーツゾーンのcanvasを最終サイズに確定（高さ変動でのズレ防止）
   const presizeSlots=()=>{
     const w=window.innerWidth||400;
-    const bigPx = w<420?34 : w<600?38 : 30;
-    const smallPx = w<420?17 : w<600?19 : 16;
+    const bigPx = w<420?34 : w<600?38 : 44;
+    const smallPx = w<420?17 : w<600?19 : 25;
     const PAD=8;
     const BIG=3*bigPx+PAD, SMALL=3*smallPx+PAD;
     const set=(id,sz)=>{
@@ -5601,7 +5699,9 @@ function startPhaserGame(){
     // 盤の余白係数：スマホは余白多め（盤小さめ）、PCは余白少なめ（盤大きめ）
     const isMobile=(window.innerWidth||400)<600;
     const MARGIN=isMobile?0.96:0.98;
-    const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, 1.0);
+    // PCでは 1.0 で頭打ちにすると盤が実寸のままで小さく見えるので上限を上げる
+    const MAXZOOM=isMobile?1.0:1.4;
+    const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, MAXZOOM);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
@@ -5647,7 +5747,7 @@ function refitBoard(){
   if(!cH||!cW)return;
   const isMobile=(window.innerWidth||400)<600;
   const MARGIN=isMobile?0.96:0.98;
-  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,1.0);
+  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,isMobile?1.0:1.4);
   window._gameScaleRatio=ratio;
   canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
   canvas.style.height=Math.round(CANVAS_H*ratio)+'px';
@@ -5716,7 +5816,64 @@ function tryResumeGame(){
     gotoGame();
   }catch(e){ try{localStorage.removeItem('madori-game-state');}catch(_){} }
 }
+// ══════════════════════════════════════════════
+// ▼ テスト版だけの開発用ツール（本番 puzzle.html にはコピーしない）
+//   ・今のパーツを好きな種類に差し替えて置ける
+//   ・物件情報のガチャを引き直せる
+// ══════════════════════════════════════════════
+function devToggle(){
+  const p=document.getElementById('dev-panel');
+  if(!p)return;
+  p.classList.toggle('open');
+  if(p.classList.contains('open'))devBuildParts();
+}
+function devBuildParts(){
+  const box=document.getElementById('dev-parts');
+  if(!box||box.dataset.built)return;
+  box.dataset.built='1';
+  PARTS_DEF.forEach(d=>{
+    const b=document.createElement('button');
+    b.className='dev-btn';
+    b.textContent=d.name;
+    b.onclick=()=>devPickPart(d.type);
+    box.appendChild(b);
+  });
+}
+function devPickPart(type){
+  const gs=gameScene;
+  if(!gs||!gs.grid){ showGameToast('ゲーム画面で使ってね'); return; }
+  const def=PARTS_DEF.find(d=>d.type===type);
+  if(!def)return;
+  try{
+    gs._clearPreview();
+    gs.currentDef=def;
+    gs.rotation=0;
+    const shape=gs.getShape(def,0);
+    gs.curC=Math.floor((COLS-shape[0].length)/2); gs.curR=0;
+    gs._anchorC=gs.curC; gs._anchorR=gs.curR;
+    gs._mPreviewShown=false; gs._tapPreviewShown=false;
+    gs.drawUI();
+    gs.checkNoPlace();
+    showGameToast('「'+def.name+'」にしたよ');
+  }catch(e){ showGameToast('差し替えできなかった'); }
+}
+function devReroll(){
+  const scr=document.querySelector('.screen.active');
+  if(!scr||scr.id!=='screen-roulette'){ showGameToast('物件情報の画面で使ってね'); return; }
+  try{ startRoulette(); }catch(e){}
+}
+
 tryResumeGame();
 </script>
+<!-- ▼ テスト版だけの開発用ツール（本番 puzzle.html には入れない） -->
+<button id="dev-fab" onclick="devToggle()" title="テスト用ツール">🛠</button>
+<div id="dev-panel">
+  <div class="dev-sec">今のパーツを差し替え</div>
+  <div class="dev-grid" id="dev-parts"></div>
+  <div class="dev-sec">物件情報</div>
+  <button class="dev-btn dev-wide" onclick="devReroll()">ぜんぶ引き直す</button>
+  <div class="dev-note">※ここはテスト版だけの機能です。<br>本番には入っていません。</div>
+</div>
+
 </body>
 </html>
