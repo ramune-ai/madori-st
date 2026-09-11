@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="image/favicon.png?v=2">
 <link rel="apple-touch-icon" href="image/icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -50,7 +50,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
   /* 左上のリンクとぶつからない幅まで自動で細くする */
   width:clamp(134px, calc(100vw - 215px), 162px);
   z-index:4;box-sizing:border-box;
-  padding:13px 11px 11px;
+  padding:15px 11px 14px;
   background:#fffdf6;border:1.5px solid #c05a48;
   box-shadow:0 3px 10px rgba(58,42,26,.16);
   display:flex;flex-direction:column;align-items:center;gap:5px;
@@ -72,15 +72,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 }
 .flyer-tape-l{left:-9px;transform:rotate(-30deg);}
 .flyer-tape-r{right:-9px;transform:rotate(30deg);}
-/* 見出しは明朝の赤、本文は太ゴシック。紙らしく役割で書き分ける */
-.flyer-lead{
-  font-family:'Noto Serif JP',serif;
-  font-size:11px;font-weight:700;letter-spacing:.1em;
-  color:#c0392b;line-height:1;
-}
+/* 手書きの自然さがありつつ読みやすい硬筆楷書体。紙に書いた雰囲気を出す */
 .flyer-main{
-  font-family:'Noto Sans JP',sans-serif;
-  font-size:13px;font-weight:800;letter-spacing:.01em;line-height:1.5;
+  font-family:'Klee One','Noto Sans JP',sans-serif;
+  font-size:15px;font-weight:600;letter-spacing:.02em;line-height:1.6;
   color:var(--brown-dark);text-align:center;
 }
 /* 浮かせるのではなく、テープを支点に紙がわずかに動く */
@@ -90,9 +85,8 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 }
 /* 細い端末では紙も字も一回り小さくして、右上に収まったままにする */
 @media (max-width:374px){
-  .start-flyer{padding:11px 9px 9px;}
-  .flyer-lead{font-size:10px;letter-spacing:.06em;}
-  .flyer-main{font-size:12px;}
+  .start-flyer{padding:13px 9px 12px;}
+  .flyer-main{font-size:13px;}
 }
 .logo-icon{font-size:56px;display:block;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(90,74,58,.15));}
 .logo-title{font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);letter-spacing:.15em;line-height:1;}
@@ -1003,7 +997,6 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="start-flyer">
     <span class="flyer-tape flyer-tape-l" aria-hidden="true"></span>
     <span class="flyer-tape flyer-tape-r" aria-hidden="true"></span>
-    <span class="flyer-lead">◇ 本日のおすすめ ◇</span>
     <span class="flyer-main">自分だけの間取りを<br>作るパズル</span>
   </div>
   <div class="logo-wrap">
