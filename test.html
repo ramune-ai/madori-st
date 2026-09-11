@@ -1033,38 +1033,43 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   /* ゲーム画面：横の余白を使って、操作を盤の左右に振り分ける。
      上に積むのをやめたぶん、盤が画面の高さいっぱいまで使える。
      入れ子の箱は display:contents で外して、直接この格子に並べる */
+  /* ゾーン割り：B（左）｜A（中央）｜C（右）、一番下にD */
   #screen-game.active{
     display:grid;
-    grid-template-columns:120px 120px 1fr 236px;
-    grid-template-rows:auto auto auto 1fr auto;
-    column-gap:14px;padding:14px 18px 6px;
-    align-items:start;
+    grid-template-columns:288px 1fr 288px;
+    grid-template-rows:auto auto auto auto 1fr auto auto auto;
+    column-gap:18px;padding:14px 20px 6px;
+    align-items:start;justify-items:center;
   }
-  /* 入れ子の箱を外して、ボタン1つ1つを直接この格子に置く */
-  #game-top-bar,#game-top-row1,#game-top-row2,
-  #game-bottom-bar,#game-bottom-row,#action-col{display:contents;}
-  /* 左上：スキップ ／ 回転 */
-  #btn-skip{grid-column:1;grid-row:1;}
-  #btn-rotate{grid-column:2;grid-row:1;}
-  /* 左：今のパーツ → このあと */
-  #current-piece-wrap{grid-column:1 / 3;grid-row:2;height:auto;margin:16px 0 14px;}
-  #next-col{grid-column:1 / 3;grid-row:3;height:auto;align-self:start;}
-  /* 中央上：現在の間取り／中央：盤 */
-  #madori-label{grid-column:3;grid-row:1;justify-self:center;width:320px;margin-bottom:10px;}
+  #game-top-bar,#game-top-row1,#game-top-row2,#game-bottom-bar{display:contents;}
+  /* ── A（中央）：現在の間取り＋土地。どちらも画面の中央に置く ── */
+  #madori-label{grid-column:2;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
+  .ml-cap{font-size:18px;letter-spacing:.2em;}
+  .ml-value{font-size:44px;height:54px;}
   /* align-items:start のままだと高さが付かず盤が作られないので、ここだけ伸ばす */
-  #game-container{grid-column:3;grid-row:2 / 5;align-self:stretch;min-height:0;}
-  /* 右上：ゲーム名とメニュー（☰を開かず出しっぱなしにする） */
-  #game-menu-wrap{position:static;grid-column:4;grid-row:1 / 3;justify-self:stretch;}
-  /* 右：戻す（上）／完成（下） */
-  #btn-undo{grid-column:4;grid-row:3;align-self:start;margin-top:48px;}
-  #btn-complete{grid-column:4;grid-row:4;align-self:start;margin-top:14px;}
-  /* 4つのボタンは大きさをそろえる */
-  #btn-skip,#btn-rotate,#btn-undo,#btn-complete{
-    width:100%;box-sizing:border-box;justify-content:center;
-    padding:16px 10px;font-size:16px;gap:8px;border-radius:999px;
-  }
-  #btn-skip .pill-ico svg,#btn-complete .pill-ico svg{width:20px;height:20px;}
-  #btn-undo .bigbtn-ico svg,#btn-rotate .bigbtn-ico svg{width:24px;height:24px;}
+  #game-container{grid-column:2;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
+  /* ── B（左）：戻す/回転 → 今のパーツ → このあと。上端は土地の上端にそろえる ── */
+  /* 戻す・回転の上端が土地の上端より高くならないよう少し下げる */
+  #game-bottom-row{grid-column:1;grid-row:2;display:flex;gap:10px;width:100%;margin-top:74px;}
+  #game-bottom-row .bigbtn{flex:1;padding:19px 10px;font-size:18px;gap:9px;}
+  #current-piece-wrap{grid-column:1;grid-row:3;height:auto;width:100%;margin:16px 0 0;padding:10px 12px 14px;}
+  #current-piece-wrap .piece-label{font-size:16px;height:22px;}
+  #next-col{grid-column:1;grid-row:4;height:auto;width:100%;margin-top:16px;padding:8px 10px 10px;}
+  .next-cap{font-size:16px;height:22px;}
+  .next-sublabel{font-size:15px;width:1.3em;}
+  #canvas-current{width:172px;height:172px;}
+  #canvas-next1,#canvas-next2{width:104px;height:104px;}
+  /* ── C（右）：ゲーム名とメニュー（上）／スキップ・完成（下） ── */
+  #game-menu-wrap{position:static;grid-column:3;grid-row:1 / 5;justify-self:stretch;text-align:center;}
+  #pc-game-logo{font-size:32px;}
+  #pc-game-logo span{font-size:15px;}
+  #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
+  #action-col{grid-column:3;grid-row:6 / 8;width:100%;height:auto;
+    display:flex;flex-direction:column-reverse;gap:14px;align-self:end;margin-bottom:8px;}
+  #action-col .pill{width:100%;box-sizing:border-box;justify-content:center;
+    padding:20px 10px;font-size:18px;gap:9px;border-radius:999px;}
+  #action-col .pill-ico svg{width:22px;height:22px;}
+  #btn-undo .bigbtn-ico svg,#btn-rotate .bigbtn-ico svg{width:26px;height:26px;}
   #game-menu-btn{display:none;}
   #pc-game-logo{display:block;}
   #game-menu{
@@ -1076,23 +1081,18 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     color:var(--brown-dark);
   }
   /* 最下段：操作の説明 */
-  #pc-ctrl-hint{grid-column:1 / -1;grid-row:4;padding-top:6px;}
+  #pc-ctrl-hint{grid-column:1 / -1;grid-row:8;padding:10px 0 4px;}
   /* 上下バーは display:contents で箱を持たないため opacity が効かない。
      準備中に隠すのは中身に直接かける */
   #screen-game.is-loading #madori-label,
   #screen-game.is-loading #game-menu-wrap,
-  #screen-game.is-loading #btn-skip,
-  #screen-game.is-loading #btn-rotate,
-  #screen-game.is-loading #btn-undo,
-  #screen-game.is-loading #btn-complete,
+  #screen-game.is-loading #game-bottom-row,
+  #screen-game.is-loading #action-col,
   #screen-game.is-loading #current-piece-wrap,
   #screen-game.is-loading #next-col,
   #screen-game.is-loading #pc-ctrl-hint{opacity:0;transition:opacity .28s ease;}
   #canvas-current{width:140px;height:140px;}
   #canvas-next1,#canvas-next2{width:83px;height:83px;}
-  #madori-label{width:300px;}
-  .ml-cap{font-size:15px;}
-  .ml-value{font-size:34px;height:40px;}
   .next-cap{font-size:14px;height:19px;}
   .next-sublabel{font-size:13px;}
   #current-piece-wrap .piece-label{font-size:14px;height:19px;}
@@ -1103,7 +1103,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   /* 盤の高さを稼ぐため、上下バーの余白はできるだけ詰める */
   #pc-ctrl-hint{
     display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
-    font-size:13px;color:var(--brown-light);letter-spacing:.03em;
+    font-size:16px;color:var(--brown-light);letter-spacing:.03em;
   }
   #pc-ctrl-hint b{color:var(--brown-dark);font-weight:800;}
 
@@ -1146,6 +1146,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .title-new-item,.title-owned-chip.is-reveal{padding:14px 24px;}
   /* 結果：中の文字までまとめて拡大する（幅だけ広げても字が小さいままのため） */
   .result-wrap{zoom:1.25;}
+  /* マイ物件ファイルなどの枠自体をPCでは大きく */
+  .modal-box{max-width:720px;padding:24px 26px 26px;}
+  .modal-title{font-size:24px;}
+  .modal-close{font-size:28px;top:18px;right:20px;}
 }
 /* PCは縦が広いので、称号一覧は下の余白を詰めて中央に収める */
 @media(min-width:600px) and (min-height:760px){
@@ -2533,7 +2537,9 @@ function renderSavesList(){
 
   body.innerHTML='';
   const wrap=document.createElement('div');
-  wrap.style.cssText='position:relative;width:340px;max-width:86vw;margin:0 auto;';
+  // PCは画面が広いので中身も大きく見せる
+  const wide=(window.innerWidth||400)>=600;
+  wrap.style.cssText='position:relative;width:'+(wide?560:340)+'px;max-width:86vw;margin:0 auto;';
 
   // 絞り込みは件数表示の右に置く（各物件の★ボタンと紛らわしくないように）
   const favFilterBtn=document.createElement('button');
@@ -2607,7 +2613,7 @@ function renderSavesList(){
       const img=document.createElement('img');
       img.src=s.img;
       img.dataset.hid=s.id;
-      img.style.cssText='display:block;max-width:100%;max-height:48vh;width:auto;margin:0 auto;border-radius:10px;border:1px solid rgba(90,74,58,.15);cursor:zoom-in;box-shadow:0 3px 14px rgba(58,42,26,.12);object-fit:contain;';
+      img.style.cssText='display:block;max-width:100%;max-height:'+(wide?'60vh':'48vh')+';width:auto;margin:0 auto;border-radius:10px;border:1px solid rgba(90,74,58,.15);cursor:zoom-in;box-shadow:0 3px 14px rgba(58,42,26,.12);object-fit:contain;';
       img.onclick=()=>{ if(busy)return; const cur=loadHistory().find(x=>x.id===s.id); showImageZoom((cur&&cur.img)||s.img); };
       pageEl.appendChild(img);
     }else{
@@ -5532,13 +5538,13 @@ class PuzzleGame extends Phaser.Scene{
     const w=window.innerWidth||400;
     if(w<420)return 34;
     if(w<600)return 38;
-    return 44;   // PCは画面が広いぶん大きく
+    return 54;   // PCは画面が広いぶん大きく
   }
   _unifiedCellPxSmall(){
     const w=window.innerWidth||400;
     if(w<420)return 17;
     if(w<600)return 19;
-    return 25;
+    return 32;
   }
 
   // パーツが土地内（LAND_MAP!==null）に完全に収まるかチェック（グレー侵入も他パーツ重なりも見る）
@@ -5734,8 +5740,8 @@ function startPhaserGame(){
   // 起動前にパーツゾーンのcanvasを最終サイズに確定（高さ変動でのズレ防止）
   const presizeSlots=()=>{
     const w=window.innerWidth||400;
-    const bigPx = w<420?34 : w<600?38 : 44;
-    const smallPx = w<420?17 : w<600?19 : 25;
+    const bigPx = w<420?34 : w<600?38 : 54;
+    const smallPx = w<420?17 : w<600?19 : 32;
     const PAD=8;
     const BIG=3*bigPx+PAD, SMALL=3*smallPx+PAD;
     const set=(id,sz)=>{
@@ -5771,7 +5777,7 @@ function startPhaserGame(){
     const isMobile=(window.innerWidth||400)<600;
     const MARGIN=isMobile?0.96:0.98;
     // PCでは 1.0 で頭打ちにすると盤が実寸のままで小さく見えるので上限を上げる
-    const MAXZOOM=isMobile?1.0:1.4;
+    const MAXZOOM=isMobile?1.0:1.12;
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, MAXZOOM);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
@@ -5818,7 +5824,7 @@ function refitBoard(){
   if(!cH||!cW)return;
   const isMobile=(window.innerWidth||400)<600;
   const MARGIN=isMobile?0.96:0.98;
-  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,isMobile?1.0:1.4);
+  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,isMobile?1.0:1.12);
   window._gameScaleRatio=ratio;
   canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
   canvas.style.height=Math.round(CANVAS_H*ratio)+'px';
