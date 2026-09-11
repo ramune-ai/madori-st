@@ -194,6 +194,10 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* ☰メニュー */
 /* ☰は右上に浮かせる（間取り表示を画面全体の中央に置くため） */
 #game-menu-wrap{position:absolute;right:6px;top:14px;flex-shrink:0;z-index:5;}
+/* ゲーム画面の右上に出すゲーム名。スマホでは出さない */
+#pc-game-logo{display:none;text-align:center;font-family:'Noto Serif JP',serif;
+  font-size:26px;font-weight:700;color:var(--brown-dark);letter-spacing:.1em;line-height:1.2;}
+#pc-game-logo span{display:block;font-size:13px;font-weight:700;color:var(--brown-light);letter-spacing:.28em;margin-top:4px;padding-left:.28em;}
 #game-menu-btn{width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;padding:0;border:1px solid rgba(90,74,58,.25);border-radius:10px;background:#fff;color:var(--brown-dark);cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 6px rgba(58,42,26,.1);}
 #game-menu button{font-size:15px;padding:13px 18px;letter-spacing:.05em;}
 #game-menu{display:none;position:fixed;background:#fff;border:1px solid rgba(90,74,58,.2);border-radius:12px;box-shadow:0 6px 20px rgba(58,42,26,.18);z-index:200;min-width:210px;overflow:hidden;padding:4px 0;}
@@ -1026,32 +1030,54 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
    ・画面が広いぶん全体を大きくする
    ══════════════════════════════════════════════ */
 @media(min-width:600px){
-  /* ゲーム画面：横の余白が余っているので、パーツと操作を盤の左へ移す。
-     上に積むのをやめたぶん、盤が画面の高さいっぱいまで使える */
+  /* ゲーム画面：横の余白を使って、操作を盤の左右に振り分ける。
+     上に積むのをやめたぶん、盤が画面の高さいっぱいまで使える。
+     入れ子の箱は display:contents で外して、直接この格子に並べる */
   #screen-game.active{
     display:grid;
-    grid-template-columns:auto 1fr;
-    grid-template-rows:1fr auto;
+    grid-template-columns:232px 1fr 232px;
+    grid-template-rows:auto auto 1fr auto;
+    column-gap:14px;padding:12px 16px 6px;
+    align-items:start;
   }
-  #game-top-bar{
-    grid-column:1;grid-row:1 / 3;
-    min-height:0;width:auto;max-width:none;
-    justify-content:center;
-    padding:0 6px 0 14px;
-    background:transparent;
+  #game-top-bar,#game-top-row1,#game-top-row2,#game-bottom-bar{display:contents;}
+  /* 中央上：現在の間取り */
+  #madori-label{grid-column:2;grid-row:1;justify-self:center;width:320px;margin-bottom:10px;}
+  /* 左上：戻す・回転 */
+  #game-bottom-row{grid-column:1;grid-row:1;display:flex;gap:8px;justify-content:center;}
+  #game-bottom-row .bigbtn{padding:11px 16px;font-size:14px;gap:7px;flex:1;}
+  /* 左：今のパーツ → このあと */
+  #current-piece-wrap{grid-column:1;grid-row:2;height:auto;margin-bottom:14px;}
+  #next-col{grid-column:1;grid-row:3;height:auto;align-self:start;}
+  /* 右下寄り：スキップ・完成（下が完成） */
+  #action-col{grid-column:3;grid-row:3;height:auto;align-self:start;
+    flex-direction:column-reverse;gap:12px;margin-top:40px;}
+  /* 中央：盤 */
+  /* align-items:start のままだと高さが付かず盤が作られないので、ここだけ伸ばす */
+  #game-container{grid-column:2;grid-row:2 / 4;align-self:stretch;min-height:0;}
+  /* 右上：ゲーム名とメニュー（☰を開かず出しっぱなしにする） */
+  #game-menu-wrap{position:static;grid-column:3;grid-row:1 / 3;justify-self:stretch;}
+  #game-menu-btn{display:none;}
+  #pc-game-logo{display:block;}
+  #game-menu{
+    display:block;position:static;min-width:0;width:100%;
+    background:transparent;border:none;box-shadow:none;padding:0;margin-top:10px;
   }
-  #game-container{grid-column:2;grid-row:1;}
-  #game-bottom-bar{grid-column:2;grid-row:2;}
-  #game-top-row1,#game-top-row2{max-width:none;margin:0;}
-  /* 左の列では縦に積む */
-  #game-top-row2{
-    display:flex;flex-direction:column;align-items:center;
-    height:auto;gap:14px;padding:14px 0 0;
+  #game-menu button{
+    padding:9px 10px;font-size:15px;border-radius:8px;text-align:center;
+    color:var(--brown-dark);
   }
-  #next-col,#current-piece-wrap,#action-col{height:auto;}
-  #action-col{width:100%;}
-  /* ☰ は画面の右上へ（左の列に置くと遠い） */
-  #game-menu-wrap{position:fixed;right:14px;top:14px;}
+  /* 最下段：操作の説明 */
+  #pc-ctrl-hint{grid-column:1 / -1;grid-row:4;padding-top:6px;}
+  /* 上下バーは display:contents で箱を持たないため opacity が効かない。
+     準備中に隠すのは中身に直接かける */
+  #screen-game.is-loading #madori-label,
+  #screen-game.is-loading #game-menu-wrap,
+  #screen-game.is-loading #game-bottom-row,
+  #screen-game.is-loading #current-piece-wrap,
+  #screen-game.is-loading #next-col,
+  #screen-game.is-loading #action-col,
+  #screen-game.is-loading #pc-ctrl-hint{opacity:0;transition:opacity .28s ease;}
   #canvas-current{width:140px;height:140px;}
   #canvas-next1,#canvas-next2{width:83px;height:83px;}
   #madori-label{width:300px;}
@@ -1076,6 +1102,20 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   }
   #pc-ctrl-hint b{color:var(--brown-dark);font-weight:800;}
 
+  /* スタート画面：字も枠も小さいままで下が余っていたので、まとめて大きく */
+  #screen-start{padding-top:calc(env(safe-area-inset-top, 0px) + 40px);padding-bottom:40px;}
+  .logo-icon{font-size:78px;margin-bottom:12px;}
+  .logo-title{font-size:54px;}
+  .logo-sub{font-size:26px;letter-spacing:.36em;margin-top:14px;}
+  .btn-start{font-size:28px;padding:28px 110px;letter-spacing:.24em;margin-top:14px;}
+  .start-sub-btns{max-width:470px;margin-top:46px;gap:14px;}
+  .btn-sub{padding:17px 8px 15px;border-radius:18px;}
+  .sub-ico{font-size:32px;}
+  .sub-name{font-size:16px;}
+  .sub-val{font-size:13px;}
+  .start-toplinks-left .top-link{font-size:16px;padding:11px 20px;}
+  .start-flyer{width:212px;}
+  .flyer-main{font-size:17px;}
   /* ガチャ・称号・結果は上に寄りすぎていたので、縦の真ん中に置く */
   #screen-roulette,#screen-titles{justify-content:center;}
   /* 結果は中身が高い。中央寄せだと溢れた時に上が切れて戻れないので、
@@ -1204,6 +1244,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <span class="ml-value"><!-- JS で動的生成 --></span>
       </div>
       <div id="game-menu-wrap">
+        <div id="pc-game-logo">間取りすと<span>MADORI-ST</span></div>
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
           <button onclick="toggleGameMenu();openHowTo()">遊び方</button>
@@ -1286,7 +1327,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     </button>
     <!-- 回転（右）。パーツはすべて長方形なので向きの切り替えは1個で足りる -->
     <button id="btn-rotate" class="bigbtn bigbtn-dark" onmousedown="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" ontouchstart="event.preventDefault();if(gameScene)gameScene.rotatePiece(1)" title="回転（X / 右クリック）">
-      <span class="bigbtn-ico"><svg viewBox="0 0 32 32" width="30" height="30" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7 A 10 10 0 1 1 8.9 9.9"/><polyline points="12.4,3.2 17.2,7 12.4,10.8"/></svg></span>
+      <span class="bigbtn-ico"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/><polyline points="23 4 23 10 17 10"/></svg></span>
       <span class="bigbtn-txt">回転</span>
     </button>
     </div>
@@ -5695,30 +5736,25 @@ function startPhaserGame(){
     set('canvas-current',BIG);
   };
   // screen-gameがdisplay:flexになった後、barのoffsetHeightを計測して起動
+  // 盤の入れ物そのものに大きさが付くまで待つ。
+  // 上下バーの高さで判定していたが、PCのレイアウトではバーが
+  // display:contents で「箱を持たない」ため、いつまでも 0 のままだった
   const launch=()=>{
     presizeSlots(); // 先にcanvasサイズを確定させてから高さ計測
-    const topBar=document.getElementById('game-top-bar');
-    const botBar=document.getElementById('game-bottom-bar');
-    const tH=topBar?.offsetHeight||0;
-    const bH=botBar?.offsetHeight||0;
-    if(tH===0||bH===0){
-      // まだレイアウト未確定 → ResizeObserverで待つ
-      let done=false;
-      const ro=new ResizeObserver(()=>{
-        const t2=topBar?.offsetHeight||0, b2=botBar?.offsetHeight||0;
-        if(t2>0&&b2>0&&!done){done=true;ro.disconnect();go(t2,b2);}
-      });
-      if(topBar)ro.observe(topBar);
-      if(botBar)ro.observe(botBar);
-      setTimeout(()=>{if(!done){done=true;ro.disconnect();go(topBar?.offsetHeight||0,botBar?.offsetHeight||0);}},600);
-      return;
-    }
-    go(tH,bH);
-  };
-  const go=(tH,bH)=>{
-    // game-containerのCSSピクセル高さを直接計測（flexで確定済み）
     const container=document.getElementById('game-container');
-    const cH=container?.clientHeight||Math.max(1,window.innerHeight-tH-bH);
+    const ready=()=>container && container.clientWidth>50 && container.clientHeight>50;
+    if(ready()){ go(); return; }
+    let done=false;
+    const fire=()=>{ if(done)return; done=true; try{ro.disconnect();}catch(e){} go(); };
+    const ro=new ResizeObserver(()=>{ if(ready())fire(); });
+    try{ if(container)ro.observe(container); }catch(e){}
+    // 念のための保険（それでも決まらなければ計測結果のまま進む）
+    setTimeout(fire,800);
+  };
+  const go=()=>{
+    // game-containerのCSSピクセル高さを直接計測
+    const container=document.getElementById('game-container');
+    const cH=container?.clientHeight||Math.max(1,window.innerHeight-200);
     const cW=container?.clientWidth||window.innerWidth;
     const dpr=window.devicePixelRatio||1;
     // 盤の余白係数：スマホは余白多め（盤小さめ）、PCは余白少なめ（盤大きめ）
@@ -5728,7 +5764,7 @@ function startPhaserGame(){
     const MAXZOOM=isMobile?1.0:1.4;
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, MAXZOOM);
     window._gameScaleRatio=scaleRatio;
-    console.log('[Phaser起動] tH:'+tH+' bH:'+bH+' cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
+    console.log('[Phaser起動] cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
     window._phaserGame=new Phaser.Game({
       type:Phaser.AUTO,
       width:CANVAS_W,height:CANVAS_H,
