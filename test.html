@@ -1035,28 +1035,36 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
      入れ子の箱は display:contents で外して、直接この格子に並べる */
   #screen-game.active{
     display:grid;
-    grid-template-columns:232px 1fr 232px;
-    grid-template-rows:auto auto 1fr auto;
-    column-gap:14px;padding:12px 16px 6px;
+    grid-template-columns:120px 120px 1fr 236px;
+    grid-template-rows:auto auto auto 1fr auto;
+    column-gap:14px;padding:14px 18px 6px;
     align-items:start;
   }
-  #game-top-bar,#game-top-row1,#game-top-row2,#game-bottom-bar{display:contents;}
-  /* 中央上：現在の間取り */
-  #madori-label{grid-column:2;grid-row:1;justify-self:center;width:320px;margin-bottom:10px;}
-  /* 左上：戻す・回転 */
-  #game-bottom-row{grid-column:1;grid-row:1;display:flex;gap:8px;justify-content:center;}
-  #game-bottom-row .bigbtn{padding:11px 16px;font-size:14px;gap:7px;flex:1;}
+  /* 入れ子の箱を外して、ボタン1つ1つを直接この格子に置く */
+  #game-top-bar,#game-top-row1,#game-top-row2,
+  #game-bottom-bar,#game-bottom-row,#action-col{display:contents;}
+  /* 左上：スキップ ／ 回転 */
+  #btn-skip{grid-column:1;grid-row:1;}
+  #btn-rotate{grid-column:2;grid-row:1;}
   /* 左：今のパーツ → このあと */
-  #current-piece-wrap{grid-column:1;grid-row:2;height:auto;margin-bottom:14px;}
-  #next-col{grid-column:1;grid-row:3;height:auto;align-self:start;}
-  /* 右下寄り：スキップ・完成（下が完成） */
-  #action-col{grid-column:3;grid-row:3;height:auto;align-self:start;
-    flex-direction:column-reverse;gap:12px;margin-top:40px;}
-  /* 中央：盤 */
+  #current-piece-wrap{grid-column:1 / 3;grid-row:2;height:auto;margin:16px 0 14px;}
+  #next-col{grid-column:1 / 3;grid-row:3;height:auto;align-self:start;}
+  /* 中央上：現在の間取り／中央：盤 */
+  #madori-label{grid-column:3;grid-row:1;justify-self:center;width:320px;margin-bottom:10px;}
   /* align-items:start のままだと高さが付かず盤が作られないので、ここだけ伸ばす */
-  #game-container{grid-column:2;grid-row:2 / 4;align-self:stretch;min-height:0;}
+  #game-container{grid-column:3;grid-row:2 / 5;align-self:stretch;min-height:0;}
   /* 右上：ゲーム名とメニュー（☰を開かず出しっぱなしにする） */
-  #game-menu-wrap{position:static;grid-column:3;grid-row:1 / 3;justify-self:stretch;}
+  #game-menu-wrap{position:static;grid-column:4;grid-row:1 / 3;justify-self:stretch;}
+  /* 右：戻す（上）／完成（下） */
+  #btn-undo{grid-column:4;grid-row:3;align-self:start;margin-top:48px;}
+  #btn-complete{grid-column:4;grid-row:4;align-self:start;margin-top:14px;}
+  /* 4つのボタンは大きさをそろえる */
+  #btn-skip,#btn-rotate,#btn-undo,#btn-complete{
+    width:100%;box-sizing:border-box;justify-content:center;
+    padding:16px 10px;font-size:16px;gap:8px;border-radius:999px;
+  }
+  #btn-skip .pill-ico svg,#btn-complete .pill-ico svg{width:20px;height:20px;}
+  #btn-undo .bigbtn-ico svg,#btn-rotate .bigbtn-ico svg{width:24px;height:24px;}
   #game-menu-btn{display:none;}
   #pc-game-logo{display:block;}
   #game-menu{
@@ -1073,10 +1081,12 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
      準備中に隠すのは中身に直接かける */
   #screen-game.is-loading #madori-label,
   #screen-game.is-loading #game-menu-wrap,
-  #screen-game.is-loading #game-bottom-row,
+  #screen-game.is-loading #btn-skip,
+  #screen-game.is-loading #btn-rotate,
+  #screen-game.is-loading #btn-undo,
+  #screen-game.is-loading #btn-complete,
   #screen-game.is-loading #current-piece-wrap,
   #screen-game.is-loading #next-col,
-  #screen-game.is-loading #action-col,
   #screen-game.is-loading #pc-ctrl-hint{opacity:0;transition:opacity .28s ease;}
   #canvas-current{width:140px;height:140px;}
   #canvas-next1,#canvas-next2{width:83px;height:83px;}
@@ -1091,11 +1101,6 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #action-col{gap:12px;}
   /* 下部バー：操作の説明を1行足す */
   /* 盤の高さを稼ぐため、上下バーの余白はできるだけ詰める */
-  #game-top-row1{padding:8px 8px 2px;}
-  #game-top-row2{padding-bottom:8px;}
-  #game-bottom-bar{flex-direction:column;gap:7px;padding:9px 16px 11px;}
-  .bigbtn{padding:13px 30px;}
-  #game-bottom-row{display:flex;align-items:center;justify-content:center;gap:14px;}
   #pc-ctrl-hint{
     display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;
     font-size:13px;color:var(--brown-light);letter-spacing:.03em;
@@ -1108,19 +1113,24 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .logo-title{font-size:54px;}
   .logo-sub{font-size:26px;letter-spacing:.36em;margin-top:14px;}
   .btn-start{font-size:28px;padding:28px 110px;letter-spacing:.24em;margin-top:14px;}
-  .start-sub-btns{max-width:470px;margin-top:46px;gap:14px;}
-  .btn-sub{padding:17px 8px 15px;border-radius:18px;}
-  .sub-ico{font-size:32px;}
-  .sub-name{font-size:16px;}
-  .sub-val{font-size:13px;}
+  .start-sub-btns{max-width:640px;margin-top:52px;gap:18px;}
+  .btn-sub{padding:26px 12px 22px;border-radius:20px;gap:7px;}
+  .sub-ico{font-size:42px;}
+  .sub-name{font-size:20px;}
+  .sub-val{font-size:15px;}
   .start-toplinks-left .top-link{font-size:16px;padding:11px 20px;}
-  .start-flyer{width:212px;}
+  /* 付箋と左上リンクが重なっていたので、PCでは左右にもっと開く */
+  .start-toplinks-left{left:max(12px, calc(50% - 340px));}
+  .start-flyer{width:212px;right:max(17px, calc(50% - 310px));}
   .flyer-main{font-size:17px;}
   /* ガチャ・称号・結果は上に寄りすぎていたので、縦の真ん中に置く */
-  #screen-roulette,#screen-titles{justify-content:center;}
+  #screen-roulette{justify-content:center;}
+  /* 称号は1件ずつ増えるので、中央寄せだと出るたびに全体がずれる。
+     画面の高さだけで決まる上余白にして、位置を動かさない */
+  #screen-titles{justify-content:flex-start;padding-top:clamp(24px, calc((100vh - 520px)/2), 200px);}
   /* 結果は中身が高い。中央寄せだと溢れた時に上が切れて戻れないので、
      上の余白で中央に寄せる（溢れてもスクロールで全部見られる） */
-  #screen-result{justify-content:flex-start;padding-top:clamp(8px, calc((100vh - 980px)/2), 100px);}
+  #screen-result{justify-content:flex-start;padding-top:clamp(12px, calc((100vh - 900px)/2), 90px);}
   /* ガチャ：画面が広いぶん大きく */
   .roulette-title{font-size:26px;margin-bottom:34px;}
   .roulette-item-wrap{width:420px;height:148px;margin-bottom:46px;}
