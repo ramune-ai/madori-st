@@ -1036,41 +1036,48 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   /* ゾーン割り：B（左）｜A（中央）｜C（右）、一番下にD */
   #screen-game.active{
     display:grid;
-    grid-template-columns:288px 1fr 288px;
+    grid-template-columns:140px 140px 1fr 288px;
     grid-template-rows:auto auto auto auto 1fr auto auto auto;
-    column-gap:18px;padding:14px 64px 6px;
+    column-gap:8px;
+    /* 画面が広いほど左右の列を中央へ寄せる（狭い画面では盤を優先） */
+    padding:14px clamp(20px, calc((100vw - 1150px)/2), 200px) 6px;
     align-items:start;justify-items:center;
   }
-  #game-top-bar,#game-top-row1,#game-top-row2,#game-bottom-bar{display:contents;}
+  #game-top-bar,#game-top-row1,#game-top-row2,
+  #game-bottom-bar,#game-bottom-row,#action-col{display:contents;}
   /* ── A（中央）：現在の間取り＋土地。どちらも画面の中央に置く ── */
-  #madori-label{grid-column:2;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
+  #madori-label{grid-column:3;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
   .ml-cap{font-size:18px;letter-spacing:.2em;}
   .ml-value{font-size:44px;height:54px;}
   /* align-items:start のままだと高さが付かず盤が作られないので、ここだけ伸ばす */
-  #game-container{grid-column:2;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
+  #game-container{grid-column:3;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
   /* ── B（左）：戻す/回転 → 今のパーツ → このあと。上端は土地の上端にそろえる ── */
   /* 戻す・回転の上端が土地の上端より高くならないよう少し下げる */
-  #game-bottom-row{grid-column:1;grid-row:2;display:flex;gap:10px;width:100%;margin-top:var(--board-top-gap,0px);}
-  #game-bottom-row .bigbtn{flex:1;padding:19px 10px;font-size:18px;gap:9px;}
-  #current-piece-wrap{grid-column:1;grid-row:3;height:auto;width:100%;margin:16px 0 0;padding:10px 12px 14px;}
+  #btn-skip{grid-column:1;grid-row:2;margin-top:var(--board-top-gap,0px);}
+  #btn-rotate{grid-column:2;grid-row:2;margin-top:var(--board-top-gap,0px);}
+  #current-piece-wrap{grid-column:1 / 3;grid-row:3;height:auto;width:100%;margin:16px 0 0;padding:10px 12px 14px;}
   #current-piece-wrap .piece-label{font-size:16px;height:22px;}
-  #next-col{grid-column:1;grid-row:4;height:auto;width:100%;margin-top:16px;padding:8px 10px 10px;}
+  #next-col{grid-column:1 / 3;grid-row:4;height:auto;width:100%;margin-top:16px;padding:8px 10px 10px;}
   .next-cap{font-size:16px;height:22px;}
   .next-sublabel{font-size:15px;width:1.3em;}
   #canvas-current{width:172px;height:172px;}
   #canvas-next1,#canvas-next2{width:104px;height:104px;}
   /* ── C（右）：ゲーム名とメニュー（上）／スキップ・完成（下） ── */
-  #game-menu-wrap{position:static;grid-column:3;grid-row:1 / 5;justify-self:stretch;text-align:center;}
+  #game-menu-wrap{position:static;grid-column:4;grid-row:1 / 5;justify-self:stretch;text-align:center;}
   #pc-game-logo{font-size:32px;}
   #pc-game-logo span{font-size:15px;}
   #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
   /* 完成の下端が土地の下端より下がらないようにする */
-  #action-col{grid-column:3;grid-row:2 / 8;width:100%;height:auto;
-    display:flex;flex-direction:column-reverse;gap:14px;align-self:end;
+  /* 戻す（上）と完成（下）。下端を土地の下端にそろえ、行を増やさずに重ねる */
+  #btn-complete{grid-column:4;grid-row:2 / 8;align-self:end;
     margin-bottom:var(--board-bot-gap,0px);}
-  #action-col .pill{width:100%;box-sizing:border-box;justify-content:center;
-    padding:20px 10px;font-size:18px;gap:9px;border-radius:999px;}
-  #action-col .pill-ico svg{width:22px;height:22px;}
+  #btn-undo{grid-column:4;grid-row:2 / 8;align-self:end;
+    margin-bottom:calc(var(--board-bot-gap, 0px) + 80px);}
+  /* 4つのボタンは大きさをそろえる */
+  #btn-skip,#btn-rotate,#btn-undo,#btn-complete{
+    width:100%;box-sizing:border-box;justify-content:center;
+    height:66px;padding:0 10px;font-size:18px;gap:9px;border-radius:999px;}
+  #btn-skip .pill-ico svg,#btn-complete .pill-ico svg{width:22px;height:22px;}
   #btn-undo .bigbtn-ico svg,#btn-rotate .bigbtn-ico svg{width:26px;height:26px;}
   #game-menu-btn{display:none;}
   #pc-game-logo{display:block;}
@@ -1088,8 +1095,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
      準備中に隠すのは中身に直接かける */
   #screen-game.is-loading #madori-label,
   #screen-game.is-loading #game-menu-wrap,
-  #screen-game.is-loading #game-bottom-row,
-  #screen-game.is-loading #action-col,
+  #screen-game.is-loading #btn-skip,
+  #screen-game.is-loading #btn-rotate,
+  #screen-game.is-loading #btn-undo,
+  #screen-game.is-loading #btn-complete,
   #screen-game.is-loading #current-piece-wrap,
   #screen-game.is-loading #next-col,
   #screen-game.is-loading #pc-ctrl-hint{opacity:0;transition:opacity .28s ease;}
