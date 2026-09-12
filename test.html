@@ -4859,20 +4859,27 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.currentDef)return;
     playSE('rotate');
     this.rotation=(this.rotation+dir+4)%4;
-    const prevShape=this.getShape(this.currentDef,(this.rotation-dir+4)%4);
     const newShape=this.getShape(this.currentDef,this.rotation);
+    const prevShape=this.getShape(this.currentDef,(this.rotation-dir+4)%4);
     // アンカー（補正前の希望位置）から毎回算出 → 端での押し戻しが累積しない
     if(this._anchorC===undefined){this._anchorC=this.curC;this._anchorR=this.curR;}
     // 左上を固定して回すと、角にいるときパーツが大きく振れて見える。
-    // 中心を保ったまま回して、そのあと土地の中へ寄せる
-    const midX=this._anchorC+prevShape[0].length/2;
-    const midY=this._anchorR+prevShape.length/2;
-    this._anchorC=Math.round(midX-newShape[0].length/2);
-    this._anchorR=Math.round(midY-newShape.length/2);
-    let rc=Phaser.Math.Clamp(this._anchorC,0,COLS-newShape[0].length);
-    let rr=Phaser.Math.Clamp(this._anchorR,0,ROWS-newShape.length);
+    // 中心を保ったまま回して、そのあと土地の中へ寄せる。
+    // 中心は「回すたびに出し直す」と、縦横比が違うパーツ（トイレなど）で
+    // 0.5マスの端数が毎回同じ向きに積もって右下へ流れていく。
+    // 位置が変わるまでは同じ中心を使い回して、端数が積もらないようにする
+    const prevRot=(this.rotation-dir+4)%4;
+    if(!this._rotMid || this._rotMidC!==this.curC || this._rotMidR!==this.curR || this._rotMidRot!==prevRot){
+      this._rotMid={x:this.curC+prevShape[0].length/2, y:this.curR+prevShape.length/2};
+    }
+    let rc=Phaser.Math.Clamp(Math.round(this._rotMid.x-newShape[0].length/2),0,COLS-newShape[0].length);
+    let rr=Phaser.Math.Clamp(Math.round(this._rotMid.y-newShape.length/2),0,ROWS-newShape.length);
     const rs=this._snapIntoLand(newShape,rc,rr);
     this.curC=rs.c; this.curR=rs.r;
+    this._anchorC=this.curC; this._anchorR=this.curR;
+    // 土地の外へ出て押し戻されたときは、その位置を新しい中心にする
+    if(rs.c!==rc||rs.r!==rr) this._rotMid={x:this.curC+newShape[0].length/2, y:this.curR+newShape.length/2};
+    this._rotMidC=this.curC; this._rotMidR=this.curR; this._rotMidRot=this.rotation;
     if(this._previewActive){
       this.updatePreview(this.curC,this.curR);
     } else {
