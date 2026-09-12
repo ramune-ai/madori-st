@@ -4657,7 +4657,9 @@ class PuzzleGame extends Phaser.Scene{
       if(this._dragging){
         const dx=e.clientX-_msx, dy=e.clientY-_msy;
         if(dx*dx+dy*dy>MOUSE_DRAG_THRESHOLD*MOUSE_DRAG_THRESHOLD) _mMoved=true;
-        moveDrag(e.clientX,e.clientY);
+        // しきい値を超えてから動かす。1pxのブレで動かすと、その時点で
+        // 確定の目印(_preTap)が消えてクリックが確定にならなくなる
+        if(_mMoved) moveDrag(e.clientX,e.clientY);
         return;
       }
       const dx=e.clientX-_msx, dy=e.clientY-_msy;
@@ -4857,11 +4859,20 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.currentDef)return;
     playSE('rotate');
     this.rotation=(this.rotation+dir+4)%4;
+    const prevShape=this.getShape(this.currentDef,(this.rotation-dir+4)%4);
     const newShape=this.getShape(this.currentDef,this.rotation);
     // アンカー（補正前の希望位置）から毎回算出 → 端での押し戻しが累積しない
     if(this._anchorC===undefined){this._anchorC=this.curC;this._anchorR=this.curR;}
-    this.curC=Phaser.Math.Clamp(this._anchorC,0,COLS-newShape[0].length);
-    this.curR=Phaser.Math.Clamp(this._anchorR,0,ROWS-newShape.length);
+    // 左上を固定して回すと、角にいるときパーツが大きく振れて見える。
+    // 中心を保ったまま回して、そのあと土地の中へ寄せる
+    const midX=this._anchorC+prevShape[0].length/2;
+    const midY=this._anchorR+prevShape.length/2;
+    this._anchorC=Math.round(midX-newShape[0].length/2);
+    this._anchorR=Math.round(midY-newShape.length/2);
+    let rc=Phaser.Math.Clamp(this._anchorC,0,COLS-newShape[0].length);
+    let rr=Phaser.Math.Clamp(this._anchorR,0,ROWS-newShape.length);
+    const rs=this._snapIntoLand(newShape,rc,rr);
+    this.curC=rs.c; this.curR=rs.r;
     if(this._previewActive){
       this.updatePreview(this.curC,this.curR);
     } else {
