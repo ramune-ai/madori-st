@@ -1090,6 +1090,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     padding:9px 10px;font-size:15px;border-radius:8px;text-align:center;
     color:var(--brown-dark);
   }
+  /* お知らせは土地に重ねず、現在の間取りとのすき間に出す */
+  #game-toast,.tut-hint{top:var(--msg-top-pc, var(--msg-top, 34%));}
+  #game-toast{font-size:20px;padding:16px 32px;border-radius:34px;}
+  .tut-text{font-size:20px;padding:16px 32px;border-radius:34px;}
   /* 最下段：操作の説明 */
   #pc-ctrl-hint{grid-column:1 / -1;grid-row:8;padding:10px 0 4px;}
   /* 上下バーは display:contents で箱を持たないため opacity が効かない。
@@ -5865,6 +5869,13 @@ function refitBoard(){
     const cr=container.getBoundingClientRect();
     document.documentElement.style.setProperty('--board-top-gap',Math.max(0,Math.round(rc.top-cr.top))+'px');
     document.documentElement.style.setProperty('--board-bot-gap',Math.max(0,Math.round(cr.bottom-rc.bottom))+'px');
+    // お知らせ（トースト・遊び方ヒント）は、現在の間取りと土地の間のすき間に置く
+    const ml=document.getElementById('madori-label');
+    if(ml){
+      const mb=ml.getBoundingClientRect().bottom;
+      if(rc.top-mb>40) document.documentElement.style.setProperty('--msg-top-pc',Math.round((mb+rc.top)/2)+'px');
+      else document.documentElement.style.removeProperty('--msg-top-pc');
+    }
   }catch(e){}
 }
 // 上下バーの高さは、フォント読み込みやcanvasサイズ確定のあとで変わる。
