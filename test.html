@@ -1036,11 +1036,12 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   /* ゾーン割り：B（左）｜A（中央）｜C（右）、一番下にD */
   #screen-game.active{
     display:grid;
-    grid-template-columns:140px 140px 1fr 288px;
+    /* 中央の列を土地の幅ぴったりにして、左右の列を土地にくっつける。
+       左右の合計幅が等しいので、全体を中央寄せすると土地も画面中央に来る */
+    grid-template-columns:144px 144px var(--board-w, 480px) 296px;
     grid-template-rows:auto auto auto auto 1fr auto auto auto;
-    column-gap:8px;
-    /* 画面が広いほど左右の列を中央へ寄せる（狭い画面では盤を優先） */
-    padding:14px clamp(20px, calc((100vw - 1150px)/2), 200px) 6px;
+    column-gap:8px;justify-content:center;
+    padding:14px 12px 6px;
     align-items:start;justify-items:center;
   }
   #game-top-bar,#game-top-row1,#game-top-row2,
@@ -5847,6 +5848,8 @@ function refitBoard(){
   if(!cH||!cW)return;
   const isMobile=(window.innerWidth||400)<600;
   const MARGIN=isMobile?0.96:0.98;
+  const hRatio=Math.min((cH*MARGIN)/CANVAS_H, isMobile?1.0:1.12);
+  try{ document.documentElement.style.setProperty('--board-w',(Math.round(CANVAS_W*hRatio)+14)+'px'); }catch(e){}
   const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,isMobile?1.0:1.12);
   window._gameScaleRatio=ratio;
   canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
