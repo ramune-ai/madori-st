@@ -617,7 +617,7 @@ body.no-reroll .reroll-note{display:none!important;}
   animation:popIn .5s ease both;
 }
 .res-card-band{
-  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 9px;padding:6px 10px;
+  background:#5a4a3a;color:#f5f0e8;margin:0 -16px 3px;padding:6px 10px;
   display:flex;align-items:center;justify-content:center;gap:18px;
   font-family:'Noto Serif JP',serif;font-size:17px;font-weight:700;
 }
@@ -679,16 +679,15 @@ body.no-reroll .reroll-note{display:none!important;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
 .res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
-.rsv-label{font-size:13px;font-weight:700;color:#4a3a2a;letter-spacing:.18em;font-family:'Noto Serif JP',serif;}
+.rsv-label{font-size:14px;font-weight:700;color:#4a3a2a;letter-spacing:.12em;font-family:'Noto Serif JP',serif;}
 .rsv-val{font-size:25px;font-weight:700;color:#3a2a1a;font-family:'Noto Serif JP',serif;line-height:1.15;}
-.rsv-unit{font-size:12px;color:#6a5a4a;margin-left:2px;font-family:'Noto Sans JP',sans-serif;font-weight:700;}
-.rsv-val.rare{background:linear-gradient(135deg,#c8860a,#f5c842,#e8a020,#f5c842);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShine 2s linear infinite;}
-.rsv-val.niche{background:linear-gradient(135deg,#7a5fa8,#b9a3d9,#8c6fb5,#b9a3d9);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:goldShine 2.4s linear infinite;}
-.rsv-val.super{background:linear-gradient(90deg,#ff3b3b,#ff9d00,#ffe600,#3bd16f,#3b8bff,#9b3bff,#ff3bd1,#ff3b3b);background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:rainbowFlow 2.2s linear infinite;}
-.rsv-val.rare .rsv-unit,.rsv-val.niche .rsv-unit,.rsv-val.super .rsv-unit{-webkit-text-fill-color:#6a5a4a;}
-/* シェア画面ではアニメせず、いちばん発色のよい位置で固定 */
-.rsv-val.rare,.rsv-val.niche{animation:none;background-position:40% center;}
-.rsv-val.super{animation:none;background-position:18% center;}
+.rsv-unit{font-size:14px;color:#6a5a4a;margin-left:2px;font-family:'Noto Sans JP',sans-serif;font-weight:700;}
+/* 金＝レア／紫＝逆レア／虹＝最レア。色は数字だけにかける（単位には掛けない）。
+   虹は以前、背景を3倍に伸ばして端だけ見せていたため赤〜黄しか出ず、金色に見えていた */
+.rsv-val .rsv-num{-webkit-background-clip:text;background-clip:text;}
+.rsv-val.rare .rsv-num{background-image:linear-gradient(135deg,#c8860a,#f5c842,#e8a020);-webkit-text-fill-color:transparent;}
+.rsv-val.niche .rsv-num{background-image:linear-gradient(135deg,#7a5fa8,#b9a3d9,#8c6fb5);-webkit-text-fill-color:transparent;}
+.rsv-val.super .rsv-num{background-image:linear-gradient(90deg,#ff3b3b,#ff9d00,#ffe600,#3bd16f,#3b8bff,#9b3bff);-webkit-text-fill-color:transparent;}
 /* 称号発表が下部固定ボタンに被らないよう余白＋スクロール */
 #screen-titles{overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable both-edges;}
 html{overflow-y:scroll;}html,body{overflow-x:hidden;}
@@ -719,7 +718,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   font-size:13px;font-weight:700;letter-spacing:.06em;
   color:var(--brown-light);
 }
-.res-pop{margin:3px 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
+.res-pop{margin:0 12px 0;font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:#b03a2e;letter-spacing:.06em;line-height:1.3;white-space:nowrap;overflow:hidden;}
 /* 称号行 */
 .res-title-new-chip{display:inline-flex;align-items:center;gap:5px;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:13px;letter-spacing:.1em;padding:6px 14px;border-radius:4px;animation:popIn .4s ease both;}
 .res-title-new-label{font-size:9px;background:rgba(255,255,255,.2);padding:1px 5px;border-radius:2px;letter-spacing:.06em;flex-shrink:0;}
@@ -892,9 +891,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .pill{font-size:12px;padding:9px 10px;gap:5px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
   .res-main-row{flex-wrap:nowrap;gap:8px;}
-  .res-side{min-width:104px;}
+  .res-side{min-width:128px;}
   .res-spec-v{padding:5px 8px;}
-  .rsv-val{font-size:21px;}
+  .rsv-val{font-size:25px;}
   #game-top-row2{padding:2px 5px 4px;gap:6px;}
   #action-col{gap:8px;}
   #action-col .pill{padding:10px 10px;gap:5px;}
@@ -1253,7 +1252,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="modal-box name-edit-box" style="padding:28px 28px 0;display:flex;flex-direction:column;max-height:84vh;">
     <button class="modal-close" onclick="closeNameEdit()">✕</button>
     <div class="modal-title" id="name-edit-modal-title">マドリスト名を設定</div>
-    <input id="player-name-input" type="text" maxlength="12" placeholder="名前を入力（最大12文字）"
+    <input id="player-name-input" type="text" maxlength="8" placeholder="名前を入力（最大8文字）"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
     <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:16px;">称号を選んで名前と一緒に表示できます</div>
@@ -1447,7 +1446,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <div class="res-side">
           <div class="res-spec-v"><div class="rsv-label">築年数</div><div class="rsv-val" id="res-age">--<span class="rsv-unit">年</span></div></div>
           <div class="res-spec-v"><div class="rsv-label">駅徒歩</div><div class="rsv-val" id="res-walk">--<span class="rsv-unit">分</span></div></div>
-          <div class="res-spec-v"><div class="rsv-label">家　賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
+          <div class="res-spec-v"><div class="rsv-label">家賃</div><div class="rsv-val" id="res-rent">--<span class="rsv-unit">万円</span></div></div>
           <!-- 家賃の下の空きスペースにハッシュタグ（列は左揃え・段は中央） -->
           <div id="res-hashtags" class="res-hashtags" style="display:none;"></div>
         </div>
@@ -3372,7 +3371,7 @@ function showResult(){
   const setSpec=(id,val,unit,idx)=>{
     const el=document.getElementById(id);
     if(!el)return;
-    el.innerHTML=val+'<span class="rsv-unit">'+unit+'</span>';
+    el.innerHTML='<span class="rsv-num">'+val+'</span><span class="rsv-unit">'+unit+'</span>';
     el.classList.remove('rare','niche','super');
     const v=+val;
     if(!isNaN(v)){
@@ -3494,7 +3493,7 @@ function showResult(){
     const cv=document.createElement('canvas');
     // 右カラム（3項目）が横に並ぶ分だけ確保し、残りはめいっぱい間取り図に使う
     const isPC=window.innerWidth>600;
-    const sideRoom=isPC?80:194;
+    const sideRoom=isPC?80:218;
     const maxW=Math.max(150, Math.min(isPC?300:340, window.innerWidth-sideRoom)), maxH=isPC?252:300;
     const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
     const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
@@ -3642,7 +3641,7 @@ function _shareText(){
   const r=window._lastResult||{};
   const tags=(window._shareTags||(r.titles||[]).slice(0,3)).map(titleToHashtag);
   const titleTags=tags.join(' ');
-  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル #ramune_aiai'+(titleTags?' '+titleTags:'');
+  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'');
 }
 async function saveAndShare(){
   const text=_shareText();
@@ -3709,6 +3708,22 @@ function buildPropertyCard(opt){
   const canUseDom = !!window.html2canvas && onScreen && !opt.snapshot && !opt.titles && opt.name===undefined;
   const card=document.getElementById('res-card');
   if(canUseDom){
+    // 金・紫・虹の数字は html2canvas が描けない（文字の形に切り抜く書き方のため）。
+    // 位置を測っておき、撮った後に同じ色の帯で自分で描く
+    const fancy=[]; let cardW=0;
+    try{
+      const z=parseFloat(getComputedStyle(card.closest('.result-wrap')||card).zoom)||1, k=1/z;
+      const cR=card.getBoundingClientRect(); cardW=cR.width*k;
+      const COL={rare:['#c8860a','#f5c842','#e8a020'],niche:['#7a5fa8','#b9a3d9','#8c6fb5'],
+                 super:['#ff3b3b','#ff9d00','#ffe600','#3bd16f','#3b8bff','#9b3bff']};
+      card.querySelectorAll('.rsv-val.rare .rsv-num,.rsv-val.niche .rsv-num,.rsv-val.super .rsv-num').forEach(el=>{
+        const kind=['super','rare','niche'].find(c=>el.parentElement.classList.contains(c));
+        const rng=document.createRange(); rng.selectNodeContents(el);
+        const r=rng.getBoundingClientRect(), cs=getComputedStyle(el);
+        fancy.push({t:el.textContent, x:(r.left-cR.left)*k, y:(r.top-cR.top)*k, w:r.width*k,
+          fs:parseFloat(cs.fontSize), fw:cs.fontWeight, ff:cs.fontFamily, cols:COL[kind]});
+      });
+    }catch(e){ fancy.length=0; }
     try{
       return html2canvas(card,{
         backgroundColor:'#ffffff',
@@ -3731,14 +3746,27 @@ function buildPropertyCard(opt){
               +'.result-wrap{zoom:1!important;}'
               // 金・紫・虹の文字は「背景を文字の形に切り抜く」書き方で、html2canvas は
               // 切り抜けずに帯として描いてしまう。写すときだけ単色の文字にする
-              +'.rsv-val.rare{background:none!important;-webkit-text-fill-color:#c8900c!important;color:#c8900c!important;}'
-              +'.rsv-val.niche{background:none!important;-webkit-text-fill-color:#7a5fa8!important;color:#7a5fa8!important;}'
-              +'.rsv-val.super{background:none!important;-webkit-text-fill-color:#e0502a!important;color:#e0502a!important;}';
+              +'.rsv-val.rare .rsv-num,.rsv-val.niche .rsv-num,.rsv-val.super .rsv-num{visibility:hidden!important;}';
             doc.head.appendChild(st);
           }catch(e){}
         },
       }).then(cv=>{
         if(!cv||!cv.width) throw new Error('empty canvas');
+        if(fancy.length&&cardW){
+          const sc=cv.width/cardW, ctx=cv.getContext('2d');
+          ctx.setTransform(1,0,0,1,0,0);   // html2canvas は拡大設定を残したまま返す
+          ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+          fancy.forEach(f=>{
+            const px=f.fs*sc; ctx.font=f.fw+' '+px+'px '+f.ff;
+            const x=f.x*sc, w=Math.max(1,f.w*sc);
+            const gr=ctx.createLinearGradient(x,0,x+w,0);
+            f.cols.forEach((c,i)=>gr.addColorStop(f.cols.length>1?i/(f.cols.length-1):0,c));
+            ctx.fillStyle=gr;
+            const m=ctx.measureText(f.t);
+            const asc=(typeof m.fontBoundingBoxAscent==='number')?m.fontBoundingBoxAscent:px*0.88;
+            ctx.fillText(f.t, x, f.y*sc+asc);
+          });
+        }
         return cv;
       }).catch(e=>{ console.warn('[card] 画面からの生成に失敗→旧方式:',e); return buildPropertyCardLegacy(opt); });
     }catch(e){ console.warn('[card] 画面からの生成に失敗→旧方式:',e); }
@@ -3903,7 +3931,7 @@ function buildPropertyCardLegacy(opt){
     const specs=[
       {label:'築年数', val:String(vAge), unit:'年',  idx:0},
       {label:'駅徒歩', val:String(vWalk), unit:'分',  idx:1},
-      {label:'家　賃', val:String(vRent), unit:'万円', idx:2},
+      {label:'家賃', val:String(vRent), unit:'万円', idx:2},
     ];
     const BOXH=92, BGAP=10;
     const rareFill=(kind)=>{
