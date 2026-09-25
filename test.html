@@ -657,11 +657,17 @@ body.no-reroll .reroll-note{display:none!important;}
 .ldk-main{display:inline-flex;align-items:baseline;gap:6px;}
 /* WC・B の上に振るフリガナ */
 .ldk-sub{font-size:.6em;color:#3a2a1a;letter-spacing:.04em;font-weight:700;}
-.ldk-sub ruby{ruby-position:over;}
-.ldk-sub ruby rt{font-family:'Noto Sans JP',sans-serif;font-size:.46em;font-weight:700;color:#8a7060;letter-spacing:.02em;line-height:1;}
-/* ふりがなは放っておくと本体の3LDKより上に出る。
-   rt の中身を包んで下へずらし、本体の頭を上限に収める */
-.ldk-sub ruby rt .rt-in{display:inline-block;transform:translateY(.22em);}
+/* ふりがなは ruby 要素を使わず、普通の文字を上に重ねて作る。
+   ruby は端末ごとに位置の測り方も描き方も違い、シェア画像（html2canvas）で
+   本体とふりがながずれたため */
+.ldk-sub .fg{display:inline-block;position:relative;text-align:center;}
+/* 幅だけを決める見えない行。ふりがなが本体より広い時（おふろ／B）に、
+   左右の文字とくっつかないよう、ふりがなの幅ぶん場所を取る。
+   本体より先に置くので、行のそろえ（ベースライン）は本体の文字で決まる */
+.ldk-sub .fg-w{display:block;height:0;overflow:hidden;visibility:hidden;font-family:'Noto Sans JP',sans-serif;font-size:.46em;font-weight:700;letter-spacing:.02em;white-space:nowrap;}
+.ldk-sub .fg-rt{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);font-family:'Noto Sans JP',sans-serif;font-size:.46em;font-weight:700;color:#8a7060;letter-spacing:.02em;line-height:1;white-space:nowrap;}
+/* 高さは alignHeroRuby が「3LDK」の頭にそろえて決める */
+.ldk-sub .fg-rt .rt-in{display:inline-block;}
 .result-spec-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px;}
 .result-spec-card{background:#fff;border:1px solid rgba(90,74,58,.1);border-radius:10px;padding:10px 6px 8px;text-align:center;}
 .result-spec-label{font-size:10px;letter-spacing:.15em;color:var(--brown-light);margin-bottom:5px;font-weight:500;}
@@ -2834,7 +2840,7 @@ function wbrBoundaries(text){
 function alignHeroRuby(heroEl){
   try{
     const main=heroEl&&heroEl.querySelector('.ldk-main');
-    const rts=heroEl?heroEl.querySelectorAll('ruby rt .rt-in'):[];
+    const rts=heroEl?heroEl.querySelectorAll('.fg-rt .rt-in'):[];
     if(!main||!rts.length)return;
     const cx=alignHeroRuby._cx||(alignHeroRuby._cx=document.createElement('canvas').getContext('2d'));
     const met=(font,txt)=>{
@@ -3415,10 +3421,12 @@ function showResult(){
     const main=ldkMatch?ldkMatch[1]:roomLabel;
     const sub=ldkMatch?ldkMatch[2]:'';
     // WC・B の意味は、隅に凡例を置くのではなく英字の上にフリガナで振る
+    const fg=(base,kana)=>'<span class="fg"><span class="fg-w">'+kana+'</span>'+base
+      +'<span class="fg-rt"><span class="rt-in">'+kana+'</span></span></span>';
     const withRuby=(s)=>s
       .replace(/WC/g,'\u0001')
-      .replace(/B/g,'<ruby>B<rt><span class="rt-in">おふろ</span></rt></ruby>')
-      .replace(/\u0001/g,'<ruby>WC<rt><span class="rt-in">トイレ</span></rt></ruby>');
+      .replace(/B/g,fg('B','おふろ'))
+      .replace(/\u0001/g,fg('WC','トイレ'));
     heroEl.innerHTML='<span class="ldk-main">'+main+
       (sub?`<span class="ldk-sub">${withRuby(sub)}</span>`:'')+'</span>';
     // 横幅に収まるよう本体を自動縮小
@@ -3721,11 +3729,11 @@ function buildPropertyCard(opt){
             st.textContent='*,*::before,*::after{animation:none!important;transition:none!important;}'
               +'.res-card{opacity:1!important;transform:none!important;}'
               +'.result-wrap{zoom:1!important;}'
-              // html2canvas はふりがなが本体より幅広いと、前の文字に本体を重ねてしまう。
-              // 複製の中だけ、ふりがなを本体の真上に浮かせる組み方に変える
-              +'.ldk-sub ruby{display:inline-block;position:relative;margin:0 .2em;}'
-              +'.ldk-sub ruby rt{position:absolute;left:50%;bottom:92%;transform:translateX(-50%);display:block;white-space:nowrap;}'
-              +'.ldk-sub ruby rt .rt-in{transform:none!important;}';
+              // 金・紫・虹の文字は「背景を文字の形に切り抜く」書き方で、html2canvas は
+              // 切り抜けずに帯として描いてしまう。写すときだけ単色の文字にする
+              +'.rsv-val.rare{background:none!important;-webkit-text-fill-color:#c8900c!important;color:#c8900c!important;}'
+              +'.rsv-val.niche{background:none!important;-webkit-text-fill-color:#7a5fa8!important;color:#7a5fa8!important;}'
+              +'.rsv-val.super{background:none!important;-webkit-text-fill-color:#e0502a!important;color:#e0502a!important;}';
             doc.head.appendChild(st);
           }catch(e){}
         },
@@ -4042,10 +4050,10 @@ const SVG_TEX={
 };
 
 const PARTS_DEF=[
-  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:18},
-  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:13},
+  {name:'洋室8畳',   w:3,h:3,color:0xF5E8C8,label:'洋室\n8畳',  type:'youshitsu',weight:19},
+  {name:'和室8畳',   w:3,h:3,color:0xC8D8A0,label:'和室\n8畳',  type:'washitsu', weight:14},
   {name:'廊下',      w:1,h:2,color:0xE8E0D4,label:'廊下',        type:'roka',     weight:22},
-  {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:14},
+  {name:'キッチン',  w:3,h:2,color:0xFFB870,label:'キッチン',    type:'kitchen',  weight:12},
   {name:'トイレ',    w:1,h:2,color:0xD4EEF8,label:'トイレ',      type:'toilet',   weight:11},
   {name:'お風呂',    w:2,h:2,color:0xB8DFF0,label:'お風呂',      type:'bath',     weight:11},
   {name:'バルコニー',w:3,h:1,color:0xFFE566,label:'バルコニー',  type:'balcony',  weight:11},
@@ -4894,14 +4902,20 @@ class PuzzleGame extends Phaser.Scene{
     const newShape=this.getShape(this.currentDef,this.rotation);
     // アンカー（補正前の希望位置）から毎回算出 → 端での押し戻しが累積しない
     if(this._anchorC===undefined){this._anchorC=this.curC;this._anchorR=this.curR;}
-    // 支点は元どおり、アンカー（＝掴んだ時の位置）のまま動かさない。
-    // アンカーを書き換えないので、回し続けても位置が流れていかない
-    let rc=Phaser.Math.Clamp(this._anchorC,0,COLS-newShape[0].length);
-    let rr=Phaser.Math.Clamp(this._anchorR,0,ROWS-newShape.length);
+    // 右上を支点に回す。支点（右端の列・上端の行）は、プレイヤーがパーツを
+    // 動かしたときだけ取り直す。回すたびに取り直すと位置が流れていくため
+    const prevRot=(this.rotation-dir+4)%4;
+    const prevShape=this.getShape(this.currentDef,prevRot);
+    const moved=!this._trAt||this._trAt.c!==this.curC||this._trAt.r!==this.curR||this._trAt.rot!==prevRot;
+    if(moved) this._tr={right:this.curC+prevShape[0].length-1, top:this.curR};
+    let rc=Phaser.Math.Clamp(this._tr.right-newShape[0].length+1,0,COLS-newShape[0].length);
+    let rr=Phaser.Math.Clamp(this._tr.top,0,ROWS-newShape.length);
     // 回した先が土地の外（駐車場や植え込みの角など）に出てしまう時だけ、
     // 置ける場所へ寄せる。アンカーは動かさないので次に回すと元の支点に戻る
     const rs=this._snapIntoLand(newShape,rc,rr);
     this.curC=rs.c; this.curR=rs.r;
+    this._anchorC=this.curC; this._anchorR=this.curR;
+    this._trAt={c:this.curC,r:this.curR,rot:this.rotation};
     if(this._previewActive){
       this.updatePreview(this.curC,this.curR);
     } else {
