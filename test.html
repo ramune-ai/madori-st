@@ -338,17 +338,15 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 /* スロットcanvasの表示サイズをCSSで固定（JSは解像度のみ変更→レイアウト不動） */
 #canvas-current{width:98px;height:98px;}
 #canvas-next1,#canvas-next2{width:54px;height:54px;flex-shrink:0;}
+/* スマホは画面幅に比例させる。段階で切り替えると、390px幅と430px幅の
+   端末で3割も大きさが跳ねていた（393px幅で従来と同じ92px/54px） */
 @media(max-width:599px){
-  #canvas-current{width:122px;height:122px;}
-  #canvas-next1,#canvas-next2{width:72px;height:72px;}
-}
-@media(max-width:419px){
-  #canvas-current{width:92px;height:92px;}
-  #canvas-next1,#canvas-next2{width:54px;height:54px;flex-shrink:0;}
+  #canvas-current{width:clamp(80px, 23.5vw, 122px);height:clamp(80px, 23.5vw, 122px);}
+  #canvas-next1,#canvas-next2{width:clamp(46px, 13.8vw, 72px);height:clamp(46px, 13.8vw, 72px);flex-shrink:0;}
+  /* 段の高さもパーツに合わせて伸ばす（固定だと大きい端末で枠が土地に重なる） */
+  #game-top-row2{height:calc(clamp(80px, 23.5vw, 122px) + 66px);}
 }
 @media(max-width:359px){
-  #canvas-current{width:96px;height:96px;}
-  #canvas-next1,#canvas-next2{width:50px;height:50px;}
   .pill{font-size:12px;padding:9px 12px;}
 }
 
@@ -5572,13 +5570,11 @@ class PuzzleGame extends Phaser.Scene{
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
   _unifiedCellPx(){
     const w=window.innerWidth||400;
-    if(w<420)return 34;
     if(w<600)return 38;
     return 54;   // PCは画面が広いぶん大きく
   }
   _unifiedCellPxSmall(){
     const w=window.innerWidth||400;
-    if(w<420)return 17;
     if(w<600)return 19;
     return 32;
   }
@@ -5776,8 +5772,8 @@ function startPhaserGame(){
   // 起動前にパーツゾーンのcanvasを最終サイズに確定（高さ変動でのズレ防止）
   const presizeSlots=()=>{
     const w=window.innerWidth||400;
-    const bigPx = w<420?34 : w<600?38 : 54;
-    const smallPx = w<420?17 : w<600?19 : 32;
+    const bigPx = w<600?38 : 54;
+    const smallPx = w<600?19 : 32;
     const PAD=8;
     const BIG=3*bigPx+PAD, SMALL=3*smallPx+PAD;
     const set=(id,sz)=>{
