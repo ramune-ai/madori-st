@@ -3510,6 +3510,8 @@ function showResult(){
   };
   // 履歴に自動保存（最新30件・お気に入りは残す）
   autoSaveToHistory();
+  // シェア画像を先に作っておく（押した瞬間に共有シートを開くため）
+  prepareShareImage();
   // お気に入りボタンの状態を反映
   refreshFavButton();
 }
@@ -3611,19 +3613,52 @@ function toggleResultFav(){
 // ════════════════════════════════════════
 // 保存＆シェア：完成画面のカード部分を画像化
 // ════════════════════════════════════════
-async function saveAndShare(){
-  if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
-  const cv=await buildPropertyCard();
+// シェア画像は結果画面が落ち着いたら先に作っておく。
+// ボタンを押してから作ると、その待ち時間のせいで iPhone が
+// 「押した直後の操作」と見なさず、共有シートを開いてくれないため
+let _shareFile=null, _shareCanvas=null, _sharePrepTimer=null;
+function prepareShareImage(){
+  _shareFile=null; _shareCanvas=null;
+  if(_sharePrepTimer)clearTimeout(_sharePrepTimer);
+  _sharePrepTimer=setTimeout(async()=>{
+    try{
+      if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
+      const cv=await buildPropertyCard();
+      if(!cv)return;
+      _shareCanvas=cv;
+      cv.toBlob(b=>{ if(b)_shareFile=new File([b],'madori.png',{type:'image/png'}); },'image/png');
+    }catch(e){}
+  },800);
+}
+function _shareText(){
   const r=window._lastResult||{};
   const tags=(window._shareTags||(r.titles||[]).slice(0,3)).map(titleToHashtag);
-  // シェア文面：固定文＋間取り＋固定タグ＋称号タグ
   const titleTags=tags.join(' ');
-  const text='間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル #ramune_aiai'+(titleTags?' '+titleTags:'');
+  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル #ramune_aiai'+(titleTags?' '+titleTags:'');
+}
+async function saveAndShare(){
+  const text=_shareText();
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
-  // ダウンロード処理
-  const doDownload=()=>{
+  // 画像が出来ていれば、何も待たずにすぐ共有シートを開く（iPhone対策）
+  if(isMobile && _shareFile && navigator.canShare && navigator.share){
+    let ok=false; try{ ok=navigator.canShare({files:[_shareFile]}); }catch(e){}
+    if(ok){
+      try{ await navigator.share({files:[_shareFile], text}); return; }
+      catch(e){ if(e&&e.name==='AbortError')return; }
+    }
+  }
+
+  // まだ出来ていない・共有に対応していない時はここで作る
+  if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
+  const cv=_shareCanvas||await buildPropertyCard();
+  const copyText=async()=>{
+    if(navigator.clipboard&&navigator.clipboard.writeText){ try{ await navigator.clipboard.writeText(text); }catch(e){} }
+  };
+
+  if(!isMobile){
+    // PC：画像を保存して、シェア文面をコピー
     cv.toBlob((blob)=>{
       if(!blob){ showGameToast('画像の作成に失敗しました'); return; }
       const url=URL.createObjectURL(blob);
@@ -3632,33 +3667,18 @@ async function saveAndShare(){
       document.body.appendChild(a); a.click();
       setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
     },'image/png');
-  };
-
-  if(!isMobile){
-    // PC：シェア文面をコピー（通知1つだけ）。画像は別途ダウンロードもしておく
-    doDownload();
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      try{ await navigator.clipboard.writeText(text); }catch(e){}
-    }
-    showGameToast('シェア文面をコピーしました📋');
+    await copyText();
+    showGameToast('画像を保存＆文面をコピーしました📋');
     return;
   }
-  // モバイル：共有シート（画像＋文面）。失敗時はダウンロード＋文面コピー
-  cv.toBlob(async(blob)=>{
-    if(!blob){ doDownload(); return; }
-    const file=new File([blob],'madori.png',{type:'image/png'});
-    if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
-      try{ await navigator.share({files:[file], text}); return; }
-      catch(e){ if(e&&e.name==='AbortError')return; }
-    }
-    // 共有不可：ダウンロード＋文面コピー
-    doDownload();
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      try{ await navigator.clipboard.writeText(text); }catch(e){}
-    }
-    showGameToast('画像を保存＆文面をコピーしました📋');
-  },'image/png');
+
+  // スマホで共有シートが使えなかった時：画像を大きく出して長押しで保存してもらう
+  // （iPhone は「ダウンロード」リンクが効かないため）
+  await copyText();
+  showImageZoom(cv.toDataURL('image/png'));
+  showGameToast('画像を長押しで保存できます（文面はコピー済み📋）');
 }
+
 
 // ════════════════════════════════════════
 // 物件広告カード（縦長チラシ風）— 画像書き出し＆SNS共有
@@ -3673,9 +3693,12 @@ function titleToHashtag(t){
 // 過去の履歴カードを作り直す時（opt.snapshot あり）だけは、画面に無いので旧方式を使う
 function buildPropertyCard(opt){
   opt=opt||{};
-  // ※ html2canvas で画面をそのまま写す方式を試したが、複製側で位置が合わず
-  //   真っ白な画像になったため保留。原因が分かるまでは従来方式で作る
-  const canUseDom = false;
+  // 画面に見えているカードをそのまま写す（シェア画像＝画面と同じ見た目にするため）。
+  // 以前真っ白になったのは、カードの「ふわっと出る」アニメーションが複製側で
+  // 最初のコマ（透明）から再生し直されていたため。複製の中では動きを全部止める。
+  // 過去の物件を作り直す時（画面に無いカード）は旧方式を使う
+  const onScreen=document.getElementById('screen-result').classList.contains('active');
+  const canUseDom = !!window.html2canvas && onScreen && !opt.snapshot && !opt.titles && opt.name===undefined;
   const card=document.getElementById('res-card');
   if(canUseDom){
     try{
@@ -3693,6 +3716,17 @@ function buildPropertyCard(opt){
             if(s)s.style.cssText+=';display:flex!important;height:auto!important;overflow:visible!important;';
             const bg=doc.getElementById('madori-bg');
             if(bg)bg.style.display='none';
+            // アニメーションを止めて、最後のコマ（不透明・等倍）で写す
+            const st=doc.createElement('style');
+            st.textContent='*,*::before,*::after{animation:none!important;transition:none!important;}'
+              +'.res-card{opacity:1!important;transform:none!important;}'
+              +'.result-wrap{zoom:1!important;}'
+              // html2canvas はふりがなが本体より幅広いと、前の文字に本体を重ねてしまう。
+              // 複製の中だけ、ふりがなを本体の真上に浮かせる組み方に変える
+              +'.ldk-sub ruby{display:inline-block;position:relative;margin:0 .2em;}'
+              +'.ldk-sub ruby rt{position:absolute;left:50%;bottom:92%;transform:translateX(-50%);display:block;white-space:nowrap;}'
+              +'.ldk-sub ruby rt .rt-in{transform:none!important;}';
+            doc.head.appendChild(st);
           }catch(e){}
         },
       }).then(cv=>{
