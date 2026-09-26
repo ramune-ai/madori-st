@@ -1045,9 +1045,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
        左右の合計幅が等しいので、全体を中央寄せすると土地も画面中央に来る */
     /* --pcs はフルHDを1とした画面の大きさの倍率（applyPcScale が決める）。
        左右の列も同じ倍率で広げ、中身は zoom で拡大する */
-    grid-template-columns:calc(144px * var(--pcs,1)) calc(144px * var(--pcs,1)) var(--board-w, 480px) calc(296px * var(--pcs,1));
+    grid-template-columns:calc(296px * var(--pcs,1)) var(--board-w, 480px) calc(296px * var(--pcs,1));
     grid-template-rows:auto auto auto auto 1fr auto auto auto;
-    column-gap:calc(8px * var(--pcs,1));justify-content:center;
+    column-gap:calc(10px * var(--pcs,1));justify-content:center;
     padding:14px 12px 6px;
     align-items:start;justify-items:center;
   }
@@ -1057,38 +1057,39 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #madori-label,#btn-skip,#btn-rotate,#current-piece-wrap,#next-col,
   #game-menu-wrap,#btn-undo,#btn-complete,#pc-ctrl-hint{zoom:var(--pcs,1);}
   /* ── A（中央）：現在の間取り＋土地。どちらも画面の中央に置く ── */
-  #madori-label{grid-column:3;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
+  #madori-label{grid-column:2;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
   .ml-cap{font-size:18px;letter-spacing:.2em;}
   .ml-value{font-size:44px;height:54px;}
   /* align-items:start のままだと高さが付かず盤が作られないので、ここだけ伸ばす */
-  #game-container{grid-column:3;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
+  #game-container{grid-column:2;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
   /* ── B（左）：戻す/回転 → 今のパーツ → このあと。上端は土地の上端にそろえる ── */
   /* 戻す・回転の上端が土地の上端より高くならないよう少し下げる */
-  #btn-skip{grid-column:1;grid-row:2;margin-top:calc(var(--board-top-gap,0px) / var(--pcs,1));}
-  #btn-rotate{grid-column:2;grid-row:2;margin-top:calc(var(--board-top-gap,0px) / var(--pcs,1));}
-  #current-piece-wrap{grid-column:1 / 3;grid-row:3;height:auto;width:296px;box-sizing:border-box;margin:16px 0 0;padding:10px 12px 14px;}
-  #current-piece-wrap .piece-label{font-size:16px;height:22px;}
-  #next-col{grid-column:1 / 3;grid-row:4;height:auto;width:296px;box-sizing:border-box;margin-top:16px;padding:8px 10px 10px;}
-  .next-cap{font-size:16px;height:22px;}
-  .next-sublabel{font-size:15px;width:1.3em;}
-  #canvas-current{width:172px;height:172px;}
-  #canvas-next1,#canvas-next2{width:104px;height:104px;}
+  /* 左の列は「今のパーツ」と「このあと」を土地の高さいっぱいに並べる。
+     --board-h（土地の高さ）は refitBoard が測る。zoom 分は割り戻す */
+  #current-piece-wrap,#next-col{--lh:calc(var(--board-h, 600px) / var(--pcs,1));}
+  #current-piece-wrap{grid-column:1;grid-row:2 / 8;align-self:start;width:296px;box-sizing:border-box;
+    height:calc(var(--lh) * .5);justify-content:center;gap:10px;
+    margin:calc(var(--board-top-gap,0px) / var(--pcs,1)) 0 0;padding:10px 12px 14px;}
+  #next-col{grid-column:1;grid-row:2 / 8;align-self:end;width:296px;box-sizing:border-box;
+    height:calc(var(--lh) * .5 - 16px);justify-content:space-evenly;
+    margin-bottom:calc(var(--board-bot-gap,0px) / var(--pcs,1));padding:8px 10px 10px;}
   /* ── C（右）：ゲーム名とメニュー（上）／スキップ・完成（下） ── */
-  #game-menu-wrap{position:static;grid-column:4;grid-row:1 / 5;width:296px;text-align:center;}
-  #pc-game-logo{font-size:32px;}
-  #pc-game-logo span{font-size:15px;}
+  #game-menu-wrap{position:static;grid-column:3;grid-row:1 / 5;width:296px;text-align:center;}
+  #pc-game-logo{font-size:44px;}
+  #pc-game-logo span{font-size:19px;margin-top:4px;}
   #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
   /* 完成の下端が土地の下端より下がらないようにする */
   /* 戻す（上）と完成（下）。下端を土地の下端にそろえ、行を増やさずに重ねる */
-  #btn-complete{grid-column:4;grid-row:2 / 8;align-self:end;
-    margin-bottom:calc(var(--board-bot-gap,0px) / var(--pcs,1));}
-  #btn-undo{grid-column:4;grid-row:2 / 8;align-self:end;
-    margin-bottom:calc(var(--board-bot-gap, 0px) / var(--pcs,1) + 80px);}
+  /* 上から スキップ・回転・戻す・完成。下端を土地の下端にそろえて積む */
+  #btn-skip,#btn-rotate,#btn-undo,#btn-complete{grid-column:3;grid-row:2 / 8;align-self:end;}
+  #btn-complete{margin-bottom:calc(var(--board-bot-gap,0px) / var(--pcs,1));}
+  #btn-undo{margin-bottom:calc(var(--board-bot-gap, 0px) / var(--pcs,1) + 80px);}
+  #btn-rotate{margin-bottom:calc(var(--board-bot-gap, 0px) / var(--pcs,1) + 160px);}
+  #btn-skip{margin-bottom:calc(var(--board-bot-gap, 0px) / var(--pcs,1) + 240px);}
   /* 4つのボタンは大きさをそろえる */
   #btn-skip,#btn-rotate,#btn-undo,#btn-complete{
-    width:144px;box-sizing:border-box;justify-content:center;
+    width:296px;box-sizing:border-box;justify-content:center;
     height:66px;padding:0 10px;font-size:18px;gap:9px;border-radius:999px;}
-  #btn-undo,#btn-complete{width:296px;}
   #btn-skip .pill-ico svg,#btn-complete .pill-ico svg{width:22px;height:22px;}
   #btn-undo .bigbtn-ico svg,#btn-rotate .bigbtn-ico svg{width:26px;height:26px;}
   #game-menu-btn{display:none;}
@@ -1098,7 +1099,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     background:transparent;border:none;box-shadow:none;padding:0;margin-top:10px;
   }
   #game-menu button{
-    padding:9px 10px;font-size:15px;border-radius:8px;text-align:center;
+    padding:11px 10px;font-size:21px;border-radius:8px;text-align:center;
     color:var(--brown-dark);
   }
   /* お知らせは土地に重ねず、現在の間取りとのすき間に出す */
@@ -1117,11 +1118,15 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #screen-game.is-loading #current-piece-wrap,
   #screen-game.is-loading #next-col,
   #screen-game.is-loading #pc-ctrl-hint{opacity:0;transition:opacity .28s ease;}
-  #canvas-current{width:140px;height:140px;}
-  #canvas-next1,#canvas-next2{width:83px;height:83px;}
-  .next-cap{font-size:14px;height:19px;}
-  .next-sublabel{font-size:13px;}
-  #current-piece-wrap .piece-label{font-size:14px;height:19px;}
+  /* パーツの絵は枠に入るいっぱいの大きさ（幅は 296px の枠に収まる上限） */
+  #canvas-current{margin:0;--cs:min(250px, calc(var(--lh) * .5 - 72px));width:var(--cs);height:var(--cs);}
+  #canvas-next1,#canvas-next2{--ns:min(170px, calc((var(--lh) * .5 - 16px - 86px) / 2));width:var(--ns);height:var(--ns);}
+  .next-cap{font-size:17px;height:22px;}
+  .next-sublabel{font-size:15px;width:1.3em;}
+  .next-row{gap:8px;padding:4px 10px;}
+  #current-piece-wrap .piece-label{font-size:17px;height:22px;}
+  /* 完成の確認は画面が広いぶん大きく */
+  .cf-card{zoom:calc(1.6 * var(--pcs,1));}
   /* 完成・スキップが小さかったので枠の高さを約1.7倍に */
   /* 下部バー：操作の説明を1行足す */
   /* 盤の高さを稼ぐため、上下バーの余白はできるだけ詰める */
@@ -1154,7 +1159,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #screen-titles{justify-content:flex-start;padding-top:clamp(40px, calc((100vh - 940px)/2), 80px);}
   /* 結果は中身が高い。中央寄せだと溢れた時に上が切れて戻れないので、
      上の余白で中央に寄せる（溢れてもスクロールで全部見られる） */
-  #screen-result{justify-content:flex-start;padding-top:clamp(12px, calc((100vh - 900px * var(--pcs,1))/2), 120px);}
+  /* 結果は fitResultPc() が画面の高さいっぱいになる倍率を決める */
+  #screen-result{justify-content:flex-start;padding-top:14px;padding-bottom:14px;}
+  .result-wrap{padding-bottom:0;}
   /* ガチャ：画面が広いぶん大きく */
   .roulette-title{font-size:26px;margin-bottom:34px;}
   .roulette-item-wrap{width:420px;height:148px;margin-bottom:46px;}
@@ -1170,6 +1177,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .title-new-item,.title-owned-chip.is-reveal{padding:14px 24px;}
   /* 結果：中の文字までまとめて拡大する（幅だけ広げても字が小さいままのため） */
   .result-wrap{zoom:calc(1.25 * var(--pcs,1));}
+  .result-wrap.pc-fit{zoom:var(--res-z);}
   /* マイ物件ファイルなどの枠自体をPCでは大きく */
   .modal-box{max-width:720px;padding:24px 26px 26px;}
   .modal-title{font-size:24px;}
@@ -1223,7 +1231,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .start-flyer{scale:var(--pcs,1);
     top:calc(env(safe-area-inset-top, 0px) + 58px * var(--pcs,1));
     right:max(17px, calc(50% - 310px * var(--pcs,1) + 106px * (var(--pcs,1) - 1)));}
-  #btn-rou-next,#title-next-btn{scale:var(--pcs,1);transform-origin:bottom center;}
+  /* scale プロパティだと translateX(-50%) より先に効いて左にずれるので、transform の中で拡大する */
+  #btn-rou-next,#title-next-btn{transform:translateX(-50%) scale(var(--pcs,1));transform-origin:bottom center;}
+  #btn-rou-next:active,#title-next-btn:active{transform:translateX(-50%) scale(calc(.96 * var(--pcs,1)));}
   /* マイ物件・称号一覧などのウィンドウ */
   .modal-box{zoom:var(--pcs,1);max-height:calc((100dvh - 90px) / var(--pcs,1));}
 }
@@ -1447,13 +1457,13 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="titles-owned-label-sm">所 持 称 号</div>
       <div class="titles-owned-chips" id="titles-owned-chips"></div>
     </div>
+  </div>
     <button id="title-next-btn" onclick="gotoResult()" style="
       margin-top:36px;background:var(--brown-dark);color:#f5f0e8;
       font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.2em;
       padding:16px 48px;border:none;border-radius:4px;cursor:pointer;
       opacity:0;transition:opacity .4s;pointer-events:none;
     ">物 件 完 成 →</button>
-  </div>
 </div>
 
 <!-- ⑤ 結果画面（賃貸広告風） -->
@@ -3424,6 +3434,23 @@ function madoriLabelHTML(counts){
   const sub=(wc>0?`+${wc}WC`:dim('+0WC'))+(bath>0?`+${bath}B`:dim('+0B'));
   return main+`<span class="ml-sub">${sub}</span>`;
 }
+// PC：結果画面を画面の高さいっぱいに拡大する（下に空白が残らないように）
+function fitResultPc(){
+  const wrap=document.querySelector('.result-wrap'), scr=document.getElementById('screen-result');
+  if(!wrap||!scr)return;
+  if((window.innerWidth||400)<600){ wrap.classList.remove('pc-fit'); return; }
+  if(!scr.classList.contains('active'))return;
+  wrap.classList.add('pc-fit');
+  wrap.style.setProperty('--res-z','1');
+  const h=wrap.offsetHeight, w=wrap.offsetWidth;
+  if(!h||!w)return;
+  const cs=getComputedStyle(scr);
+  const availH=scr.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-4;
+  const availW=scr.clientWidth-40;
+  const z=Math.max(.8,Math.min(availH/h, availW/w, 3));
+  wrap.style.setProperty('--res-z',z.toFixed(3));
+}
+window.addEventListener('resize',()=>{ clearTimeout(window._resFitT); window._resFitT=setTimeout(fitResultPc,120); });
 function showResult(){
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
@@ -3508,7 +3535,7 @@ function showResult(){
   const picked=[
     ...allEarned.filter(t=>newTitles.includes(t.title)),
     ...allEarned.filter(t=>!newTitles.includes(t.title)),
-  ].slice(0,2).map(t=>t.title); // タグは最大2つ（1段に収める）
+  ].slice(0,1).map(t=>t.title); // タグは1つだけ（シェア文面にURLを入れるぶん短く）
   window._shareTags=picked; // カード画像・シェア文面と共通
   const tagWrap=document.getElementById('res-hashtags');
   if(tagWrap){
@@ -3580,6 +3607,7 @@ function showResult(){
   autoSaveToHistory();
   // シェア画像を先に作っておく（押した瞬間に共有シートを開くため）
   prepareShareImage();
+  fitResultPc(); setTimeout(fitResultPc,120); setTimeout(fitResultPc,600);
   // お気に入りボタンの状態を反映
   refreshFavButton();
 }
@@ -3700,9 +3728,9 @@ function prepareShareImage(){
 }
 function _shareText(){
   const r=window._lastResult||{};
-  const tags=(window._shareTags||(r.titles||[]).slice(0,3)).map(titleToHashtag);
+  const tags=(window._shareTags||(r.titles||[]).slice(0,1)).map(titleToHashtag);
   const titleTags=tags.join(' ');
-  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'');
+  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'')+'\nhttps://ramune-ai.github.io/madori-st/';
 }
 async function saveAndShare(){
   const text=_shareText();
@@ -3844,7 +3872,7 @@ function buildPropertyCardLegacy(opt){
     // 称号タグ：opt指定 > シェア用選抜 > 獲得称号（文字列/オブジェクト両対応）
     const _titleNames=(arr)=>(arr||[]).map(t=>typeof t==='string'?t:(t&&t.title)||'').filter(Boolean);
     const earned=opt.titles?_titleNames(opt.titles):_titleNames(window._earnedTitles);
-    const tags=(opt.titles?earned.slice(0,3):(window._shareTags||earned.slice(0,3))).map(titleToHashtag);
+    const tags=(opt.titles?earned.slice(0,3):(window._shareTags||earned.slice(0,1))).map(titleToHashtag);
     const newTagSet=new Set((opt.titles?[]:(window._newTitles||[])).map(titleToHashtag));
     let pop=(opt.titles?'':(((window._earnedTitles||[])[0]||{}).pop||''));
     if(opt.titles&&earned[0]){
@@ -4610,7 +4638,7 @@ class PuzzleGame extends Phaser.Scene{
       const cp=this._unifiedCellPx();
       const PAD=8;
       const BOX=3*cp+PAD;
-      const _dDpr=Math.min(3,window.devicePixelRatio||1);
+      const _dDpr=Math.min(3,window.devicePixelRatio||1)*((window.innerWidth||400)>=600?2.2*(window._pcScale||1):1);
       cc.width=Math.round(BOX*_dDpr); cc.height=Math.round(BOX*_dDpr);
       const sh=this.getShape(this.currentDef,this.rotation);
       const sw=sh[0].length,sr=sh.length;
@@ -5567,7 +5595,8 @@ class PuzzleGame extends Phaser.Scene{
       {def:this.queue[1], canvasId:'canvas-next2', box:SMALL_BOX, px:smallPx},
       {def:this.queue[0], canvasId:'canvas-next1', box:SMALL_BOX, px:smallPx},
     ];
-    const _slotDpr=Math.min(3,window.devicePixelRatio||1);
+    // PCは枠を大きく見せるので、そのぶん細かく描いてぼやけを防ぐ
+    const _slotDpr=Math.min(3,window.devicePixelRatio||1)*((window.innerWidth||400)>=600?2.2*(window._pcScale||1):1);
     for(const {def,canvasId,box,px} of slots){
       const cv=document.getElementById(canvasId);
       if(!cv)continue;
@@ -6039,6 +6068,7 @@ function refitBoard(){
     // 左右の列を土地の上端・下端にそろえるための余白（PCレイアウトで使う）
     const cr=container.getBoundingClientRect();
     document.documentElement.style.setProperty('--board-top-gap',Math.max(0,Math.round(rc.top-cr.top))+'px');
+    document.documentElement.style.setProperty('--board-h',Math.round(rc.height)+'px');
     document.documentElement.style.setProperty('--board-bot-gap',Math.max(0,Math.round(cr.bottom-rc.bottom))+'px');
     // お知らせ（トースト・遊び方ヒント）は、現在の間取りと土地の間のすき間に置く
     const ml=document.getElementById('madori-label');
