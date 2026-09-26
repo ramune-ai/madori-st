@@ -1043,14 +1043,19 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     display:grid;
     /* 中央の列を土地の幅ぴったりにして、左右の列を土地にくっつける。
        左右の合計幅が等しいので、全体を中央寄せすると土地も画面中央に来る */
-    grid-template-columns:144px 144px var(--board-w, 480px) 296px;
+    /* --pcs はフルHDを1とした画面の大きさの倍率（applyPcScale が決める）。
+       左右の列も同じ倍率で広げ、中身は zoom で拡大する */
+    grid-template-columns:calc(144px * var(--pcs,1)) calc(144px * var(--pcs,1)) var(--board-w, 480px) calc(296px * var(--pcs,1));
     grid-template-rows:auto auto auto auto 1fr auto auto auto;
-    column-gap:8px;justify-content:center;
+    column-gap:calc(8px * var(--pcs,1));justify-content:center;
     padding:14px 12px 6px;
     align-items:start;justify-items:center;
   }
   #game-top-bar,#game-top-row1,#game-top-row2,
   #game-bottom-bar,#game-bottom-row,#action-col{display:contents;}
+  /* 盤以外は画面の大きさに合わせて丸ごと拡大縮小（フルHDで等倍） */
+  #madori-label,#btn-skip,#btn-rotate,#current-piece-wrap,#next-col,
+  #game-menu-wrap,#btn-undo,#btn-complete,#pc-ctrl-hint{zoom:var(--pcs,1);}
   /* ── A（中央）：現在の間取り＋土地。どちらも画面の中央に置く ── */
   #madori-label{grid-column:3;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
   .ml-cap{font-size:18px;letter-spacing:.2em;}
@@ -1059,30 +1064,31 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #game-container{grid-column:3;grid-row:2 / 8;align-self:stretch;justify-self:stretch;min-height:0;}
   /* ── B（左）：戻す/回転 → 今のパーツ → このあと。上端は土地の上端にそろえる ── */
   /* 戻す・回転の上端が土地の上端より高くならないよう少し下げる */
-  #btn-skip{grid-column:1;grid-row:2;margin-top:var(--board-top-gap,0px);}
-  #btn-rotate{grid-column:2;grid-row:2;margin-top:var(--board-top-gap,0px);}
-  #current-piece-wrap{grid-column:1 / 3;grid-row:3;height:auto;width:100%;margin:16px 0 0;padding:10px 12px 14px;}
+  #btn-skip{grid-column:1;grid-row:2;margin-top:calc(var(--board-top-gap,0px) / var(--pcs,1));}
+  #btn-rotate{grid-column:2;grid-row:2;margin-top:calc(var(--board-top-gap,0px) / var(--pcs,1));}
+  #current-piece-wrap{grid-column:1 / 3;grid-row:3;height:auto;width:296px;box-sizing:border-box;margin:16px 0 0;padding:10px 12px 14px;}
   #current-piece-wrap .piece-label{font-size:16px;height:22px;}
-  #next-col{grid-column:1 / 3;grid-row:4;height:auto;width:100%;margin-top:16px;padding:8px 10px 10px;}
+  #next-col{grid-column:1 / 3;grid-row:4;height:auto;width:296px;box-sizing:border-box;margin-top:16px;padding:8px 10px 10px;}
   .next-cap{font-size:16px;height:22px;}
   .next-sublabel{font-size:15px;width:1.3em;}
   #canvas-current{width:172px;height:172px;}
   #canvas-next1,#canvas-next2{width:104px;height:104px;}
   /* ── C（右）：ゲーム名とメニュー（上）／スキップ・完成（下） ── */
-  #game-menu-wrap{position:static;grid-column:4;grid-row:1 / 5;justify-self:stretch;text-align:center;}
+  #game-menu-wrap{position:static;grid-column:4;grid-row:1 / 5;width:296px;text-align:center;}
   #pc-game-logo{font-size:32px;}
   #pc-game-logo span{font-size:15px;}
   #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
   /* 完成の下端が土地の下端より下がらないようにする */
   /* 戻す（上）と完成（下）。下端を土地の下端にそろえ、行を増やさずに重ねる */
   #btn-complete{grid-column:4;grid-row:2 / 8;align-self:end;
-    margin-bottom:var(--board-bot-gap,0px);}
+    margin-bottom:calc(var(--board-bot-gap,0px) / var(--pcs,1));}
   #btn-undo{grid-column:4;grid-row:2 / 8;align-self:end;
-    margin-bottom:calc(var(--board-bot-gap, 0px) + 80px);}
+    margin-bottom:calc(var(--board-bot-gap, 0px) / var(--pcs,1) + 80px);}
   /* 4つのボタンは大きさをそろえる */
   #btn-skip,#btn-rotate,#btn-undo,#btn-complete{
-    width:100%;box-sizing:border-box;justify-content:center;
+    width:144px;box-sizing:border-box;justify-content:center;
     height:66px;padding:0 10px;font-size:18px;gap:9px;border-radius:999px;}
+  #btn-undo,#btn-complete{width:296px;}
   #btn-skip .pill-ico svg,#btn-complete .pill-ico svg{width:22px;height:22px;}
   #btn-undo .bigbtn-ico svg,#btn-rotate .bigbtn-ico svg{width:26px;height:26px;}
   #game-menu-btn{display:none;}
@@ -1097,8 +1103,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   }
   /* お知らせは土地に重ねず、現在の間取りとのすき間に出す */
   #game-toast,.tut-hint{top:var(--msg-top-pc, var(--msg-top, 34%));}
-  #game-toast{font-size:20px;padding:16px 32px;border-radius:34px;}
-  .tut-text{font-size:20px;padding:16px 32px;border-radius:34px;}
+  #game-toast,.tut-text{font-size:calc(20px * var(--pcs,1));padding:calc(16px * var(--pcs,1)) calc(32px * var(--pcs,1));border-radius:999px;}
   /* 最下段：操作の説明 */
   #pc-ctrl-hint{grid-column:1 / -1;grid-row:8;padding:10px 0 4px;}
   /* 上下バーは display:contents で箱を持たないため opacity が効かない。
@@ -1149,7 +1154,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #screen-titles{justify-content:flex-start;padding-top:clamp(40px, calc((100vh - 940px)/2), 80px);}
   /* 結果は中身が高い。中央寄せだと溢れた時に上が切れて戻れないので、
      上の余白で中央に寄せる（溢れてもスクロールで全部見られる） */
-  #screen-result{justify-content:flex-start;padding-top:clamp(12px, calc((100vh - 900px)/2), 90px);}
+  #screen-result{justify-content:flex-start;padding-top:clamp(12px, calc((100vh - 900px * var(--pcs,1))/2), 120px);}
   /* ガチャ：画面が広いぶん大きく */
   .roulette-title{font-size:26px;margin-bottom:34px;}
   .roulette-item-wrap{width:420px;height:148px;margin-bottom:46px;}
@@ -1164,7 +1169,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .title-reveal-cond{font-size:16px;}
   .title-new-item,.title-owned-chip.is-reveal{padding:14px 24px;}
   /* 結果：中の文字までまとめて拡大する（幅だけ広げても字が小さいままのため） */
-  .result-wrap{zoom:1.25;}
+  .result-wrap{zoom:calc(1.25 * var(--pcs,1));}
   /* マイ物件ファイルなどの枠自体をPCでは大きく */
   .modal-box{max-width:720px;padding:24px 26px 26px;}
   .modal-title{font-size:24px;}
@@ -1203,6 +1208,25 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .dev-btn:active{background:rgba(200,160,96,.2);}
 .dev-wide{width:100%;}
 .dev-note{font-size:10px;color:var(--brown-light);line-height:1.5;margin-top:8px;}
+
+/* ── PC：ゲーム画面以外も画面の大きさに合わせて拡大縮小（フルHDで等倍） ── */
+@media(min-width:600px){
+  /* 流れに乗っている中身は zoom でそのまま拡大 */
+  #screen-start .logo-wrap,#screen-start .btn-start,#screen-start .start-sub-btns,
+  #screen-roulette .roulette-title,#screen-roulette .roulette-item-wrap,
+  .titles-wrap{zoom:var(--pcs,1);}
+  /* 位置を決め打ちしている要素は、置き場所はそのままに見た目だけ拡大する
+     （zoom だと位置の数値まで倍率がかかってずれるため scale を使う） */
+  .start-toplinks-left{scale:var(--pcs,1);transform-origin:top left;
+    top:calc(env(safe-area-inset-top, 0px) + 12px * var(--pcs,1));
+    left:max(12px, calc(50% - 340px * var(--pcs,1)));}
+  .start-flyer{scale:var(--pcs,1);
+    top:calc(env(safe-area-inset-top, 0px) + 58px * var(--pcs,1));
+    right:max(17px, calc(50% - 310px * var(--pcs,1) + 106px * (var(--pcs,1) - 1)));}
+  #btn-rou-next,#title-next-btn{scale:var(--pcs,1);transform-origin:bottom center;}
+  /* マイ物件・称号一覧などのウィンドウ */
+  .modal-box{zoom:var(--pcs,1);max-height:calc((100dvh - 90px) / var(--pcs,1));}
+}
 
 </style>
 </head>
@@ -5937,7 +5961,7 @@ function startPhaserGame(){
     const isMobile=(window.innerWidth||400)<600;
     const MARGIN=isMobile?0.96:0.98;
     // PCでは 1.0 で頭打ちにすると盤が実寸のままで小さく見えるので上限を上げる
-    const MAXZOOM=isMobile?1.0:1.12;
+    const MAXZOOM=isMobile?1.0:1.12*(window._pcScale||1);
     const scaleRatio=Math.min((cW*MARGIN)/CANVAS_W, (cH*MARGIN)/CANVAS_H, MAXZOOM);
     window._gameScaleRatio=scaleRatio;
     console.log('[Phaser起動] cH:'+cH+' cW:'+cW+' scale:'+scaleRatio.toFixed(3)+' dpr:'+dpr);
@@ -5975,6 +5999,21 @@ function startPhaserGame(){
 // 盤の表示サイズを、今の余白に合わせて測り直す。
 // ※Phaser内部のzoomは触らず、canvasの見た目サイズ（CSS）だけを変える。
 //   内部を触ると描画崩れ（黒枠）やタップ座標のずれが起きるため。
+// PCの画面の大きさの倍率。フルHD（ブラウザの表示領域 約1905×915）を1として、
+// WQHD などの大きい画面では全体を同じ比率で拡大し、小さいノートPCでは縮める。
+// 高さと幅の小さい方に合わせる（どちらかがはみ出さないように）
+function applyPcScale(){
+  const w=window.innerWidth||1905, h=window.innerHeight||915;
+  const sc=(w>=600)?Math.max(0.7,Math.min(2.2,Math.min(h/915,w/1905))):1;
+  window._pcScale=sc;
+  document.documentElement.style.setProperty('--pcs',sc.toFixed(3));
+}
+applyPcScale();
+window.addEventListener('resize',()=>{
+  applyPcScale();
+  clearTimeout(window._pcScaleTimer);
+  window._pcScaleTimer=setTimeout(()=>{ try{ refitBoard(); }catch(e){} },120);
+});
 function refitBoard(){
   // 直前のレイアウト変更を反映させてから測る
   const container=document.getElementById('game-container');
@@ -5984,9 +6023,9 @@ function refitBoard(){
   if(!cH||!cW)return;
   const isMobile=(window.innerWidth||400)<600;
   const MARGIN=isMobile?0.96:0.98;
-  const hRatio=Math.min((cH*MARGIN)/CANVAS_H, isMobile?1.0:1.12);
+  const hRatio=Math.min((cH*MARGIN)/CANVAS_H, isMobile?1.0:1.12*(window._pcScale||1));
   try{ document.documentElement.style.setProperty('--board-w',(Math.round(CANVAS_W*hRatio)+14)+'px'); }catch(e){}
-  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,isMobile?1.0:1.12);
+  const ratio=Math.min((cW*MARGIN)/CANVAS_W,(cH*MARGIN)/CANVAS_H,isMobile?1.0:1.12*(window._pcScale||1));
   window._gameScaleRatio=ratio;
   canvas.style.width =Math.round(CANVAS_W*ratio)+'px';
   canvas.style.height=Math.round(CANVAS_H*ratio)+'px';
