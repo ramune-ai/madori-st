@@ -5482,7 +5482,19 @@ class PuzzleGame extends Phaser.Scene{
     if(done){
       // 完成後も消さない。場所が空くと画面が動いて分かりにくくなるため
       done.style.display='';
-      done.classList.toggle('is-locked',!fin&&this.partCount<5);
+      const unlocked=fin||this.partCount>=5;
+      done.classList.toggle('is-locked',!unlocked);
+      // 初回プレイだけ、押せない→押せるに変わった瞬間に知らせる。
+      // リロード復帰で最初から押せる状態のときは出さない（前回が「押せない」だった時だけ）
+      if(this._doneUnlocked===false&&unlocked&&!fin){
+        let first=false;
+        try{ first=getCompleteCount()===0&&localStorage.getItem('madori-tut-done-hint')!=='1'; }catch(e){}
+        if(first){
+          showGameToast('完成ボタンが押せるようになったよ！');
+          try{ localStorage.setItem('madori-tut-done-hint','1'); }catch(e){}
+        }
+      }
+      this._doneUnlocked=unlocked;
     }
     const skip=document.getElementById('btn-skip');
     const skipLbl=document.getElementById('skip-count-label');
@@ -5661,9 +5673,12 @@ class PuzzleGame extends Phaser.Scene{
       // 土地を長押しするとその場で動いた判定になり、2つ目の案内が
       // 目にも止まらぬ速さで次に飛んでしまうので、
       // 「指を離すまで」かつ「最低1.6秒は出す」まで切り替えない
+      // 一度「もう一度タップで決定」まで進んだら、もう一度動かしても
+      // 「動かせるよ」には戻さない（押している間は動かせる判定に戻っていた）
+      if(this._tutReachedConfirm){ showTutHint('confirm'); return; }
       const dragging=!!(this.input&&this.input.activePointer&&this.input.activePointer.isDown);
       const held=_tutMoveShownAt&&(Date.now()-_tutMoveShownAt>=1600);
-      if(this._tutMoved&&!dragging&&held){ showTutHint('confirm'); return; }
+      if(this._tutMoved&&!dragging&&held){ this._tutReachedConfirm=true; showTutHint('confirm'); return; }
       showTutHint('move');
       if(this._tutMoved&&!this._tutHintTimer){
         this._tutHintTimer=setTimeout(()=>{ this._tutHintTimer=null; this._syncTutHint(); },300);
