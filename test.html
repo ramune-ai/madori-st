@@ -473,6 +473,8 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 .roulette-item-wrap{width:340px;height:120px;margin-bottom:40px;position:relative;flex-shrink:0;}
 .roulette-item{
   position:absolute;inset:0;
+  /* iPhone の「ダブルタップで拡大するか」待ち（最大0.3秒）をなくす */
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   background:#fff;border:1.5px solid rgba(90,74,58,.15);border-radius:10px;
   cursor:pointer;
   transition:border-color .2s,outline-color .2s;
@@ -1380,7 +1382,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 <div id="screen-roulette" class="screen">
   <div class="roulette-title">物件情報を引いてみよう</div>
   <div class="roulette-item-wrap">
-    <div class="roulette-item" id="rou-0" onclick="lockRoulette(0)">
+    <div class="roulette-item" id="rou-0" onpointerdown="if(event.button===0)lockRoulette(0)">
       <div class="roulette-item-label">築年数</div>
       <div class="roulette-item-value" id="rou-val-0">---</div>
       <span class="tap-hint">タップで確定</span>
@@ -1389,7 +1391,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     </div>
   </div>
   <div class="roulette-item-wrap">
-    <div class="roulette-item" id="rou-1" onclick="lockRoulette(1)">
+    <div class="roulette-item" id="rou-1" onpointerdown="if(event.button===0)lockRoulette(1)">
       <div class="roulette-item-label">駅徒歩</div>
       <div class="roulette-item-value" id="rou-val-1">---</div>
       <span class="tap-hint">タップで確定</span>
@@ -1398,7 +1400,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     </div>
   </div>
   <div class="roulette-item-wrap">
-    <div class="roulette-item" id="rou-2" onclick="lockRoulette(2)">
+    <div class="roulette-item" id="rou-2" onpointerdown="if(event.button===0)lockRoulette(2)">
       <div class="roulette-item-label">家賃</div>
       <div class="roulette-item-value" id="rou-val-2">---</div>
       <span class="tap-hint">タップで確定</span>
@@ -2909,12 +2911,46 @@ function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title)
 // rp  … 1ゲームで出る推定確率。小さいほどレア。赤文字のキャッチコピーは
 //       獲得した中で rp が一番小さい＝一番レアな称号から採る。
 //       物件情報系はガチャの重みから、パーツ系は1ゲーム約12個設置の二項分布から算出
+// ── 称号の名前を変えたときの引き継ぎ ──
+// 保存済みの称号のうち一覧に無い名前は自動で消される作りなので、
+// 名前を変えるだけだと、その称号を持っている人のコレクションから消えてしまう。
+// 起動したらすぐ、保存データの中の旧名を新しい名前に置き換える
+const TITLE_RENAMES={'美品コレクター':'築浅ハンター'};
+(function migrateTitleNames(){
+  try{
+    const ren=t=>TITLE_RENAMES[t]||t;
+    const fixList=(key)=>{
+      const a=JSON.parse(localStorage.getItem(key)||'null');
+      if(Array.isArray(a)&&a.some(t=>TITLE_RENAMES[t]))
+        localStorage.setItem(key,JSON.stringify([...new Set(a.map(ren))]));
+    };
+    fixList('madori-titles');
+    fixList('madori-titles-seen');
+    const sel=localStorage.getItem('madori-selected-title');
+    if(sel&&TITLE_RENAMES[sel]) localStorage.setItem('madori-selected-title',TITLE_RENAMES[sel]);
+    // マイ物件（保存画像の中の文字は描き直さない）
+    const h=JSON.parse(localStorage.getItem('madori-history')||'null');
+    if(Array.isArray(h)){
+      let changed=false;
+      h.forEach(e=>{
+        if(Array.isArray(e.titles)&&e.titles.some(t=>TITLE_RENAMES[t])){ e.titles=e.titles.map(ren); changed=true; }
+        if(e.equipped&&TITLE_RENAMES[e.equipped]){ e.equipped=TITLE_RENAMES[e.equipped]; changed=true; }
+      });
+      if(changed) localStorage.setItem('madori-history',JSON.stringify(h));
+    }
+    // 遊んでいる途中の新規獲得リスト
+    const gs=JSON.parse(localStorage.getItem('madori-game-state')||'null');
+    if(gs&&Array.isArray(gs.nt)&&gs.nt.some(t=>TITLE_RENAMES[t])){
+      gs.nt=gs.nt.map(ren); localStorage.setItem('madori-game-state',JSON.stringify(gs));
+    }
+  }catch(e){}
+})();
 const ALL_TITLES_MASTER=[
   // ══ 物件情報面・単独 ══
   {title:'新築の香りソムリエ', badge:'🌸', rar:2, rp:.012, condition:'築0年',
     pop:'新築の香り、ここにあります！', check:x=>x.age===0},
-  {title:'美品コレクター', badge:'🫧', rar:5, rp:.060, condition:'築1〜5年',
-    pop:'美品好きな人、必見！', check:x=>x.age>=1&&x.age<=5},
+  {title:'築浅ハンター', badge:'🔍', rar:5, rp:.060, condition:'築1〜5年',
+    pop:'築浅物件、見つけました！', check:x=>x.age>=1&&x.age<=5},
   {title:'レトロ愛好家', badge:'🏚️', rar:5, rp:.048, condition:'築40〜49年',
     pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
   {title:'古民家ロマンチスト', badge:'🏮', rar:4, rp:.024, condition:'築50年（最古）',
@@ -3179,7 +3215,8 @@ function startRoulette(silent){
     const pop=document.querySelector('#rou-'+i+' .reroll-pop');
     if(pop){pop.classList.remove('visible');pop.style.display='';}
     // スロットのonclickをlockRouletteに戻す（クロージャに注意してIIFE使用）
-    ;(function(n){ document.getElementById('rou-'+n).onclick=function(){lockRoulette(n);}; })(i);
+    // 押した瞬間に止める。click は指を離した後に届くので、その分だけ止まるのが遅れる
+    ;(function(n){ const el=document.getElementById('rou-'+n); el.onclick=null; el.onpointerdown=function(e){ if(e.button===0)lockRoulette(n); }; })(i);
   }
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
