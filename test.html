@@ -193,6 +193,8 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 #game-top-row1{width:100%;}
 /* ☰メニュー */
 /* ☰は右上に浮かせる（間取り表示を画面全体の中央に置くため） */
+/* 完成後の画面へ復帰する間はゲーム画面を見せない（大きさは保ったまま透明にする） */
+body.resume-hide #screen-game{opacity:0!important;}
 #game-menu-wrap{position:absolute;right:6px;top:14px;flex-shrink:0;z-index:5;}
 /* ゲーム画面の右上に出すゲーム名。スマホでは出さない */
 #pc-game-logo{display:none;text-align:center;font-family:'Noto Serif JP',serif;
@@ -1055,7 +1057,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #game-bottom-bar,#game-bottom-row,#action-col{display:contents;}
   /* 盤以外は画面の大きさに合わせて丸ごと拡大縮小（フルHDで等倍） */
   #madori-label,#btn-skip,#btn-rotate,#current-piece-wrap,#next-col,
-  #game-menu-wrap,#btn-undo,#btn-complete,#pc-ctrl-hint{zoom:var(--pcs,1);}
+  #pc-game-logo,#game-menu,#btn-undo,#btn-complete,#pc-ctrl-hint{zoom:var(--pcs,1);}
   /* ── A（中央）：現在の間取り＋土地。どちらも画面の中央に置く ── */
   #madori-label{grid-column:2;grid-row:1;width:392px;margin-bottom:12px;padding:10px 12px 12px;}
   .ml-cap{font-size:18px;letter-spacing:.2em;}
@@ -1074,7 +1076,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     height:calc(var(--lh) * .5 - 16px);justify-content:space-evenly;
     margin-bottom:calc(var(--board-bot-gap,0px) / var(--pcs,1));padding:8px 10px 10px;}
   /* ── C（右）：ゲーム名とメニュー（上）／スキップ・完成（下） ── */
-  #game-menu-wrap{position:static;grid-column:3;grid-row:1 / 5;width:296px;text-align:center;}
+  /* ゲーム名は一番上、メニュー4つは土地の上端からスキップの上までの間に置く */
+  #game-menu-wrap{display:contents;}
+  #pc-game-logo{grid-column:3;grid-row:1;width:296px;text-align:center;}
   #pc-game-logo{font-size:44px;}
   #pc-game-logo span{font-size:19px;margin-top:4px;}
   #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
@@ -1095,8 +1099,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #game-menu-btn{display:none;}
   #pc-game-logo{display:block;}
   #game-menu{
-    display:block;position:static;min-width:0;width:100%;
-    background:transparent;border:none;box-shadow:none;padding:0;margin-top:10px;
+    display:block;position:static;min-width:0;width:296px;
+    grid-column:3;grid-row:2 / 8;align-self:start;
+    background:transparent;border:none;box-shadow:none;padding:0;
+    margin-top:calc(var(--board-top-gap,0px) / var(--pcs,1));
   }
   #game-menu button{
     padding:11px 10px;font-size:21px;border-radius:8px;text-align:center;
@@ -1110,7 +1116,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   /* 上下バーは display:contents で箱を持たないため opacity が効かない。
      準備中に隠すのは中身に直接かける */
   #screen-game.is-loading #madori-label,
-  #screen-game.is-loading #game-menu-wrap,
+  #screen-game.is-loading #pc-game-logo,
+  #screen-game.is-loading #game-menu,
   #screen-game.is-loading #btn-skip,
   #screen-game.is-loading #btn-rotate,
   #screen-game.is-loading #btn-undo,
@@ -1367,7 +1374,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       </div>
     </div>
     <div id="tut-move" class="tut-hint">
-      <div class="tut-text">長押しやスライドで動かせるよ！</div>
+      <div class="tut-text">長押しスライドやタップで動かせるよ！</div>
     </div>
     <div id="tut-confirm" class="tut-hint">
       <div class="tut-text">もう一度タップで位置決定！</div>
@@ -1948,6 +1955,7 @@ function showGameAlert(msg){
 // 画面管理
 // ────────────────────────────────────────
 function showScreen(id){
+  if(id!=='screen-game')document.body.classList.remove('resume-hide');
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   // ゲーム画面に重ねて出しているものは、別の画面へ移ったら必ず全部消す
@@ -3435,12 +3443,13 @@ function madoriLabelHTML(counts){
   return main+`<span class="ml-sub">${sub}</span>`;
 }
 // PC：結果画面を画面の高さいっぱいに拡大する（下に空白が残らないように）
-function fitResultPc(){
+function fitResultPc(force){
   const wrap=document.querySelector('.result-wrap'), scr=document.getElementById('screen-result');
   if(!wrap||!scr)return;
   if((window.innerWidth||400)<600){ wrap.classList.remove('pc-fit'); return; }
   if(!scr.classList.contains('active'))return;
   wrap.classList.add('pc-fit');
+  const cur=parseFloat(wrap.style.getPropertyValue('--res-z'))||0;
   wrap.style.setProperty('--res-z','1');
   const h=wrap.offsetHeight, w=wrap.offsetWidth;
   if(!h||!w)return;
@@ -3448,6 +3457,8 @@ function fitResultPc(){
   const availH=scr.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-4;
   const availW=scr.clientWidth-40;
   const z=Math.max(.8,Math.min(availH/h, availW/w, 3));
+  // 表示後の測り直しで少しだけ変わる時は動かさない（カクっと動いて見えるため）
+  if(!force&&cur&&Math.abs(z-cur)/cur<0.04){ wrap.style.setProperty('--res-z',cur.toFixed(3)); return; }
   wrap.style.setProperty('--res-z',z.toFixed(3));
 }
 window.addEventListener('resize',()=>{ clearTimeout(window._resFitT); window._resFitT=setTimeout(fitResultPc,120); });
@@ -3607,7 +3618,14 @@ function showResult(){
   autoSaveToHistory();
   // シェア画像を先に作っておく（押した瞬間に共有シートを開くため）
   prepareShareImage();
-  fitResultPc(); setTimeout(fitResultPc,120); setTimeout(fitResultPc,600);
+  // PCは倍率が決まるまで見せない（途中で大きさが変わるとカクっとなるため）
+  const _rw=document.querySelector('.result-wrap');
+  if(_rw&&(window.innerWidth||400)>=600){
+    _rw.style.visibility='hidden';
+    fitResultPc(true);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ fitResultPc(true); _rw.style.visibility=''; }));
+    setTimeout(()=>fitResultPc(),700);
+  }
   // お気に入りボタンの状態を反映
   refreshFavButton();
 }
@@ -4502,7 +4520,7 @@ class PuzzleGame extends Phaser.Scene{
                   persistFlow('screen-result');
                 }
               }
-            }catch(e){ console.warn('[resume] 画面復帰失敗:',e); this.checkNoPlace(); }
+            }catch(e){ console.warn('[resume] 画面復帰失敗:',e); document.body.classList.remove('resume-hide'); this.checkNoPlace(); }
           }));
         }
       }else{
@@ -5548,12 +5566,26 @@ class PuzzleGame extends Phaser.Scene{
       }
       this._doneUnlocked=unlocked;
     }
+    // 回転の案内：1個目を置いたあと、縦横の長さが違うパーツが初めて来た時に1度だけ
+    if(!fin&&this.partCount>=1&&this.currentDef&&!this._rotHintDone){
+      try{
+        const sh=this.getShape(this.currentDef,0);
+        if(sh.length!==sh[0].length){
+          this._rotHintDone=true;
+          if(getCompleteCount()===0&&localStorage.getItem('madori-tut-rot-hint')!=='1'){
+            localStorage.setItem('madori-tut-rot-hint','1');
+            const pc=(window.innerWidth||400)>=600;
+            setTimeout(()=>showGameToast(pc?'右クリックか回転ボタンで向きを変えられるよ！':'回転ボタンで向きを変えられるよ！'),350);
+          }
+        }
+      }catch(e){}
+    }
     const skip=document.getElementById('btn-skip');
     const skipLbl=document.getElementById('skip-count-label');
     if(skip&&skipLbl){
       const left=(typeof this.skipCount==='number')?this.skipCount:SKIP_MAX;
       skipLbl.textContent=String(left);
-      skip.classList.toggle('is-locked',left<=0||fin);
+      skip.classList.toggle('is-locked',left<=0);
     }
   }
   _updateTopBar(){
@@ -6132,6 +6164,11 @@ function tryResumeGame(){
     // 新規獲得称号は「保存済みリストに無いか」で判定するため、
     // 一度保存したあとに再計算すると必ず空になる。保存しておいた分を使う
     if(Array.isArray(st.nt))window._restoredNewTitles=st.nt.slice();
+    // 完成後の画面へ戻る時は、途中でゲーム画面がちらっと見えないよう隠しておく
+    if(st.screen&&st.screen!=='screen-game'){
+      document.body.classList.add('resume-hide');
+      setTimeout(()=>document.body.classList.remove('resume-hide'),5000);
+    }
     gotoGame();
   }catch(e){ try{localStorage.removeItem('madori-game-state');}catch(_){} }
 }
