@@ -468,11 +468,23 @@ body.resume-hide #screen-game{opacity:0!important;}
   border-color:rgba(90,74,58,.14);cursor:default;
 }
 
+/* チュートリアル：説明しているボタンに目が行くよう、光の輪を広げる */
+@keyframes tutFocus{
+  0%{box-shadow:0 0 0 3px rgba(232,160,32,.95),0 0 0 3px rgba(232,160,32,.6);}
+  70%{box-shadow:0 0 0 3px rgba(232,160,32,.95),0 0 0 16px rgba(232,160,32,0);}
+  100%{box-shadow:0 0 0 3px rgba(232,160,32,.95),0 0 0 16px rgba(232,160,32,0);}
+}
+.tut-focus{animation:tutFocus 1.1s ease-out infinite!important;position:relative;z-index:30;}
+#game-confirm-msg{white-space:pre-line;}
+/* 音の設定：常に消音 */
+.snd-mute{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:700;color:var(--brown-dark);cursor:pointer;user-select:none;}
+.snd-mute input{width:20px;height:20px;accent-color:var(--accent);margin:0;cursor:pointer;}
+input[type=range]:disabled{opacity:.35;}
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
-.roulette-title{font-family:'Noto Serif JP',serif;font-size:20px;color:var(--brown-dark);letter-spacing:.15em;margin-bottom:28px;text-align:center;}
+.roulette-title{font-family:'Noto Serif JP',serif;font-size:27px;font-weight:700;color:var(--brown-dark);letter-spacing:.12em;margin-bottom:24px;text-align:center;}
 /* スロットのラッパー：高さを固定してブレを防ぐ */
-.roulette-item-wrap{width:340px;height:120px;margin-bottom:40px;position:relative;flex-shrink:0;}
+.roulette-item-wrap{width:340px;height:136px;margin-bottom:32px;position:relative;flex-shrink:0;}
 .roulette-item{
   position:absolute;inset:0;
   /* iPhone の「ダブルタップで拡大するか」待ち（最大0.3秒）をなくす */
@@ -490,8 +502,8 @@ body.resume-hide #screen-game{opacity:0!important;}
 .roulette-item.locked{pointer-events:none;border-color:rgba(90,74,58,.2);outline-color:transparent;animation:none;cursor:default;background:linear-gradient(135deg,#fffbf5,#fff8ec);}
 .roulette-item.locked .reroll-slot-btn{pointer-events:auto;}
 /* ラベルは枠中央のやや上、値は枠中央に絶対配置（状態でズレない） */
-.roulette-item-label{position:absolute;left:0;right:0;top:50%;transform:translateY(-34px);font-family:'Noto Serif JP',serif;font-size:21px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
-.roulette-item-value{position:absolute;left:0;right:0;top:50%;transform:translateY(4px);font-family:'Noto Serif JP',serif;font-size:38px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
+.roulette-item-label{position:absolute;left:0;right:0;top:50%;transform:translateY(-44px);font-family:'Noto Serif JP',serif;font-size:27px;letter-spacing:.1em;color:var(--brown-dark);font-weight:600;text-align:center;}
+.roulette-item-value{position:absolute;left:0;right:0;top:50%;transform:translateY(4px);font-family:'Noto Serif JP',serif;font-size:44px;font-weight:700;color:var(--brown-dark);transition:color .1s;line-height:1.1;text-align:center;display:block;}
 .roulette-item-value.spinning{animation:spin .08s linear infinite;color:var(--brown-light);}
 /* レア値：金色グロー */
 .roulette-item.rare .roulette-item-value{
@@ -500,17 +512,17 @@ body.resume-hide #screen-game{opacity:0!important;}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   animation:goldShine 2s linear infinite;
   filter:drop-shadow(0 0 6px rgba(200,160,10,.5));
-  font-size:44px;
+  font-size:50px;
   transform:translateY(1px); /* 38→44px拡大ぶんの中心補正 */
 }
 @keyframes goldShine{0%{background-position:0% center}100%{background-position:200% center}}
 .roulette-item.rare{border-color:#c8a020;background:linear-gradient(135deg,#fffbec,#fff8d6);}
-.roulette-item.rare::before{content:'✦ PREMIUM';position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.2em;color:#c8860a;background:#fff8d6;padding:2px 10px;border-radius:20px;border:1px solid #e8c040;white-space:nowrap;}
+.roulette-item.rare::before{content:'✦ PREMIUM';position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:700;letter-spacing:.2em;color:#c8860a;background:#fff8d6;padding:2px 10px;border-radius:20px;border:1px solid #e8c040;white-space:nowrap;}
 /* tap-hint */
-.roulette-item .tap-hint{position:absolute;top:11px;right:14px;left:auto;bottom:auto;font-size:14px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:700;letter-spacing:.05em;text-align:right;}
+.roulette-item .tap-hint{position:absolute;top:9px;right:12px;left:auto;bottom:auto;font-size:17px;color:var(--accent);opacity:0;transition:opacity .3s;font-weight:700;letter-spacing:.05em;text-align:right;}
 .roulette-item.active-slot .tap-hint{opacity:1;}
 .roulette-item.locked .tap-hint{display:none;}
-.roulette-item.locked::after{content:'✓ 確定';position:absolute;top:11px;right:14px;font-size:14px;font-weight:700;color:var(--brown-light);letter-spacing:.1em;}
+.roulette-item.locked::after{content:'✓ 確定';position:absolute;top:9px;right:12px;font-size:17px;font-weight:700;color:var(--brown-light);letter-spacing:.1em;}
 .roulette-item.rare.locked::after{color:#c8860a;}
 /* ── 最高レア（虹色・超おめでたい）演出 ── */
 .roulette-item.super-rare .roulette-item-value{
@@ -519,7 +531,7 @@ body.resume-hide #screen-game{opacity:0!important;}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   animation:rainbowFlow 2.2s linear infinite;
   filter:drop-shadow(0 0 8px rgba(255,180,40,.6));
-  font-size:46px;
+  font-size:52px;
   transform:translateY(0); /* 38→46px拡大ぶんの中心補正 */
 }
 @keyframes rainbowFlow{0%{background-position:0% center}100%{background-position:300% center}}
@@ -534,8 +546,8 @@ body.resume-hide #screen-game{opacity:0!important;}
 @keyframes superBorder{0%{box-shadow:0 0 24px 4px rgba(255,90,90,.35);}25%{box-shadow:0 0 24px 4px rgba(255,200,40,.4);}50%{box-shadow:0 0 24px 4px rgba(80,200,120,.4);}75%{box-shadow:0 0 24px 4px rgba(90,140,255,.4);}100%{box-shadow:0 0 24px 4px rgba(180,90,255,.35);}}
 .roulette-item.super-rare::before{
   content:'✦ SUPER RARE ✦';
-  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  font-size:10px;font-weight:700;letter-spacing:.18em;color:#fff;
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  font-size:13px;font-weight:700;letter-spacing:.18em;color:#fff;
   background:linear-gradient(90deg,#ff5a5a,#ffb43b,#5ac878,#5a8cff,#b45aff);
   background-size:200% auto;animation:rainbowFlow 2.2s linear infinite;
   padding:3px 12px;border-radius:20px;white-space:nowrap;
@@ -552,11 +564,11 @@ body.resume-hide #screen-game{opacity:0!important;}
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   animation:goldShine 2.4s linear infinite;
   filter:drop-shadow(0 0 6px rgba(122,95,168,.45));
-  font-size:44px;
+  font-size:50px;
   transform:translateY(1px); /* 38→44px拡大ぶんの中心補正 */
 }
 .roulette-item.niche{border-color:#9a7fc0;background:linear-gradient(135deg,#f7f3fc,#efe7f8);}
-.roulette-item.niche::before{content:'❖ RARE';position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;letter-spacing:.2em;color:#7a5fa8;background:#efe7f8;padding:2px 10px;border-radius:20px;border:1px solid #b9a3d9;white-space:nowrap;}
+.roulette-item.niche::before{content:'❖ RARE';position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:700;letter-spacing:.2em;color:#7a5fa8;background:#efe7f8;padding:2px 10px;border-radius:20px;border:1px solid #b9a3d9;white-space:nowrap;}
 .roulette-item.niche.locked::after{content:'✓ 確定';color:#7a5fa8;}
 /* 各スロット個別の再抽選ボタン */
 .reroll-slot-btn{
@@ -668,7 +680,10 @@ body.no-reroll .reroll-note{display:none!important;}
 /* 幅だけを決める見えない行。ふりがなが本体より広い時（おふろ／B）に、
    左右の文字とくっつかないよう、ふりがなの幅ぶん場所を取る。
    本体より先に置くので、行のそろえ（ベースライン）は本体の文字で決まる */
-.ldk-sub .fg-w{display:block;height:0;overflow:hidden;visibility:hidden;font-family:'Noto Sans JP',sans-serif;font-size:.46em;font-weight:700;letter-spacing:.02em;white-space:nowrap;}
+/* ふりがなの幅ぶん場所を取ると「+0 B」の間が空いて見えたので、今は使わない
+   （ふりがなは上に乗るだけなので、横の文字とはぶつからない） */
+.ldk-sub .fg-w{display:none!important;}
+.ldk-sub .fg-w{height:0;overflow:hidden;visibility:hidden;font-family:'Noto Sans JP',sans-serif;font-size:.46em;font-weight:700;letter-spacing:.02em;white-space:nowrap;}
 .ldk-sub .fg-rt{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);font-family:'Noto Sans JP',sans-serif;font-size:.46em;font-weight:700;color:#8a7060;letter-spacing:.02em;line-height:1;white-space:nowrap;}
 /* 高さは alignHeroRuby が「3LDK」の頭にそろえて決める */
 .ldk-sub .fg-rt .rt-in{display:inline-block;}
@@ -895,8 +910,9 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .pill{font-size:12px;padding:9px 10px;gap:5px;}
   /* ①完成画面：3項目は常に間取りの右（折り返さない） */
   .res-main-row{flex-wrap:nowrap;gap:8px;}
-  .res-side{min-width:128px;}
-  .res-spec-v{padding:5px 8px;}
+  .res-side{min-width:0;width:106px;flex-shrink:0;}
+  .res-spec-v{padding:5px 2px;}
+  .rsv-label{letter-spacing:.06em;}
   .rsv-val{font-size:25px;}
   #game-top-row2{padding:2px 5px 4px;gap:6px;}
   #action-col{gap:8px;}
@@ -1078,7 +1094,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   /* ── C（右）：ゲーム名とメニュー（上）／スキップ・完成（下） ── */
   /* ゲーム名は一番上、メニュー4つは土地の上端からスキップの上までの間に置く */
   #game-menu-wrap{display:contents;}
-  #pc-game-logo{grid-column:3;grid-row:1;width:296px;text-align:center;}
+  #pc-game-logo{grid-column:3;grid-row:1;width:296px;text-align:center;position:relative;}
   #pc-game-logo{font-size:44px;}
   #pc-game-logo span{font-size:19px;margin-top:4px;}
   #game-menu button{padding:12px 10px;font-size:18px;text-align:center;}
@@ -1170,11 +1186,15 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   #screen-result{justify-content:flex-start;padding-top:14px;padding-bottom:14px;}
   .result-wrap{padding-bottom:0;}
   /* ガチャ：画面が広いぶん大きく */
-  .roulette-title{font-size:26px;margin-bottom:34px;}
-  .roulette-item-wrap{width:420px;height:148px;margin-bottom:46px;}
-  .roulette-item-label{font-size:24px;transform:translateY(-42px);}
-  .roulette-item-value{font-size:46px;transform:translateY(6px);}
-  .roulette-item.rare .roulette-item-value{font-size:54px;}
+  /* PCは上下に余裕があるので、枠ごと大きく */
+  .roulette-title{font-size:38px;margin-bottom:30px;}
+  .roulette-item-wrap{width:560px;height:172px;margin-bottom:34px;}
+  .roulette-item-label{font-size:33px;transform:translateY(-56px);}
+  .roulette-item-value{font-size:58px;transform:translateY(4px);}
+  .roulette-item.rare .roulette-item-value,.roulette-item.niche .roulette-item-value{font-size:66px;transform:translateY(0);}
+  .roulette-item.super-rare .roulette-item-value{font-size:68px;transform:translateY(0);}
+  .roulette-item .tap-hint,.roulette-item.locked::after{font-size:21px;top:12px;right:18px;}
+  .roulette-item.rare::before,.roulette-item.niche::before,.roulette-item.super-rare::before{font-size:17px;top:-17px;padding:3px 14px;}
   /* 称号：画面いっぱいに大きく見せる */
   .titles-heading{font-size:30px;margin-bottom:32px;}
   .titles-wrap{max-width:560px;}
@@ -1321,7 +1341,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
         <div id="pc-game-logo">間取りすと<span>MADORI-ST</span></div>
         <button id="game-menu-btn" onclick="toggleGameMenu(event)" title="メニュー">☰</button>
         <div id="game-menu">
-          <button onclick="toggleGameMenu();openHowTo()">遊び方</button>
+          <button onclick="toggleGameMenu();askTutorialReplay()">遊び方</button>
           <button onclick="toggleGameMenu();gotoGame()">リトライ</button>
           <button onclick="toggleGameMenu();gotoStart()">タイトルへ戻る</button>
           <button onclick="toggleGameMenu();openSoundSettings()">音の設定</button>
@@ -1421,7 +1441,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
 <!-- ③ ルーレット -->
 <div id="screen-roulette" class="screen">
-  <div class="roulette-title">物件情報を引いてみよう</div>
+  <div class="roulette-title">物件情報ルーレット！</div>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-0" onpointerdown="if(event.button===0)lockRoulette(0)">
       <div class="roulette-item-label">築年数</div>
@@ -1564,6 +1584,9 @@ const BGM_FILE='カスタードクリームクッキーサンド.mp3'; // ★BGM
 let seVol =parseFloat(localStorage.getItem('madori-se-vol') ??'0.7');
 let bgmVol=parseFloat(localStorage.getItem('madori-bgm-vol')??'0.4');
 if(isNaN(seVol))seVol=0.7; if(isNaN(bgmVol))bgmVol=0.4;
+// 常に消音（音量とは別に持つ。解除すると元の音量に戻る）
+let seMute =localStorage.getItem('madori-se-mute')==='1';
+let bgmMute=localStorage.getItem('madori-bgm-mute')==='1';
 // iOSの消音スイッチ（マナーモード）を尊重する。
 // 既定は 'playback' 相当でスイッチを無視して鳴ってしまうため 'ambient' にする
 try{ if(navigator.audioSession) navigator.audioSession.type='ambient'; }catch(e){}
@@ -1571,6 +1594,7 @@ try{ if(navigator.audioSession) navigator.audioSession.type='ambient'; }catch(e)
 let _actx=null;
 const _seBuf={};   // 読み込み済みの音データ
 const _seLoading={};
+const _seRaw={};   // 読み込んだ元データ（作り直した時に通信なしで使い直す）
 function _audioCtx(){
   if(!_actx){
     const AC=window.AudioContext||window.webkitAudioContext;
@@ -1589,15 +1613,17 @@ function _loadSE(name){
   if(!f)return Promise.resolve(null);
   const ctx=_audioCtx();
   if(!ctx)return Promise.resolve(null);
-  _seLoading[name]=fetch(encodeURI(SND_DIR+f))
+  const raw=_seRaw[name]?Promise.resolve(_seRaw[name]):fetch(encodeURI(SND_DIR+f))
     .then(r=>{ if(!r.ok)throw 0; return r.arrayBuffer(); })
-    .then(ab=>new Promise((res,rej)=>ctx.decodeAudioData(ab,res,rej)))
+    .then(ab=>{ _seRaw[name]=ab; return ab; });
+  _seLoading[name]=raw
+    .then(ab=>new Promise((res,rej)=>ctx.decodeAudioData(ab.slice(0),res,rej)))
     .then(buf=>{ _seBuf[name]=buf; return buf; })
     .catch(()=>null);
   return _seLoading[name];
 }
 function playSE(name){
-  if(seVol<=0)return;
+  if(seVol<=0||seMute)return;
   _loadSE(name).then(buf=>{
     if(!buf)return;
     const ctx=_audioCtx(); if(!ctx)return;
@@ -1615,7 +1641,7 @@ function playSE(name){
 let _spinNode=null;
 function startSpinSE(){
   stopSpinSE();
-  if(seVol<=0)return;
+  if(seVol<=0||seMute)return;
   _loadSE('spin').then(buf=>{
     if(!buf||_spinNode)return;
     const ctx=_audioCtx(); if(!ctx)return;
@@ -1635,13 +1661,13 @@ function stopSpinSE(){
 }
 let _bgm=null;
 function startBGM(){
-  if(_bgm||bgmVol<=0)return;
+  if(_bgm||bgmVol<=0||bgmMute)return;
   try{
     const a=new Audio(encodeURI(SND_DIR+BGM_FILE));
     a.loop=true; a.volume=bgmVol;
     a.onerror=()=>{ if(_bgm===a)_bgm=null; };
     // 割り込みで一時停止させられた時（画面は見えたまま）に備える
-    a.addEventListener('pause',()=>{ if(_bgm===a&&!document.hidden&&bgmVol>0) _armAudioKick(); });
+    a.addEventListener('pause',()=>{ if(_bgm===a&&!document.hidden&&bgmVol>0&&!bgmMute) _armAudioKick(); });
     a.play().then(()=>{}).catch(()=>{ if(_bgm===a)_bgm=null; });
     _bgm=a;
   }catch(e){ _bgm=null; }
@@ -1677,7 +1703,7 @@ function _audioResume(){
     }
   }catch(e){ _armAudioKick(); }
   try{
-    if(bgmVol>0){
+    if(bgmVol>0&&!bgmMute){
       if(!_bgm){ startBGM(); }
       else {
         const p=_bgm.play();
@@ -1686,10 +1712,25 @@ function _audioResume(){
     }
   }catch(e){ _armAudioKick(); }
 }
+// 他のアプリから戻った後は、iPhone で効果音の出口だけが壊れていることがある
+// （状態は「動作中」、時間も進むのに音が出ない）。見分けられないので、
+// 戻ってきた後の最初のタップの中で、効果音の仕組みを丸ごと作り直す。
+// タップの中で作ると iPhone でも確実に鳴らせる状態で始まる
+let _audioNeedRebuild=false;
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){ _audioSuspend(); }
+  if(document.hidden){ _audioSuspend(); _audioNeedRebuild=true; }
   else { _audioResume(); setTimeout(_audioHealthCheck,700); }
 });
+// 戻る・進むでページごと復元された時も同じ扱いにする
+window.addEventListener('pageshow',(e)=>{ if(e.persisted){ _audioNeedRebuild=true; _audioResume(); } });
+function _audioRebuildOnTap(){
+  if(!_audioNeedRebuild)return;
+  _audioNeedRebuild=false;
+  try{ stopSpinSE(); }catch(e){}
+  _rebuildAudio();
+}
+document.addEventListener('pointerdown',_audioRebuildOnTap,true);
+document.addEventListener('touchend',_audioRebuildOnTap,true);
 // iOS Safari でタブを閉じる／アプリを切り替える時の保険
 window.addEventListener('pagehide',_audioSuspend);
 
@@ -1728,9 +1769,9 @@ function _audioHealthCheck(){
 function _audioWatchdog(){
   try{
     const ctxBad = _actx && _actx.state!=='running';
-    const bgmBad = bgmVol>0 && (!_bgm || _bgm.paused);
+    const bgmBad = bgmVol>0 && !bgmMute && (!_bgm || _bgm.paused);
     if(ctxBad||bgmBad) _audioResume();
-    // BGMãæ­¢ã¾ã£ã¦ããæãä¸­èº«ã®ç¹æ¤ã¯å¿è¦ãªã®ã§ãåå²ã®å¤ã§å¿ãå¼ã¶
+    // BGMが止まっていない時も中身の点検は要るので、分岐の外で必ず呼ぶ
     _audioHealthCheck();
   }catch(e){}
 }
@@ -1743,9 +1784,19 @@ function setSeVol(v){
 function setBgmVol(v){
   bgmVol=Math.max(0,Math.min(1,v));
   try{ localStorage.setItem('madori-bgm-vol',String(bgmVol)); }catch(e){}
-  if(bgmVol<=0){ if(_bgm){_bgm.pause();_bgm=null;} }
+  if(bgmVol<=0||bgmMute){ if(_bgm){_bgm.pause();_bgm=null;} }
   else if(_bgm){ _bgm.volume=bgmVol; }
   else startBGM();
+}
+function setSeMute(m){
+  seMute=!!m;
+  try{ localStorage.setItem('madori-se-mute',seMute?'1':'0'); }catch(e){}
+  if(seMute)stopSpinSE();
+}
+function setBgmMute(m){
+  bgmMute=!!m;
+  try{ localStorage.setItem('madori-bgm-mute',bgmMute?'1':'0'); }catch(e){}
+  setBgmVol(bgmVol);
 }
 // ブラウザの自動再生制限：最初のタップでBGMを開始
 document.addEventListener('pointerdown',function _bgmKick(){
@@ -1778,9 +1829,11 @@ function openSoundSettings(){
       '<div class="modal-title">♪ 音の設定</div>'+
       '<div style="margin:18px 0 6px;font-size:13px;color:var(--brown-dark);font-weight:700;">効果音（SE）　<span id="se-vol-label"></span></div>'+
       '<input id="se-vol-slider" type="range" min="0" max="100" step="5" style="width:100%;accent-color:var(--accent);">'+
+      '<label class="snd-mute"><input type="checkbox" id="se-mute-cb">効果音を常に消音（ミュート）</label>'+
       '<div style="margin:20px 0 6px;font-size:13px;color:var(--brown-dark);font-weight:700;">BGM　<span id="bgm-vol-label"></span></div>'+
       '<input id="bgm-vol-slider" type="range" min="0" max="100" step="5" style="width:100%;accent-color:var(--accent);">'+
-      '<div style="margin-top:14px;font-size:11px;color:var(--brown-light);">0にすると消音になります</div>'+
+      '<label class="snd-mute"><input type="checkbox" id="bgm-mute-cb">BGMを常に消音（ミュート）</label>'+
+      '<div style="margin-top:14px;font-size:11px;color:var(--brown-light);">消音にしても音量は覚えています（外すと元に戻ります）</div>'+
       '</div>';
     ov.onclick=()=>closeSoundSettings();
     document.body.appendChild(ov);
@@ -1791,7 +1844,12 @@ function openSoundSettings(){
     se.oninput=()=>{ setSeVol(se.value/100); seL.textContent=se.value+'%'; };
     se.onchange=()=>playSE('tap'); // 確認用に1回鳴らす
     bg.oninput=()=>{ setBgmVol(bg.value/100); bgL.textContent=bg.value+'%'; };
+    const seM=ov.querySelector('#se-mute-cb'), bgM=ov.querySelector('#bgm-mute-cb');
+    seM.onchange=()=>{ setSeMute(seM.checked); se.disabled=seM.checked; if(!seM.checked)playSE('tap'); };
+    bgM.onchange=()=>{ setBgmMute(bgM.checked); bg.disabled=bgM.checked; };
   }
+  ov.querySelector('#se-mute-cb').checked=seMute;  ov.querySelector('#se-vol-slider').disabled=seMute;
+  ov.querySelector('#bgm-mute-cb').checked=bgmMute; ov.querySelector('#bgm-vol-slider').disabled=bgmMute;
   const se=ov.querySelector('#se-vol-slider');
   const bg=ov.querySelector('#bgm-vol-slider');
   se.value=Math.round(seVol*100);  ov.querySelector('#se-vol-label').textContent=se.value+'%';
@@ -1851,13 +1909,53 @@ function openHowTo(){
     '</div>');
   document.getElementById('modal-overlay').classList.add('active');
 }
-function showGameToast(msg){
+function showGameToast(msg,ms){
   const el=document.getElementById('game-toast');
   if(!el)return;
   el.textContent=msg;
   el.classList.add('show');
   if(_gameToastTimer)clearTimeout(_gameToastTimer);
-  _gameToastTimer=setTimeout(()=>{el.classList.remove('show');},2400);
+  _gameToastTimer=setTimeout(()=>{el.classList.remove('show');},ms||4800);
+}
+// チュートリアルのお知らせ：重ならないよう順番に出し、説明しているボタンを光らせる
+const TUT_TOAST_MS=4800;
+const _tutQ=[]; let _tutQBusy=false;
+function tutToast(msg,focusId){
+  _tutQ.push({msg,focusId});
+  if(!_tutQBusy)_tutNext();
+}
+function _tutNext(){
+  const it=_tutQ.shift();
+  const scr=document.querySelector('.screen.active');
+  if(!it||!scr||scr.id!=='screen-game'){ _tutQ.length=0; _tutQBusy=false; return; }
+  _tutQBusy=true;
+  showGameToast(it.msg,TUT_TOAST_MS);
+  const el=it.focusId?document.getElementById(it.focusId):null;
+  if(el)el.classList.add('tut-focus');
+  setTimeout(()=>{ if(el)el.classList.remove('tut-focus'); setTimeout(_tutNext,350); },TUT_TOAST_MS);
+}
+function _tutReset(){
+  _tutQ.length=0; _tutQBusy=false;
+  document.querySelectorAll('.tut-focus').forEach(e=>e.classList.remove('tut-focus'));
+}
+// はじめてのプレイ、または「遊び方」からやり直している時
+function isTutRun(){ try{ return !!window._tutReplay||getCompleteCount()===0; }catch(e){ return false; } }
+// まだ出していない案内なら true（出したことを記録する）
+function tutOnce(key){
+  const k='madori-tut-'+key;
+  try{ if(localStorage.getItem(k)==='1')return false; localStorage.setItem(k,'1'); }catch(e){}
+  return true;
+}
+const TUT_HINT_KEYS=['done-hint','rot-hint','madori-hint','storage-hint'];
+// 「遊び方」：説明の画面ではなく、チュートリアルをもう一度はじめから行う
+function startTutorialReplay(){
+  try{ localStorage.removeItem(TUT_KEY); TUT_HINT_KEYS.forEach(k=>localStorage.removeItem('madori-tut-'+k)); }catch(e){}
+  window._tutReplayPending=true;
+  gotoGame();
+}
+async function askTutorialReplay(){
+  const ok=await showGameConfirm('チュートリアルをもう一度はじめますか？\n（今の間取りはリセットされます）','はじめる','やめる');
+  if(ok)startTutorialReplay();
 }
 // 紙吹雪演出（最高レア時）：扇状に上へ打ち上げて落下
 function fireConfetti(idx){
@@ -1956,6 +2054,7 @@ function showGameAlert(msg){
 // ────────────────────────────────────────
 function showScreen(id){
   if(id!=='screen-game')document.body.classList.remove('resume-hide');
+  if(id!=='screen-game'){ try{ _tutReset(); }catch(e){} }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   // ゲーム画面に重ねて出しているものは、別の画面へ移ったら必ず全部消す
@@ -2386,6 +2485,9 @@ function lockRerollSlot(idx){
 }
 
 function gotoGame(){
+  // 「遊び方」から来た時だけチュートリアルのやり直しとして扱う
+  window._tutReplay=!!window._tutReplayPending; window._tutReplayPending=false;
+  _tutReset();
   // 準備できるまで中身を隠す（バラバラに現れるのを防ぐ）
   window._gameShown=false;
   const _sg=document.getElementById('screen-game');
@@ -2432,6 +2534,9 @@ function proceedFromComplete(){
     gameScene._counted=true;
     try{ localStorage.setItem('madori-complete-count',String(getCompleteCount()+1)); }catch(e){}
   }
+  // 完成したら、残っているチュートリアルのお知らせは出さない
+  _tutReset();
+  try{ document.getElementById('game-toast').classList.remove('show'); }catch(e){}
   // プレビュー（赤いパーツ表示）を消す
   gameScene.stopPreviewTween();
   if(gameScene.previewImg){gameScene.previewImg.destroy();gameScene.previewImg=null;}
@@ -2786,51 +2891,127 @@ function renderSavesList(){
   upgradeHistoryCards();
 }
 
-// 旧形式の履歴（間取り図だけの画像）を、現在のシェアカード形式に1件ずつ作り直す
+// 古い見た目のマイ物件の画像を、今のシェア画像と同じ見た目に1件ずつ作り直す
 const _upgradedIds=new Set(); // 同一セッションでの再試行ループ防止
+function _loadImg(src){
+  return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; });
+}
 function upgradeHistoryCards(){
   const list=loadHistory();
-  const target=list.find(s=>s.img&&s.kind!=='card'&&!_upgradedIds.has(s.id));
+  const target=list.find(s=>s.img&&s.kind!=='card2'&&!_upgradedIds.has(s.id));
   if(!target)return;
   _upgradedIds.add(target.id);
-  const finish=(cv)=>{
+  const save=(data)=>{
+    const cur=loadHistory();
+    const i=cur.findIndex(x=>x.id===target.id);
+    if(i===-1)return;
+    if(data)cur[i].img=data;
+    cur[i].kind='card2';
+    saveHistory(cur);
+    // 一覧を開いていればその場で差し替え
+    const el=document.querySelector('img[data-hid="'+target.id+'"]');
+    if(el&&data)el.src=data;
+  };
+  (async()=>{
     try{
-      const sc=Math.min(1, 520/cv.width);
-      const sm=document.createElement('canvas');
-      sm.width=Math.round(cv.width*sc); sm.height=Math.round(cv.height*sc);
-      const c2=sm.getContext('2d');
-      c2.fillStyle='#f5f0e8'; c2.fillRect(0,0,sm.width,sm.height);
-      c2.imageSmoothingQuality='high';
-      c2.drawImage(cv,0,0,sm.width,sm.height);
-      const data=sm.toDataURL('image/jpeg',0.8);
-      const cur=loadHistory();
-      const i=cur.findIndex(x=>x.id===target.id);
-      if(i!==-1){
-        cur[i].img=data; cur[i].kind='card';
-        saveHistory(cur);
-        // 一覧を開いていればその場で差し替え
-        const el=document.querySelector('img[data-hid="'+target.id+'"]');
-        if(el)el.src=data;
+      let snap=null;
+      if(target.snap) snap=await _loadImg(target.snap);
+      else{
+        const im=await _loadImg(target.img);
+        if(im){
+          if(target.kind!=='card') snap=im;                         // 間取り図だけの古い形式
+          else if(im.naturalHeight/im.naturalWidth<1.3) save(null); // すでに画面から写した形
+          else snap=await _cropLegacyMadori(target,im);             // 手描きの旧カード
+        }
       }
-    }catch(e){}
-    setTimeout(upgradeHistoryCards,60); // 次の旧エントリへ
+      if(snap){
+        const cv=await renderHistoryCard(target,snap);
+        if(cv&&cv.width)save(_cardToHistoryData(cv));
+      }
+    }catch(e){ console.warn('[history] 作り直し失敗:',e); }
+    setTimeout(upgradeHistoryCards,60); // 次の古いエントリへ
+  })();
+}
+// 旧カード（手描き）から間取り図の部分だけを切り出す。
+// 同じ内容で旧方式を空描きして、間取り図が置かれた位置を記録する
+async function _cropLegacyMadori(entry,im){
+  const fake=document.createElement('canvas');
+  fake.width=CANVAS_W; fake.height=CANVAS_H;
+  let rect=null;
+  const P=CanvasRenderingContext2D.prototype, orig=P.drawImage;
+  P.drawImage=function(img){
+    if(img===fake){ if(arguments.length===5)rect={x:arguments[1],y:arguments[2],w:arguments[3],h:arguments[4]}; return; }
+    return orig.apply(this,arguments);
   };
-  const build=(snap)=>{
-    buildPropertyCard({
-      age:target.age, walk:target.walk, rent:target.rent,
-      label:target.labelRaw||target.label||'',
-      equipped:target.equipped||'',
-      titles:target.titles||[],
-      name:(target.propName||'').replace(/^間取りすと：/,''),
-      dateStr:target.date||'',
-      snapshot:snap,
-    }).then(finish).catch(()=>{});
-  };
-  // 旧画像（間取り図）をカード内の間取り部分として再利用
-  const im=new Image();
-  im.onload=()=>build(im);
-  im.onerror=()=>build(null);
-  im.src=target.img;
+  try{
+    await buildPropertyCardLegacy({
+      age:entry.age, walk:entry.walk, rent:entry.rent,
+      label:entry.labelRaw||entry.label||'',
+      equipped:entry.equipped||'',
+      titles:entry.titles||[],
+      name:(entry.propName||'').replace(/^間取りすと：/,''),
+      dateStr:entry.date||'',
+      snapshot:fake,
+    });
+  }finally{ P.drawImage=orig; }
+  if(!rect||!rect.w||!rect.h)return null;
+  const k=im.naturalWidth/620;   // 旧カードは幅620で描いて、保存時に縮めている
+  const c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(rect.w*k)); c.height=Math.max(1,Math.round(rect.h*k));
+  c.getContext('2d').drawImage(im,rect.x*k,rect.y*k,rect.w*k,rect.h*k,0,0,c.width,c.height);
+  return c;
+}
+function _fmtHistDate(d){
+  const m=String(d||'').match(/^(\d{4})\D(\d{1,2})\D(\d{1,2})/);
+  return m?(m[1]+'/'+m[2].padStart(2,'0')+'/'+m[3].padStart(2,'0')):String(d||'--');
+}
+// 結果画面のカードを複製して、保存してある物件の内容を入れて写す（画面の外で行う）
+async function renderHistoryCard(entry,snap){
+  const tpl=document.getElementById('res-card');
+  if(!tpl||!window.html2canvas)return null;
+  const host=document.createElement('div');
+  host.id='hist-render-host';
+  host.style.cssText='position:fixed;left:0;top:0;width:400px;text-align:center;z-index:-10;opacity:0;pointer-events:none;';
+  const card=tpl.cloneNode(true);
+  card.id='res-card-hist';
+  card.style.animation='none';
+  host.appendChild(card);
+  document.body.appendChild(host);
+  try{
+    const q=id=>card.querySelector('#'+id);
+    setSpecEl(q('res-age'),entry.age??'--','年',0);
+    setSpecEl(q('res-walk'),entry.walk??'--','分',1);
+    setSpecEl(q('res-rent'),entry.rent??'--','万円',2);
+    renderHeroLabel(q('res-room-label'),entry.labelRaw||entry.label||'',true);
+    const titles=entry.titles||[];
+    const m=titles[0]?ALL_TITLES_MASTER.find(x=>x.title===titles[0]):null;
+    const pop=q('res-pop');
+    if(m&&m.pop){ pop.textContent='＼ '+m.pop+' ／'; pop.style.display='block'; pop.style.fontSize='18px'; }
+    else pop.style.display='none';
+    const tw=q('res-hashtags');
+    tw.innerHTML='';
+    if(titles[0]){
+      const sp=document.createElement('span');
+      sp.className='res-hashtag';
+      sp.innerHTML='#'+wbrBoundaries(titleToHashtag(titles[0]).replace(/^#/,''));
+      tw.appendChild(sp); tw.style.display='flex';
+    }else tw.style.display='none';
+    q('res-name2').textContent=(entry.propName||'').replace(/^間取りすと：/,'')||'とくめい';
+    const mt=q('res-meta-title');
+    const td=entry.equipped?ALL_TITLES_MASTER.find(t=>t.title===entry.equipped):null;
+    if(td){ mt.innerHTML=titleBadgeHTML(td.badge,td.rar,38); mt.style.display='inline-flex'; }
+    else mt.style.display='none';
+    q('res-date').textContent=_fmtHistDate(entry.date);
+    drawResultPreview(q('res-madori-preview'),snap,390);
+    if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
+    // 画面の描き直しを待つ（タブが裏にあると描き直しが止まるので、時間で待つ）
+    await new Promise(r=>setTimeout(r,80));
+    fitHeroLabel(q('res-room-label'));
+    tw.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
+    let fs=18, g=8;
+    while(pop.style.display!=='none'&&pop.scrollWidth>pop.clientWidth+1&&fs>13&&g-->0){ fs--; pop.style.fontSize=fs+'px'; }
+    return await _captureCardEl(card);
+  }finally{ host.remove(); }
 }
 
 // ────────────────────────────────────────
@@ -2908,7 +3089,8 @@ function alignHeroRuby(heroEl){
       if(!ok(R)){ el.style.transform=''; return; }
       const rb=el.getBoundingClientRect();
       const inkTop=baseOf(rb.top,parseFloat(st.lineHeight)||rfs,R)-R.ink;
-      const dy=ldkInkTop-inkTop;
+      // WC・B とくっつかないよう、少しだけ上に余白を残す
+      const dy=ldkInkTop-inkTop-fs*0.1;
       el.style.transform='translateY('+(dy>0?dy:0).toFixed(2)+'px)';
     });
   }catch(e){}
@@ -3462,23 +3644,75 @@ function fitResultPc(force){
   wrap.style.setProperty('--res-z',z.toFixed(3));
 }
 window.addEventListener('resize',()=>{ clearTimeout(window._resFitT); window._resFitT=setTimeout(fitResultPc,120); });
+// 物件情報の数字（金＝レア／紫＝逆レア／虹＝スーパーレア）
+function setSpecEl(el,val,unit,idx){
+  if(!el)return;
+  el.innerHTML='<span class="rsv-num">'+val+'</span><span class="rsv-unit">'+unit+'</span>';
+  el.classList.remove('rare','niche','super');
+  const v=+val;
+  if(!isNaN(v)){
+    if(isSuperRare(idx,v)) el.classList.add('super');
+    else if(isRareGacha(idx,v)) el.classList.add('rare');
+    else if(isInverseRare(idx,v)) el.classList.add('niche');
+  }
+}
+// 「3LDK +2WC+0B」の大見出し。WC・B の意味は英字の上にフリガナで振る
+function renderHeroLabel(heroEl,roomLabel,sync){
+  const ldkMatch=String(roomLabel||'').match(/^([^+]+)(.*)/);
+  const main=ldkMatch?ldkMatch[1]:(roomLabel||'');
+  const sub=ldkMatch?ldkMatch[2]:'';
+  const fg=(base,kana)=>'<span class="fg"><span class="fg-w">'+kana+'</span>'+base
+    +'<span class="fg-rt"><span class="rt-in">'+kana+'</span></span></span>';
+  const withRuby=(s)=>s
+    .replace(/WC/g,'\u0001')
+    .replace(/B/g,fg('B','おふろ'))
+    .replace(/\u0001/g,fg('WC','トイレ'));
+  heroEl.innerHTML='<span class="ldk-main">'+main+
+    (sub?'<span class="ldk-sub">'+withRuby(sub)+'</span>':'')+'</span>';
+  if(sync) fitHeroLabel(heroEl);
+  else requestAnimationFrame(()=>fitHeroLabel(heroEl));
+}
+// 横幅に収まるよう本体を自動縮小して、フリガナの高さをそろえる
+function fitHeroLabel(heroEl){
+  const mainEl=heroEl.querySelector('.ldk-main');
+  if(!mainEl)return;
+  // 画面に出ていない（幅0）時に測ると最小まで縮んでしまうので、何もしない
+  if(!heroEl.clientWidth)return;
+  const avail=heroEl.clientWidth-12;
+  let fs=42, guard=40;
+  heroEl.style.fontSize=fs+'px';
+  while(fs>20&&guard-->0&&mainEl.scrollWidth>avail){ fs-=1; heroEl.style.fontSize=fs+'px'; }
+  alignHeroRuby(heroEl);
+  // フォント読み込みが後から終わるとずれるので、確定後にもう一度合わせる
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>alignHeroRuby(heroEl));
+}
+// 完成カードの間取り図（winW は画面の幅。マイ物件の作り直しではスマホ幅で作る）
+function drawResultPreview(prevEl,src,winW){
+  prevEl.innerHTML='';
+  const cv=document.createElement('canvas');
+  // 右カラム（3項目）が横に並ぶ分だけ確保し、残りはめいっぱい間取り図に使う
+  const isPC=winW>600;
+  // スマホは物件情報3つの列を細くしたぶん、間取り図を大きくする
+  const sideRoom=isPC?80:184;
+  const maxW=Math.max(150, Math.min(isPC?300:360, winW-sideRoom)), maxH=isPC?252:340;
+  const scale=Math.min(maxW/src.width,maxH/src.height);
+  const dispW=src.width*scale, dispH=src.height*scale;
+  const dpr=Math.min(3,window.devicePixelRatio||1);
+  cv.width=Math.round(dispW*dpr); cv.height=Math.round(dispH*dpr);
+  // 高さを固定すると、横が詰められた時に縦だけ伸びて間取りが歪む。
+  // height:auto なら canvas 本来の縦横比が保たれる
+  cv.style.cssText='display:block;border-radius:2px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:auto;';
+  const ctx=cv.getContext('2d');
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(src,0,0,cv.width,cv.height);
+  prevEl.appendChild(cv);
+}
 function showResult(){
   const age=rouletteValues[0]??'--';
   const walk=rouletteValues[1]??'--';
   const rent=rouletteValues[2]??'--';
   // スペック3点（ガチャ準拠のレア色分け：金＝レア／紫＝逆レア／虹＝スーパーレア）
-  const setSpec=(id,val,unit,idx)=>{
-    const el=document.getElementById(id);
-    if(!el)return;
-    el.innerHTML='<span class="rsv-num">'+val+'</span><span class="rsv-unit">'+unit+'</span>';
-    el.classList.remove('rare','niche','super');
-    const v=+val;
-    if(!isNaN(v)){
-      if(isSuperRare(idx,v)) el.classList.add('super');
-      else if(isRareGacha(idx,v)) el.classList.add('rare');
-      else if(isInverseRare(idx,v)) el.classList.add('niche');
-    }
-  };
+  const setSpec=(id,val,unit,idx)=>setSpecEl(document.getElementById(id),val,unit,idx);
   setSpec('res-age',age,'年',0);
   setSpec('res-walk',walk,'分',1);
   setSpec('res-rent',rent,'万円',2);
@@ -3513,33 +3747,8 @@ function showResult(){
   if(n2)n2.textContent=(rawName||'とくめい');
   // 間取りラベル
   const roomLabel=countRoomLabel(roomTypes,counts);
-  const ldkMatch=roomLabel.match(/^([^+]+)(.*)/);
   const heroEl=document.getElementById('res-room-label');
-  if(heroEl){
-    const main=ldkMatch?ldkMatch[1]:roomLabel;
-    const sub=ldkMatch?ldkMatch[2]:'';
-    // WC・B の意味は、隅に凡例を置くのではなく英字の上にフリガナで振る
-    const fg=(base,kana)=>'<span class="fg"><span class="fg-w">'+kana+'</span>'+base
-      +'<span class="fg-rt"><span class="rt-in">'+kana+'</span></span></span>';
-    const withRuby=(s)=>s
-      .replace(/WC/g,'\u0001')
-      .replace(/B/g,fg('B','おふろ'))
-      .replace(/\u0001/g,fg('WC','トイレ'));
-    heroEl.innerHTML='<span class="ldk-main">'+main+
-      (sub?`<span class="ldk-sub">${withRuby(sub)}</span>`:'')+'</span>';
-    // 横幅に収まるよう本体を自動縮小
-    requestAnimationFrame(()=>{
-      const mainEl=heroEl.querySelector('.ldk-main');
-      if(!mainEl)return;
-      const avail=heroEl.clientWidth-12;
-      let fs=42, guard=40;
-      heroEl.style.fontSize=fs+'px';
-      while(fs>20&&guard-->0&&mainEl.scrollWidth>avail){ fs-=1; heroEl.style.fontSize=fs+'px'; }
-      alignHeroRuby(heroEl);
-      // フォント読み込みが後から終わるとずれるので、確定後にもう一度合わせる
-      if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>alignHeroRuby(heroEl));
-    });
-  }
+  if(heroEl)renderHeroLabel(heroEl,roomLabel);
   // ハッシュタグ：新規獲得優先＋レア度順で最大3つに選抜（1段表示）
   const newTitles=window._newTitles||[];
   const allEarned=window._earnedTitles||[]; // 既にレア度順
@@ -3587,25 +3796,7 @@ function showResult(){
   }
   // 間取り図プレビュー（小さめ・高DPI対応でくっきり）
   const prevEl=document.getElementById('res-madori-preview');
-  if(prevEl&&madoriSnapshot){
-    prevEl.innerHTML='';
-    const cv=document.createElement('canvas');
-    // 右カラム（3項目）が横に並ぶ分だけ確保し、残りはめいっぱい間取り図に使う
-    const isPC=window.innerWidth>600;
-    const sideRoom=isPC?80:218;
-    const maxW=Math.max(150, Math.min(isPC?300:340, window.innerWidth-sideRoom)), maxH=isPC?252:300;
-    const scale=Math.min(maxW/madoriSnapshot.width,maxH/madoriSnapshot.height);
-    const dispW=madoriSnapshot.width*scale, dispH=madoriSnapshot.height*scale;
-    const dpr=Math.min(3,window.devicePixelRatio||1);
-    cv.width=Math.round(dispW*dpr); cv.height=Math.round(dispH*dpr);
-    // 高さを固定すると、横が詰められた時に縦だけ伸びて間取りが歪む。
-    // height:auto なら canvas 本来の縦横比が保たれる
-    cv.style.cssText='display:block;border-radius:2px;border:1px solid rgba(90,74,58,.12);max-width:100%;margin:0 auto;width:'+Math.round(dispW)+'px;height:auto;';
-    const ctx=cv.getContext('2d');
-    ctx.imageSmoothingQuality='high';
-    ctx.drawImage(madoriSnapshot,0,0,cv.width,cv.height);
-    prevEl.appendChild(cv);
-  }
+  if(prevEl&&madoriSnapshot)drawResultPreview(prevEl,madoriSnapshot,window.innerWidth);
   window._lastResult={
     name:window._playerName||'とくめい',
     propName, label:roomLabel,
@@ -3688,21 +3879,40 @@ function autoSaveToHistory(){
   const keepIds=new Set([...favs.map(e=>e.id), ...keepNonfav.map(e=>e.id)]);
   list=list.filter(e=>keepIds.has(e.id));
   saveHistory(list);
-  // シェアカード画像を生成して、この履歴に差し込む（容量節約のため幅520pxのJPEG）
+  // 絵はシェア画像と同じもの（prepareShareImage が作った時に差し込む）。
+  // ここでは間取り図だけを小さく残しておき、カードの見た目を変えた時に作り直せるようにする
   try{
-    buildPropertyCard().then(cv=>{
-      const sc=Math.min(1, 520/cv.width);
-      const sm=document.createElement('canvas');
-      sm.width=Math.round(cv.width*sc); sm.height=Math.round(cv.height*sc);
-      const c2=sm.getContext('2d');
-      c2.fillStyle='#f5f0e8'; c2.fillRect(0,0,sm.width,sm.height);
-      c2.imageSmoothingQuality='high';
-      c2.drawImage(cv,0,0,sm.width,sm.height);
-      const data=sm.toDataURL('image/jpeg',0.8);
-      const cur=loadHistory();
-      const i=cur.findIndex(x=>x.id===entry.id);
-      if(i!==-1){ cur[i].img=data; cur[i].kind='card'; saveHistory(cur); }
-    }).catch(()=>{});
+    if(madoriSnapshot){
+      const sc=Math.min(1,360/madoriSnapshot.width);
+      const c=document.createElement('canvas');
+      c.width=Math.round(madoriSnapshot.width*sc); c.height=Math.round(madoriSnapshot.height*sc);
+      const x=c.getContext('2d');
+      x.fillStyle='#f5f0e8'; x.fillRect(0,0,c.width,c.height);
+      x.imageSmoothingQuality='high';
+      x.drawImage(madoriSnapshot,0,0,c.width,c.height);
+      const cur=loadHistory(); const i=cur.findIndex(e=>e.id===entry.id);
+      if(i!==-1){ cur[i].snap=c.toDataURL('image/jpeg',0.82); saveHistory(cur); }
+    }
+  }catch(e){}
+}
+// 出来たカード画像を、今の物件の履歴に入れる（容量節約のため幅520pxのJPEG）
+function _cardToHistoryData(cv){
+  const sc=Math.min(1, 520/cv.width);
+  const sm=document.createElement('canvas');
+  sm.width=Math.round(cv.width*sc); sm.height=Math.round(cv.height*sc);
+  const c2=sm.getContext('2d');
+  c2.fillStyle='#f5f0e8'; c2.fillRect(0,0,sm.width,sm.height);
+  c2.imageSmoothingQuality='high';
+  c2.drawImage(cv,0,0,sm.width,sm.height);
+  return sm.toDataURL('image/jpeg',0.8);
+}
+function _storeCardInHistory(cv){
+  try{
+    const cur=loadHistory();
+    const i=cur.findIndex(x=>x.id===window._currentHistoryId);
+    if(i===-1)return;
+    cur[i].img=_cardToHistoryData(cv); cur[i].kind='card2';
+    saveHistory(cur);
   }catch(e){}
 }
 function refreshFavButton(){
@@ -3734,15 +3944,26 @@ let _shareFile=null, _shareCanvas=null, _sharePrepTimer=null;
 function prepareShareImage(){
   _shareFile=null; _shareCanvas=null;
   if(_sharePrepTimer)clearTimeout(_sharePrepTimer);
-  _sharePrepTimer=setTimeout(async()=>{
+  let tries=0;
+  const run=async()=>{
+    // 結果画面が見えてから写す（見えていないと古い描き方の絵になるため）
+    const scr=document.getElementById('screen-result');
+    if(!scr||!scr.classList.contains('active')){
+      if(tries++<40)_sharePrepTimer=setTimeout(run,400);
+      return;
+    }
     try{
       if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
+      // 見出しの大きさ合わせが済んでから写す（先に写すと小さいままの見出しが写る）
+      try{ const he=document.getElementById('res-room-label'); if(he)fitHeroLabel(he); }catch(e){}
       const cv=await buildPropertyCard();
       if(!cv)return;
       _shareCanvas=cv;
+      _storeCardInHistory(cv);
       cv.toBlob(b=>{ if(b)_shareFile=new File([b],'madori.png',{type:'image/png'}); },'image/png');
     }catch(e){}
-  },800);
+  };
+  _sharePrepTimer=setTimeout(run,800);
 }
 function _shareText(){
   const r=window._lastResult||{};
@@ -3815,6 +4036,13 @@ function buildPropertyCard(opt){
   const canUseDom = !!window.html2canvas && onScreen && !opt.snapshot && !opt.titles && opt.name===undefined;
   const card=document.getElementById('res-card');
   if(canUseDom){
+    return _captureCardEl(card).catch(e=>{ console.warn('[card] 画面からの生成に失敗→旧方式:',e); return buildPropertyCardLegacy(opt); });
+  }
+  return buildPropertyCardLegacy(opt);
+}
+// カードの要素をそのまま画像にする（結果画面のカード／マイ物件を作り直す時の複製カード）
+function _captureCardEl(card){
+  {
     // 金・紫・虹の数字は html2canvas が描けない（文字の形に切り抜く書き方のため）。
     // 位置を測っておき、撮った後に同じ色の帯で自分で描く
     const fancy=[]; let cardW=0;
@@ -3846,6 +4074,9 @@ function buildPropertyCard(opt){
             if(s)s.style.cssText+=';display:flex!important;height:auto!important;overflow:visible!important;';
             const bg=doc.getElementById('madori-bg');
             if(bg)bg.style.display='none';
+            // マイ物件の作り直し用に画面外へ置いたカードは、写す時だけ見えるようにする
+            const hh=doc.getElementById('hist-render-host');
+            if(hh)hh.style.opacity='1';
             // アニメーションを止めて、最後のコマ（不透明・等倍）で写す
             const st=doc.createElement('style');
             st.textContent='*,*::before,*::after{animation:none!important;transition:none!important;}'
@@ -3875,10 +4106,9 @@ function buildPropertyCard(opt){
           });
         }
         return cv;
-      }).catch(e=>{ console.warn('[card] 画面からの生成に失敗→旧方式:',e); return buildPropertyCardLegacy(opt); });
-    }catch(e){ console.warn('[card] 画面からの生成に失敗→旧方式:',e); }
+      });
+    }catch(e){ return Promise.reject(e); }
   }
-  return buildPropertyCardLegacy(opt);
 }
 function buildPropertyCardLegacy(opt){
   opt=opt||{};
@@ -5220,7 +5450,8 @@ class PuzzleGame extends Phaser.Scene{
       // 描画の度に判定するので、同じパーツで何度もトーストを出さない
       if(this._noPlaceWarnedFor!==this.currentDef){
         this._noPlaceWarnedFor=this.currentDef;
-        showGameToast('置ける場所がないよ！スキップを使ってね');
+        const _sg=document.getElementById('screen-game');
+        if(_sg&&_sg.classList.contains('active'))showGameToast('置ける場所がないよ！スキップを使ってね');
       }
       return;
     }
@@ -5556,26 +5787,26 @@ class PuzzleGame extends Phaser.Scene{
       done.classList.toggle('is-locked',!unlocked);
       // 初回プレイだけ、押せない→押せるに変わった瞬間に知らせる。
       // リロード復帰で最初から押せる状態のときは出さない（前回が「押せない」だった時だけ）
-      if(this._doneUnlocked===false&&unlocked&&!fin){
-        let first=false;
-        try{ first=getCompleteCount()===0&&localStorage.getItem('madori-tut-done-hint')!=='1'; }catch(e){}
-        if(first){
-          showGameToast('完成ボタンが押せるようになったよ！');
-          try{ localStorage.setItem('madori-tut-done-hint','1'); }catch(e){}
-        }
+      if(this._doneUnlocked===false&&unlocked&&!fin&&isTutRun()){
+        if(tutOnce('done-hint')) tutToast('完成ボタンが押せるようになったよ！','btn-complete');
+        if(tutOnce('storage-hint')) tutToast('空いているマスは、完成すると収納になるよ！');
       }
       this._doneUnlocked=unlocked;
     }
     // 回転の案内：1個目を置いたあと、縦横の長さが違うパーツが初めて来た時に1度だけ
+    // 1個目を置いたら「現在の間取り」の場所を教える
+    if(!fin&&this.partCount>=1&&!this._madoriHintDone){
+      this._madoriHintDone=true;
+      if(isTutRun()&&tutOnce('madori-hint')) tutToast('今の間取りはココで確認できるよ！','madori-label');
+    }
     if(!fin&&this.partCount>=1&&this.currentDef&&!this._rotHintDone){
       try{
         const sh=this.getShape(this.currentDef,0);
         if(sh.length!==sh[0].length){
           this._rotHintDone=true;
-          if(getCompleteCount()===0&&localStorage.getItem('madori-tut-rot-hint')!=='1'){
-            localStorage.setItem('madori-tut-rot-hint','1');
+          if(isTutRun()&&tutOnce('rot-hint')){
             const pc=(window.innerWidth||400)>=600;
-            setTimeout(()=>showGameToast(pc?'右クリックか回転ボタンで向きを変えられるよ！':'回転ボタンで向きを変えられるよ！'),350);
+            tutToast(pc?'右クリックか回転ボタンで向きを変えられるよ！':'回転ボタンで向きを変えられるよ！','btn-rotate');
           }
         }
       }catch(e){}
@@ -6101,6 +6332,16 @@ function refitBoard(){
     const cr=container.getBoundingClientRect();
     document.documentElement.style.setProperty('--board-top-gap',Math.max(0,Math.round(rc.top-cr.top))+'px');
     document.documentElement.style.setProperty('--board-h',Math.round(rc.height)+'px');
+    // ゲーム名は、画面の上端と土地の枠の上端のちょうど真ん中に置く（並びは崩さず位置だけずらす）
+    const lg=document.getElementById('pc-game-logo');
+    if(lg){
+      if(!isMobile){
+        lg.style.top='0px';
+        const lr=lg.getBoundingClientRect();
+        const want=rc.top/2-lr.height/2;
+        lg.style.top=((want-lr.top)/(window._pcScale||1)).toFixed(1)+'px';
+      }else lg.style.top='';
+    }
     document.documentElement.style.setProperty('--board-bot-gap',Math.max(0,Math.round(cr.bottom-rc.bottom))+'px');
     // お知らせ（トースト・遊び方ヒント）は、現在の間取りと土地の間のすき間に置く
     const ml=document.getElementById('madori-label');
