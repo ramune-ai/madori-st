@@ -230,6 +230,14 @@ body.resume-hide #screen-game{opacity:0!important;}
   display:flex;flex-direction:column;align-items:flex-start;gap:14px;z-index:5;
 }
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
+#btn-update-info{position:relative;}
+.upd-new{position:absolute;top:-9px;right:-12px;background:#d9534f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.2);animation:updPulse 1.6s ease-in-out infinite;}
+@keyframes updPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.upd-body{text-align:left;font-size:14px;line-height:1.75;color:var(--brown-dark);}
+.upd-date{font-weight:800;font-size:15px;margin:2px 0 8px;}
+.upd-h{font-weight:800;color:var(--accent);margin:12px 0 4px;letter-spacing:.06em;}
+.upd-body ul{margin:0;padding-left:1.3em;}
+.upd-body li{margin-bottom:3px;}
 .top-link{font-size:14px;font-weight:700;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:18px;padding:9px 16px;text-decoration:none;letter-spacing:.03em;box-shadow:0 1px 5px rgba(58,42,26,.07);-webkit-tap-highlight-color:transparent;}
 .top-link:active{background:rgba(200,160,96,.15);}
 /* 獲得称号：土台バッジ左端・NEW!右端・名前中央 */
@@ -435,6 +443,14 @@ body.resume-hide #screen-game{opacity:0!important;}
   padding:20px 20px 18px;
   box-shadow:0 10px 34px rgba(58,42,26,.35);
 }
+.cf-card{position:relative;}
+/* 右上の✕：確認を閉じて土地を見る */
+#btn-complete-overlay .cf-close{
+  position:absolute;top:-14px;right:-14px;width:34px;height:34px;padding:0;
+  background:#fff;border:1.5px solid rgba(90,74,58,.3);color:var(--brown-dark);
+  box-shadow:0 2px 8px rgba(58,42,26,.25);
+  font-family:'Noto Sans JP',sans-serif;font-size:16px;font-weight:700;line-height:31px;text-align:center;
+}
 .cf-stuck{
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:13px;font-weight:700;color:#c05a3e;
@@ -480,6 +496,7 @@ body.resume-hide #screen-game{opacity:0!important;}
 .snd-mute{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:700;color:var(--brown-dark);cursor:pointer;user-select:none;}
 .snd-mute input{width:20px;height:20px;accent-color:var(--accent);margin:0;cursor:pointer;}
 input[type=range]:disabled{opacity:.35;}
+.snd-reset{display:block;margin:16px auto 0;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:18px;padding:8px 18px;cursor:pointer;}
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:27px;font-weight:700;color:var(--brown-dark);letter-spacing:.12em;margin-bottom:24px;text-align:center;}
@@ -1274,6 +1291,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="start-toplinks-left">
     <button class="top-link" onclick="openSoundSettings()">♪ 音楽設定</button>
     <a class="top-link" href="guideline.html" target="_blank" rel="noopener">📋 配信ガイドライン</a>
+    <button class="top-link" id="btn-update-info" onclick="openUpdateInfo()">📰 アップデート情報<span class="upd-new" id="upd-new" style="display:none;">NEW!!</span></button>
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
   <!-- 右上：ゲーム内容を伝える物件貼り紙 -->
@@ -1404,6 +1422,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <!-- 完成の確認ダイアログ（手動完成・置き場所切れの両方でここに出る） -->
   <div id="btn-complete-overlay">
     <div class="cf-card">
+      <button class="cf-close" onclick="hideCompleteDialog()" aria-label="閉じて土地を見る">✕</button>
       <div class="cf-title">この間取りで完成にしますか？</div>
       <div class="cf-stuck" id="cf-stuck-note" style="display:none;">もう置ける場所がありません！</div>
 
@@ -1686,13 +1705,12 @@ function _armAudioKick(){
   if(_audioKickArmed)return;
   _audioKickArmed=true;
   const kick=()=>{
-    document.removeEventListener('pointerdown',kick,true);
-    document.removeEventListener('touchend',kick,true);
+    ['touchend','pointerup','click','keydown'].forEach(ev=>document.removeEventListener(ev,kick,true));
     _audioKickArmed=false;
     _audioResume();
+    _audioUnlock();
   };
-  document.addEventListener('pointerdown',kick,true);
-  document.addEventListener('touchend',kick,true);
+  ['touchend','pointerup','click','keydown'].forEach(ev=>document.addEventListener(ev,kick,true));
 }
 function _audioResume(){
   // iOSには 'interrupted' という状態もあるので running 以外はすべて再開対象
@@ -1728,9 +1746,21 @@ function _audioRebuildOnTap(){
   _audioNeedRebuild=false;
   try{ stopSpinSE(); }catch(e){}
   _rebuildAudio();
+  _audioUnlock();
 }
-document.addEventListener('pointerdown',_audioRebuildOnTap,true);
-document.addEventListener('touchend',_audioRebuildOnTap,true);
+// 無音を一瞬鳴らして、作り直した音の出口を確実に開ける（iPhone の定番の手順）
+function _audioUnlock(){
+  try{
+    const ctx=_audioCtx(); if(!ctx)return;
+    const b=ctx.createBuffer(1,1,22050);
+    const src=ctx.createBufferSource();
+    src.buffer=b; src.connect(ctx.destination); src.start(0);
+    if(ctx.state!=='running')ctx.resume().catch(()=>{});
+  }catch(e){}
+}
+// iPhone は指を置いた瞬間(pointerdown)では音を出す許可にならない。
+// 指を離した時・クリック・キー入力で作り直す（PCのマウスは pointerup で拾う）
+['touchend','pointerup','click','keydown'].forEach(ev=>document.addEventListener(ev,_audioRebuildOnTap,true));
 // iOS Safari でタブを閉じる／アプリを切り替える時の保険
 window.addEventListener('pagehide',_audioSuspend);
 
@@ -1775,7 +1805,7 @@ function _audioWatchdog(){
     _audioHealthCheck();
   }catch(e){}
 }
-document.addEventListener('pointerdown',_audioWatchdog,true);
+document.addEventListener('pointerup',_audioWatchdog,true);
 document.addEventListener('touchend',_audioWatchdog,true);
 function setSeVol(v){
   seVol=Math.max(0,Math.min(1,v));
@@ -1834,6 +1864,7 @@ function openSoundSettings(){
       '<input id="bgm-vol-slider" type="range" min="0" max="100" step="5" style="width:100%;accent-color:var(--accent);">'+
       '<label class="snd-mute"><input type="checkbox" id="bgm-mute-cb">BGMを常に消音（ミュート）</label>'+
       '<div style="margin-top:14px;font-size:11px;color:var(--brown-light);">消音にしても音量は覚えています（外すと元に戻ります）</div>'+
+      '<button class="snd-reset" onclick="resetSoundSettings()">初期設定に戻す</button>'+
       '</div>';
     ov.onclick=()=>closeSoundSettings();
     document.body.appendChild(ov);
@@ -1855,6 +1886,13 @@ function openSoundSettings(){
   se.value=Math.round(seVol*100);  ov.querySelector('#se-vol-label').textContent=se.value+'%';
   bg.value=Math.round(bgmVol*100); ov.querySelector('#bgm-vol-label').textContent=bg.value+'%';
   ov.classList.add('active');
+}
+// 音量・消音を最初の状態に戻す
+function resetSoundSettings(){
+  setSeMute(false); setBgmMute(false);
+  setSeVol(0.7); setBgmVol(0.4);
+  openSoundSettings();   // 表示を今の値に合わせ直す
+  playSE('tap');
 }
 function closeSoundSettings(){
   const ov=document.getElementById('sound-overlay');
@@ -1909,33 +1947,68 @@ function openHowTo(){
     '</div>');
   document.getElementById('modal-overlay').classList.add('active');
 }
-function showGameToast(msg,ms){
+function showGameToast(msg,ms,key){
   const el=document.getElementById('game-toast');
   if(!el)return;
   el.textContent=msg;
   el.classList.add('show');
+  _toastKey=key||null;
   if(_gameToastTimer)clearTimeout(_gameToastTimer);
-  _gameToastTimer=setTimeout(()=>{el.classList.remove('show');},ms||4800);
+  _gameToastTimer=null;
+  // ms===0 は「決まった操作をするまで出したまま」
+  if(ms!==0)_gameToastTimer=setTimeout(()=>{ el.classList.remove('show'); _toastKey=null; },ms||4800);
 }
-// チュートリアルのお知らせ：重ならないよう順番に出し、説明しているボタンを光らせる
+let _toastKey=null;
+function hideGameToast(){
+  const el=document.getElementById('game-toast');
+  if(el)el.classList.remove('show');
+  if(_gameToastTimer)clearTimeout(_gameToastTimer);
+  _gameToastTimer=null; _toastKey=null;
+}
+const _actHit=(key,act)=>!!key&&[].concat(key).includes(act);
+// 回転・設置・スキップ・戻す・完成をした時に呼ぶ。
+// その操作を案内していたお知らせは、読み終わるのを待たずにその場で消す
+function gameAction(act){
+  try{
+    for(let i=_tutQ.length-1;i>=0;i--){ if(_actHit(_tutQ[i].act,act))_tutQ.splice(i,1); }
+    if(_tutCur&&_actHit(_tutCur.act,act)){ _tutAdvance(); return; }
+    if(!_tutCur&&_actHit(_toastKey,act))hideGameToast();
+  }catch(e){}
+}
+// チュートリアルのお知らせ：重ならないよう順番に出し、説明しているボタンを光らせる。
+// 操作を案内するものは、その操作をするまで出したまま（次の案内が待っている時だけ、少し読んでから譲る）
 const TUT_TOAST_MS=4800;
-const _tutQ=[]; let _tutQBusy=false;
-function tutToast(msg,focusId){
-  _tutQ.push({msg,focusId});
-  if(!_tutQBusy)_tutNext();
+const _tutQ=[]; let _tutCur=null, _tutTimer=null;
+function tutToast(msg,focusId,act){
+  _tutQ.push({msg,focusId,act});
+  if(!_tutCur)_tutNext(); else _tutScheduleYield();
 }
 function _tutNext(){
+  if(_tutTimer){ clearTimeout(_tutTimer); _tutTimer=null; }
   const it=_tutQ.shift();
   const scr=document.querySelector('.screen.active');
-  if(!it||!scr||scr.id!=='screen-game'){ _tutQ.length=0; _tutQBusy=false; return; }
-  _tutQBusy=true;
-  showGameToast(it.msg,TUT_TOAST_MS);
+  if(!it||!scr||scr.id!=='screen-game'){ _tutQ.length=0; _tutCur=null; return; }
   const el=it.focusId?document.getElementById(it.focusId):null;
+  _tutCur={...it,el,at:Date.now()};
+  showGameToast(it.msg,it.act?0:TUT_TOAST_MS,it.act);
   if(el)el.classList.add('tut-focus');
-  setTimeout(()=>{ if(el)el.classList.remove('tut-focus'); setTimeout(_tutNext,350); },TUT_TOAST_MS);
+  if(!it.act)_tutTimer=setTimeout(_tutAdvance,TUT_TOAST_MS);
+  else if(_tutQ.length)_tutScheduleYield();
+}
+function _tutScheduleYield(){
+  if(!_tutCur||!_tutCur.act)return;
+  if(_tutTimer)clearTimeout(_tutTimer);
+  _tutTimer=setTimeout(_tutAdvance,Math.max(0,TUT_TOAST_MS-(Date.now()-_tutCur.at)));
+}
+function _tutAdvance(){
+  if(_tutTimer){ clearTimeout(_tutTimer); _tutTimer=null; }
+  if(_tutCur){ if(_tutCur.el)_tutCur.el.classList.remove('tut-focus'); _tutCur=null; hideGameToast(); }
+  if(_tutQ.length)setTimeout(()=>{ if(!_tutCur)_tutNext(); },350);
 }
 function _tutReset(){
-  _tutQ.length=0; _tutQBusy=false;
+  _tutQ.length=0;
+  if(_tutTimer){ clearTimeout(_tutTimer); _tutTimer=null; }
+  _tutCur=null;
   document.querySelectorAll('.tut-focus').forEach(e=>e.classList.remove('tut-focus'));
 }
 // はじめてのプレイ、または「遊び方」からやり直している時
@@ -2524,8 +2597,18 @@ function gotoGame(){
 // まだ完成していない → その場で完成にする／完成済み → 次（ルーレット）へ進む
 function onCompleteBtn(){
   if(!gameScene)return;
+  gameAction('complete');
+  // ✕で確認を閉じて土地を見ていた時は、もう一度確認を出す
+  if(gameScene.isFinished&&gameScene._cfHidden){ gameScene._cfHidden=false; gameScene._updateActionBtns(); return; }
   if(!gameScene.isFinished){ gameScene.forceComplete(); return; }
   proceedFromComplete();
+}
+// 完成の確認を閉じて、土地を見られるようにする（完成ボタンでまた開く）
+function hideCompleteDialog(){
+  if(!gameScene)return;
+  gameScene._cfHidden=true;
+  gameScene._updateActionBtns();
+  showGameToast('完成ボタンを押すと、また完成の確認が出るよ',4800,'complete');
 }
 function proceedFromComplete(){
   if(!gameScene)return;
@@ -3399,6 +3482,57 @@ function updateTitlesNewBadge(){
     el.style.display=owned.some(t=>masterSet.has(t)&&!seen.has(t))?'inline-block':'none';
   }catch(e){ el.style.display='none'; }
 }
+// ── アップデート情報 ──
+// 中身を変えたら UPDATE_VER も変える（まだ見ていない人のボタンに NEW!! が付く）
+const UPDATE_VER='2026-09-27';
+const UPDATE_HTML=
+  '<div class="upd-date">2026年9月27日のアップデート</div>'+
+  '<div class="upd-h">■ 新しくなったこと</div><ul>'+
+  '<li>「遊び方」から、チュートリアルをもう一度遊べるようになりました</li>'+
+  '<li>チュートリアルの案内を増やしました（回転・現在の間取り・完成・収納）。説明中のボタンが光ります</li>'+
+  '<li>音の設定に「常に消音（ミュート）」と「初期設定に戻す」を追加しました</li>'+
+  '<li>もう置けない時も、✕で完成の確認を閉じて土地を見られるようになりました</li>'+
+  '<li>シェアの文面にゲームのURLが入るようになりました</li>'+
+  '<li>このアップデート情報を見られるようになりました</li>'+
+  '</ul><div class="upd-h">■ 見やすくなったこと</div><ul>'+
+  '<li>PC：画面の大きさに合わせて全体が拡大・縮小されるようになりました（大きなモニターでも大きく表示）</li>'+
+  '<li>PC：ボタンを右側に縦並び（スキップ・回転・戻す・完成）にし、パーツとメニューを大きくしました</li>'+
+  '<li>スマホ：画面の大きさに合わせてパーツの表示を調整しました</li>'+
+  '<li>「物件情報ルーレット！」の文字と枠を大きくしました</li>'+
+  '<li>完成画面：間取り図を大きくし、ふりがなの位置を整えました。PCでは画面いっぱいに表示します</li>'+
+  '<li>最レアの数字が虹色に。物件情報3つを見やすくしました</li>'+
+  '<li>シェア画像が画面と同じ見た目になりました（ふりがな・金色・虹色の数字も正しく）</li>'+
+  '<li>マイ物件ファイルの画像を新しい見た目に作り直すようにしました</li>'+
+  '<li>ハッシュタグは1つにしました</li>'+
+  '<li>称号「美品コレクター」を「築浅ハンター」に変更しました（獲得済みの方はそのまま引き継がれます）</li>'+
+  '<li>マドリスト名は8文字までになりました</li>'+
+  '<li>パーツの出やすさを調整しました（キッチン少なめ、洋室・和室多め）</li>'+
+  '</ul><div class="upd-h">■ 直したこと</div><ul>'+
+  '<li>ガチャを押してから止まるまでの遅れをなくしました</li>'+
+  '<li>パーツの回転を右上を支点にし、回すたびにずれていく不具合を直しました</li>'+
+  '<li>PCでクリックしても位置が決まらないことがある不具合を直しました</li>'+
+  '<li>アプリを切り替えた後に効果音が鳴らなくなる不具合の対策をしました</li>'+
+  '<li>シェア画像が崩れる・真っ白になることがある不具合を直しました（iPhone）</li>'+
+  '<li>完成画面を開き直した時に、ゲーム画面が一瞬見える・カクっと動く不具合を直しました</li>'+
+  '<li>「獲得称号を確認」「物件完成」ボタンがPCで左にずれる不具合を直しました</li>'+
+  '<li>完成後にスキップボタンが灰色になる表示を直しました</li>'+
+  '<li>お知らせは、案内している操作をすると消えるようにしました</li>'+
+  '</ul>';
+function refreshUpdateBadge(){
+  const el=document.getElementById('upd-new');
+  if(!el)return;
+  let seen=''; try{ seen=localStorage.getItem('madori-update-seen')||''; }catch(e){}
+  el.style.display=(seen!==UPDATE_VER)?'inline-block':'none';
+}
+function openUpdateInfo(){
+  playSE('page');
+  document.getElementById('modal-title').textContent='アップデート情報';
+  document.getElementById('modal-body').innerHTML='<div class="upd-body">'+UPDATE_HTML+'</div>';
+  document.getElementById('modal-overlay').classList.add('active');
+  try{ localStorage.setItem('madori-update-seen',UPDATE_VER); }catch(e){}
+  refreshUpdateBadge();
+}
+refreshUpdateBadge();
 function closeModal(e){
   if(!e||e.target===document.getElementById('modal-overlay')){
     document.getElementById('modal-overlay').classList.remove('active');
@@ -5262,6 +5396,7 @@ class PuzzleGame extends Phaser.Scene{
   }
   rotatePiece(dir=1){
     if(!this.currentDef)return;
+    gameAction('rotate');
     playSE('rotate');
     this.rotation=(this.rotation+dir+4)%4;
     const newShape=this.getShape(this.currentDef,this.rotation);
@@ -5298,6 +5433,7 @@ class PuzzleGame extends Phaser.Scene{
     if(this.isFinished)return;
     if(this.skipCount<=0){ showGameToast('スキップは使い切ったよ！'); return; }
     playSE('hold');
+    gameAction('skip');
     // スキップも1手として記録する（戻すとパーツと残り回数の両方が返る）
     this._pushUndo(this.currentDef);
     this.skipCount--;
@@ -5313,6 +5449,7 @@ class PuzzleGame extends Phaser.Scene{
     this._persist();
   }
   doUndo(){
+    gameAction('undo');
     if(this.undoStack.length===0){ showGameToast('戻せるのは直前の1手だけだよ！'); return; }
     playSE('undo');
     // ドラッグ・プレビュー状態を確実にリセット（戻す後に今のパーツが消える不具合防止）
@@ -5451,7 +5588,7 @@ class PuzzleGame extends Phaser.Scene{
       if(this._noPlaceWarnedFor!==this.currentDef){
         this._noPlaceWarnedFor=this.currentDef;
         const _sg=document.getElementById('screen-game');
-        if(_sg&&_sg.classList.contains('active'))showGameToast('置ける場所がないよ！スキップを使ってね');
+        if(_sg&&_sg.classList.contains('active'))showGameToast('置ける場所がないよ！スキップを使ってね',0,['skip','undo','rotate']);
       }
       return;
     }
@@ -5527,6 +5664,7 @@ class PuzzleGame extends Phaser.Scene{
   }
   placePiece(def,shape,c,r){
     playSE('place');
+    gameAction('place');
     // 1個置けたら遊び方ヒントは役目を終える。
     // そのうえで「置いたあとも動かせる」ことを、その場で一度だけ伝える
     try{ markTutorialDone(); }catch(e){}
@@ -5773,7 +5911,8 @@ class PuzzleGame extends Phaser.Scene{
   _updateActionBtns(){
     const fin=!!this.isFinished;
     const ov=document.getElementById('btn-complete-overlay');
-    if(ov)ov.classList.toggle('visible',fin);
+    if(!fin)this._cfHidden=false;
+    if(ov)ov.classList.toggle('visible',fin&&!this._cfHidden);
     const stuck=fin&&!this._canContinue();
     const keep=document.getElementById('btn-keep-playing');
     if(keep)keep.classList.toggle('is-locked',stuck);
@@ -5788,8 +5927,8 @@ class PuzzleGame extends Phaser.Scene{
       // 初回プレイだけ、押せない→押せるに変わった瞬間に知らせる。
       // リロード復帰で最初から押せる状態のときは出さない（前回が「押せない」だった時だけ）
       if(this._doneUnlocked===false&&unlocked&&!fin&&isTutRun()){
-        if(tutOnce('done-hint')) tutToast('完成ボタンが押せるようになったよ！','btn-complete');
-        if(tutOnce('storage-hint')) tutToast('空いているマスは、完成すると収納になるよ！');
+        if(tutOnce('done-hint')) tutToast('完成ボタンが押せるようになったよ！','btn-complete','complete');
+        if(tutOnce('storage-hint')) tutToast('空いているマスは、完成すると収納になるよ！',null,['place','complete']);
       }
       this._doneUnlocked=unlocked;
     }
@@ -5797,7 +5936,7 @@ class PuzzleGame extends Phaser.Scene{
     // 1個目を置いたら「現在の間取り」の場所を教える
     if(!fin&&this.partCount>=1&&!this._madoriHintDone){
       this._madoriHintDone=true;
-      if(isTutRun()&&tutOnce('madori-hint')) tutToast('今の間取りはココで確認できるよ！','madori-label');
+      if(isTutRun()&&tutOnce('madori-hint')) tutToast('今の間取りはココで確認できるよ！','madori-label','place');
     }
     if(!fin&&this.partCount>=1&&this.currentDef&&!this._rotHintDone){
       try{
@@ -5806,7 +5945,7 @@ class PuzzleGame extends Phaser.Scene{
           this._rotHintDone=true;
           if(isTutRun()&&tutOnce('rot-hint')){
             const pc=(window.innerWidth||400)>=600;
-            tutToast(pc?'右クリックか回転ボタンで向きを変えられるよ！':'回転ボタンで向きを変えられるよ！','btn-rotate');
+            tutToast(pc?'右クリックか回転ボタンで向きを変えられるよ！':'回転ボタンで向きを変えられるよ！','btn-rotate','rotate');
           }
         }
       }catch(e){}
