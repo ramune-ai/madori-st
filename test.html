@@ -99,7 +99,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
 @media (max-width:374px){
   .start-flyer{padding:13px 9px 12px;}
 }
-/* 320pxç´ã®ç«¯æ«ã§ã¯å·¦ä¸ãªã³ã¯ãè©°ããªãã¨è²¼ãç´ã¨ã¶ã¤ãã */
+/* 320px級の端末では、左上のリンクを詰めないと貼り紙とぶつかる */
 @media (max-width:344px){
   .start-toplinks-left{gap:10px;}
   .start-toplinks-left .top-link{font-size:12px;padding:7px 11px;}
@@ -235,7 +235,11 @@ body.resume-hide #screen-game{opacity:0!important;}
 .upd-new{position:absolute;top:-9px;right:-12px;background:#d9534f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.2);animation:updPulse 1.6s ease-in-out infinite;}
 @keyframes updPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
 .upd-body{text-align:left;font-size:14px;line-height:1.75;color:var(--brown-dark);}
-.upd-date{font-weight:800;font-size:15px;margin:2px 0 8px;}
+.upd-date{font-weight:800;font-size:16px;margin:2px 0 8px;display:inline-block;}
+.upd-when{font-weight:700;font-size:12px;color:var(--brown-light);margin-left:8px;}
+.upd-old{margin-top:16px;border-top:1px dashed rgba(90,74,58,.25);padding-top:10px;}
+.upd-old summary{cursor:pointer;list-style:revert;}
+.upd-old summary .upd-date{margin:0;}
 .upd-h{font-weight:800;color:var(--accent);margin:12px 0 4px;letter-spacing:.06em;}
 .upd-body ul{margin:0;padding-left:1.3em;}
 .upd-body li{margin-bottom:3px;}
@@ -458,6 +462,7 @@ body.resume-hide #screen-game{opacity:0!important;}
   text-align:center;white-space:nowrap;margin:-4px 0 2px;
 }
 .cf-title{
+  line-height:1.5;
 
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
   font-size:14px;font-weight:700;color:var(--brown);
@@ -509,7 +514,34 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fair-pop.is-next{background:transparent;color:var(--brown-light);box-shadow:none;outline:none;transform:none;padding:0;margin:4px auto 10px;}
 .fair-pop.is-next .fp-next{font-size:12px;font-weight:700;}
 .fair-pop.is-next .fp-next b{color:#c0392b;}
-.fair-pop-rou{margin:-8px auto 14px;}
+.fair-pop{cursor:pointer;}
+.fair-pop .fp-line{font-size:12.5px;font-weight:700;line-height:1.55;}
+.fair-pop .fp-line b{color:#ffe14d;}
+.fair-pop .fp-line.used{opacity:.65;}
+.fair-pop .fp-more{font-size:10px;font-weight:700;opacity:.85;text-align:right;margin-top:2px;}
+.fair-pop.is-next .fp-more{display:inline;color:var(--brown-light);text-decoration:underline;}
+/* ガチャ：フェアの項目の枠に貼る */
+.roulette-item-wrap .fair-pop-rou{position:absolute;z-index:22;margin:0;cursor:default;}
+.fair-pop-rou .fp-full{display:none;}
+.fair-pop-rou .fp-compact{font-size:11px;font-weight:800;line-height:1.3;}
+.fair-pop-rou .fp-compact b{color:#ffe14d;font-size:13px;}
+@media(max-width:599px){
+  .roulette-item-wrap .fair-pop-rou{left:-8px;top:50%;transform:translateY(-50%) rotate(-6deg);padding:7px 9px;}
+}
+/* 水曜：ガチャ画面の1行のお知らせ */
+.fair-line{font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:#2f6fa8;margin:-8px 0 12px;text-align:center;}
+.fair-line b{color:#1f5a8f;}
+/* 完成画面：もう一度あそぶの右上に貼る */
+.again-wrap{position:relative;}
+.fair-pop-res{position:absolute;top:-18px;right:-6px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
+.fair-pop-res .fp-mini{font-size:10.5px;font-weight:700;line-height:1.3;}
+.fair-pop-res .fp-mini b{color:#ffe14d;font-size:12px;}
+/* フェアの一覧 */
+.fair-table{width:100%;border-collapse:collapse;font-size:14px;color:var(--brown-dark);text-align:left;}
+.fair-table td{padding:8px 6px;border-bottom:1px solid rgba(90,74,58,.12);vertical-align:top;line-height:1.5;}
+.fair-table td.d{width:3.2em;font-weight:800;font-size:16px;text-align:center;}
+.fair-table td.d span{display:block;font-size:10px;color:#fff;background:#d9443a;border-radius:8px;margin-top:2px;}
+.fair-table tr.today td{background:rgba(217,68,58,.07);}
 /* 水曜：水に流す（無料の引き直し） */
 .wash-btn{
   display:none;position:absolute;right:-10px;bottom:-18px;z-index:21;pointer-events:auto;
@@ -524,7 +556,14 @@ body.resume-hide #screen-game{opacity:0!important;}
   .fair-pop .fp-sub{font-size:15px;}
   .fair-pop .fp-tag{font-size:13px;}
   /* ガチャ画面のPCは縦に余裕がないので、枠の左に貼り紙のように置く */
-  #screen-roulette .fair-pop-rou{position:absolute;top:calc(200px * var(--pcs,1));right:calc(50% + 300px * var(--pcs,1));margin:0;width:230px;scale:var(--pcs,1);transform-origin:top right;}
+  /* ガチャのPCは、フェアの項目の枠の左に詳しく貼る（枠ごと拡大されるので大きさは合う） */
+  .roulette-item-wrap .fair-pop-rou{right:100%;top:50%;transform:translateY(-50%) rotate(-3deg);margin-right:26px;width:220px;padding:10px 14px 12px;}
+  .fair-pop-rou .fp-full{display:block;}
+  .fair-pop-rou .fp-compact{display:none;}
+  .fair-pop .fp-line{font-size:15px;}
+  .fair-line{font-size:16px;}
+  .fair-pop-res .fp-mini{font-size:12px;}
+  .fair-pop-res .fp-mini b{font-size:14px;}
   .wash-btn{font-size:17px;padding:10px 18px;right:-14px;bottom:-22px;}
 }
 /* ガチャの確率表 */
@@ -969,6 +1008,23 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   .title-grid-cond{font-size:12px;line-height:1.35;}
   .title-grid-card{padding:8px 8px;min-height:0;gap:4px;}
 }
+/* スマホのスタート画面：左上のリンクの下からロゴを始める（--start-top は fitStartTop が測る）。
+   収まらない時は下へスクロール */
+@media(max-width:599px){
+  #screen-start{justify-content:flex-start;overflow-y:auto;padding-top:var(--start-top, 200px);padding-bottom:20px;}
+  #screen-start .logo-wrap{margin-top:auto;margin-bottom:20px;}
+  #screen-start .start-sub-btns{margin-bottom:auto;}
+}
+/* 背の低いスマホは、ロゴとボタンを少し小さくして1画面に収める */
+@media(max-width:599px) and (max-height:720px){
+  #screen-start .logo-icon{font-size:42px;margin-bottom:4px;}
+  #screen-start .logo-title{font-size:32px;}
+  #screen-start .logo-sub{font-size:16px;margin-top:6px;}
+  #screen-start .logo-wrap{margin-bottom:14px;}
+  #screen-start .fair-pop{margin:2px auto 10px;}
+  #screen-start .btn-start{padding:17px 70px;}
+  #screen-start .start-sub-btns{margin-top:22px;}
+}
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
   #game-top-row1{padding:14px 4px 6px;}
@@ -1310,6 +1366,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 }
 .dev-btn:active{background:rgba(200,160,96,.2);}
 .dev-wide{width:100%;}
+.dev-btn.on{background:#d9443a;color:#fff;border-color:#d9443a;}
 .dev-note{font-size:10px;color:var(--brown-light);line-height:1.5;margin-top:8px;}
 
 /* ── PC：ゲーム画面以外も画面の大きさに合わせて拡大縮小（フルHDで等倍） ── */
@@ -1357,7 +1414,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <div class="logo-sub">MADORI-ST</div>
   </div>
   <!-- 曜日ごとのフェアのお知らせ（中身は refreshFairPops が入れる） -->
-  <div class="fair-pop" id="fair-pop-start" style="display:none;"></div>
+  <div class="fair-pop" id="fair-pop-start" style="display:none;" onclick="openFairInfo()"></div>
   <!-- プロフィール：名前と称号をそれぞれ編集 -->
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <!-- 集めたものを見る3枠。左からプロフィール／称号／マイ物件 -->
@@ -1474,7 +1531,14 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
   <!-- 完成の確認ダイアログ（手動完成・置き場所切れの両方でここに出る） -->
   <div id="btn-complete-overlay">
-    <div class="cf-card">
+    <div class="cf-card" id="cf-fail" style="display:none;">
+      <button class="cf-close" onclick="hideCompleteDialog()" aria-label="閉じて土地を見る">✕</button>
+      <div class="cf-stuck">もう置ける場所がありません…</div>
+      <div class="cf-title">土地の半分以上を埋めないと<br>完成できません（いま <span id="cf-fail-pct">0%</span>）</div>
+      <button class="cf-yes" onclick="gotoGame()">リトライ</button>
+      <button class="cf-no" id="cf-fail-undo" onclick="if(gameScene)gameScene.doUndo()">ひとつ戻す</button>
+    </div>
+    <div class="cf-card" id="cf-main">
       <button class="cf-close" onclick="hideCompleteDialog()" aria-label="閉じて土地を見る">✕</button>
       <div class="cf-title">この間取りで完成にしますか？</div>
       <div class="cf-stuck" id="cf-stuck-note" style="display:none;">もう置ける場所がありません！</div>
@@ -1516,6 +1580,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="roulette-title">物件情報ルーレット！</div>
   <div class="fair-pop fair-pop-rou" id="fair-pop-rou" style="display:none;"></div>
   <button class="odds-link" onclick="openGachaOdds()">📊 確率を見る</button>
+  <div class="fair-line" id="fair-line-rou" style="display:none;"></div>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-0" onpointerdown="if(event.button===0)lockRoulette(0)">
       <div class="roulette-item-label">築年数</div>
@@ -1602,7 +1667,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 
     <!-- ボタン：押してほしい順に大きさを変える -->
     <div class="result-actions">
-      <button class="btn-again" onclick="gotoGame()">もう一度あそぶ</button>
+      <div class="again-wrap">
+        <button class="btn-again" onclick="gotoGame()">もう一度あそぶ</button>
+        <div class="fair-pop fair-pop-res" id="fair-pop-res" style="display:none;" onclick="openFairInfo()"></div>
+      </div>
       <div class="result-sub-row">
         <button class="btn-result sub" onclick="openModal('titles')">🏅 称号</button>
         <button class="btn-result sub fav" id="res-fav-btn" onclick="toggleResultFav()">☆ お気に入り</button>
@@ -2400,6 +2468,7 @@ document.addEventListener('click',()=>{
 
 function gotoStart(){
   try{ refreshFairPops(); }catch(e){}
+  setTimeout(fitStartTop,0);
   showMadoriBg(false);
   updateStartProfile();
   updateTitlesNewBadge();
@@ -2510,15 +2579,17 @@ function gachaAllValues(idx){
 // 水：定休日 … 1か所だけ無料で引き直せる（確率はいつもどおり）
 // 日：オープンハウスの日 … スキップがいつもより1回多い
 const FAIRS={
-  1:{type:'boost',idx:0,name:'築浅フェア',   what:'築5年以内'},
-  4:{type:'boost',idx:1,name:'駅近フェア',   what:'駅徒歩5分以内'},
-  5:{type:'boost',idx:2,name:'高級賃貸フェア',what:'家賃60万円以上'},
+  1:{type:'boost',idx:0,name:'築浅フェア',   what:'築5年以内',    short:'築5年以内'},
+  4:{type:'boost',idx:1,name:'駅近フェア',   what:'駅徒歩5分以内',short:'徒歩5分以内'},
+  5:{type:'boost',idx:2,name:'高級賃貸フェア',what:'家賃60万円以上',short:'60万円以上'},
   3:{type:'closed',name:'定休日'},
   0:{type:'openhouse',name:'オープンハウスの日'},
 };
 const FAIR_BOOST=2;   // フェアの日の PREMIUM以上の倍率
 const WEEK_JA=['日','月','火','水','木','金','土'];
-function todayFair(){ return FAIRS[new Date().getDay()]||null; }
+// テスト版の開発用ツールで曜日を切り替えた時は window._devDay を使う（本番では使われない）
+function _fairDay(){ return (typeof window._devDay==='number')?window._devDay:new Date().getDay(); }
+function todayFair(){ return FAIRS[_fairDay()]||null; }
 function _todayKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 // その日はじめてのガチャの「確定」がまだ使えるか
 function fairFirstAvailable(){ try{ return localStorage.getItem('madori-fair-first')!==_todayKey(); }catch(e){ return false; } }
@@ -2576,37 +2647,68 @@ function gachaOddsRows(idx,blocksOverride){
 }
 // フェアのPOP。不動産屋さんの店頭に貼ってある値札・チラシ風
 function fairPopHTML(where){
-  const f=todayFair();
-  const wd=WEEK_JA[new Date().getDay()];
-  if(!f){
-    if(where!=='start')return '';
-    // フェアの無い日は、次のフェアを小さく予告する
-    let nd=new Date().getDay(), g=null;
-    for(let k=1;k<=7&&!g;k++){ const d=(nd+k)%7; if(FAIRS[d]&&FAIRS[d].type==='boost')g={d,f:FAIRS[d]}; }
-    return g?'<div class="fp-next">次回フェア　'+WEEK_JA[g.d]+'曜日は<b>'+g.f.name+'</b></div>':'';
+  const f=todayFair(), day=_fairDay(), wd=WEEK_JA[day];
+  const first=fairFirstAvailable();
+  const nextFair=()=>{ for(let k=1;k<=7;k++){ const d=(day+k)%7; if(FAIRS[d])return {d,f:FAIRS[d]}; } return null; };
+  // 完成画面：もう一度あそぶ理由になる一言
+  if(where==='res'){
+    if(!f){ const g=nextFair(); return g?'<div class="fp-mini">'+(g.d===(day+1)%7?'あした':WEEK_JA[g.d]+'曜')+'は<br><b>'+g.f.name+'</b></div>':''; }
+    if(f.type==='boost') return '<div class="fp-mini">本日'+f.name+'<br><b>'+f.short+(first?' 1回目確定！':' 確率'+FAIR_BOOST+'倍！')+'</b></div>';
+    if(f.type==='closed') return '<div class="fp-mini">本日定休日<br><b>1か所 無料で引き直し</b></div>';
+    return '<div class="fp-mini">オープンハウスの日<br><b>スキップ+1回</b></div>';
   }
-  let tag, main, sub;
+  // ガチャ：フェアの項目の枠の左に貼る（PCは詳しく、スマホは要点だけ）
+  if(where==='rou'){
+    if(!f||f.type!=='boost')return '';
+    return '<div class="fp-full"><div class="fp-tag">本日'+wd+'曜限定</div><div class="fp-main">'+f.name+'</div>'
+      +'<div class="fp-sub">'+(first?'1回目は<b>'+f.what+'<br>確定！</b>':'<b>'+f.what+'</b>が<br>いつもの'+FAIR_BOOST+'倍！')+'</div></div>'
+      +'<div class="fp-compact">'+f.short+'<br><b>'+(first?'確定！':'確率'+FAIR_BOOST+'倍')+'</b></div>';
+  }
+  // ガチャ：水曜は1行で
+  if(where==='line') return (f&&f.type==='closed')?'💧 本日定休日：止めたあと<b>1か所だけ無料で引き直し</b>OK':'';
+  // スタート画面
+  if(!f){ const g=nextFair(); return g?'<div class="fp-next">次回フェア　'+WEEK_JA[g.d]+'曜日は<b>'+g.f.name+'</b>　<span class="fp-more">くわしく ▶</span></div>':''; }
+  const more='<div class="fp-more">タップでくわしく ▶</div>';
   if(f.type==='boost'){
-    tag='本日'+wd+'曜限定'; main=f.name+'開催中！';
-    sub=fairFirstAvailable()?'本日はじめての1回は<b>'+f.what+'確定！</b>':'<b>'+f.what+'</b>がいつもの'+FAIR_BOOST+'倍出やすい！';
-  }else if(f.type==='closed'){
-    tag='本日'+wd+'曜は定休日'; main='嫌な数字は水に流そう！';
-    sub='ルーレットを<b>1か所だけ無料で引き直し</b>OK';
-  }else{
-    tag='本日'+wd+'曜限定'; main='オープンハウスの日！';
-    sub='スキップが<b>いつもより1回多い</b>（4回）';
+    return '<div class="fp-tag">本日'+wd+'曜限定</div><div class="fp-main">'+f.name+'開催中！</div>'
+      +'<div class="fp-line'+(first?'':' used')+'">① 本日1回目は <b>'+f.what+' 確定！</b>'+(first?'':'（使用済み）')+'</div>'
+      +'<div class="fp-line">② 2回目以降も <b>'+f.what+'が'+FAIR_BOOST+'倍</b>出やすい！</div>'+more;
   }
-  return '<div class="fp-tag">'+tag+'</div><div class="fp-main">'+main+'</div><div class="fp-sub">'+sub+'</div>';
+  if(f.type==='closed') return '<div class="fp-tag">本日'+wd+'曜は定休日</div><div class="fp-main">嫌な数字は水に流そう！</div><div class="fp-line">ルーレットを<b>1か所だけ無料で引き直し</b>OK</div>'+more;
+  return '<div class="fp-tag">本日'+wd+'曜限定</div><div class="fp-main">オープンハウスの日！</div><div class="fp-line">スキップが<b>いつもより1回多い</b>（4回）</div>'+more;
 }
 function refreshFairPops(){
-  [['fair-pop-start','start'],['fair-pop-rou','rou']].forEach(([id,w])=>{
-    const el=document.getElementById(id); if(!el)return;
-    const h=fairPopHTML(w);
-    el.innerHTML=h; el.style.display=h?'':'none';
-    el.classList.toggle('is-next',!todayFair());
-  });
+  const f=todayFair();
+  const set=(id,h)=>{ const el=document.getElementById(id); if(!el)return null; el.innerHTML=h; el.style.display=h?'':'none'; return el; };
+  const st=set('fair-pop-start',fairPopHTML('start')); if(st)st.classList.toggle('is-next',!f);
+  set('fair-pop-res',fairPopHTML('res'));
+  set('fair-line-rou',fairPopHTML('line'));
+  // フェアの項目の枠へ移して、その枠の左に貼る
+  const rp=set('fair-pop-rou',fairPopHTML('rou'));
+  if(rp&&f&&f.type==='boost'){
+    const wrap=document.getElementById('rou-'+f.idx);
+    if(wrap&&wrap.parentElement&&rp.parentElement!==wrap.parentElement)wrap.parentElement.appendChild(rp);
+  }
 }
 refreshFairPops();
+// 曜日ごとのフェアの一覧（POPをタップした時）
+function openFairInfo(){
+  const day=_fairDay();
+  const rows=[1,2,3,4,5,6,0].map(d=>{
+    const f=FAIRS[d]; let t='いつもどおり';
+    if(f){
+      if(f.type==='boost')t='<b>'+f.name+'</b><br>'+f.what+'（PREMIUM以上）が'+FAIR_BOOST+'倍出やすい。その日はじめての1回は確定';
+      else if(f.type==='closed')t='<b>定休日</b><br>ルーレットを止めたあと、1か所だけ無料で引き直し（確率はいつもどおり）';
+      else t='<b>オープンハウスの日</b><br>スキップがいつもより1回多い（4回）';
+    }
+    return '<tr'+(d===day?' class="today"':'')+'><td class="d">'+WEEK_JA[d]+(d===day?'<span>今日</span>':'')+'</td><td>'+t+'</td></tr>';
+  }).join('');
+  playSE('page');
+  document.getElementById('modal-title').textContent='曜日ごとのフェア';
+  document.getElementById('modal-body').innerHTML='<table class="fair-table">'+rows+'</table>'
+    +'<div class="odds-note" style="margin-top:12px;">くわしい確率は、物件情報ルーレットの「📊 確率を見る」で見られます。</div>';
+  document.getElementById('modal-overlay').classList.add('active');
+}
 function openGachaOdds(){
   const unit=['年','分','万円'], name=['築年数','駅徒歩','家賃'];
   const tag={super:'SUPER RARE',rare:'PREMIUM',niche:'RARE',normal:'ノーマル'};
@@ -2788,7 +2890,7 @@ function onCompleteBtn(){
   if(!gameScene)return;
   gameAction('complete');
   // ✕で確認を閉じて土地を見ていた時は、もう一度確認を出す
-  if(gameScene.isFinished&&gameScene._cfHidden){ gameScene._cfHidden=false; gameScene._updateActionBtns(); return; }
+  if((gameScene.isFinished||gameScene._failStuck)&&gameScene._cfHidden){ gameScene._cfHidden=false; gameScene._updateActionBtns(); return; }
   if(!gameScene.isFinished){ gameScene.forceComplete(); return; }
   proceedFromComplete();
 }
@@ -2797,7 +2899,8 @@ function hideCompleteDialog(){
   if(!gameScene)return;
   gameScene._cfHidden=true;
   gameScene._updateActionBtns();
-  showGameToast('完成ボタンを押すと、また完成の確認が出るよ',4800,'complete');
+  if(gameScene._failStuck) showGameToast('メニューの「リトライ」で新しい土地から遊べるよ',4800);
+  else showGameToast('完成ボタンを押すと、また完成の確認が出るよ',4800,'complete');
 }
 function proceedFromComplete(){
   if(!gameScene)return;
@@ -3675,9 +3778,24 @@ function updateTitlesNewBadge(){
 }
 // ── アップデート情報 ──
 // 中身を変えたら UPDATE_VER も変える（まだ見ていない人のボタンに NEW!! が付く）
-const UPDATE_VER='2026-09-27';
-const UPDATE_HTML=
-  '<div class="upd-date">2026年9月27日のアップデート</div>'+
+// ── アップデート情報 ──
+// 本番に入れるたびに先頭へ1つ足す。先頭の ver が変わると、まだ見ていない人のボタンに NEW!! が付く
+// Ver.1.0＝2026/9/11 一般公開／Ver.1.1＝9/12／Ver.1.2＝9/27
+const UPDATES=[
+  {ver:'1.3', date:'（次回公開予定）', html:
+  '<div class="upd-h">■ 新しくなったこと</div><ul>'+
+  '<li><b>曜日ごとのフェア</b>を始めました。月曜「築浅フェア」・木曜「駅近フェア」・金曜「高級賃貸フェア」はその項目のPREMIUM以上が2倍出やすく、その日はじめての1回は確定！ 水曜は定休日で、1か所だけ無料で引き直し。日曜はオープンハウスの日でスキップが1回多くなります</li>'+
+  '<li>物件情報ルーレットの確率を見られるようになりました（📊 確率を見る）</li>'+
+  '</ul><div class="upd-h">■ 変わったこと</div><ul>'+
+  '<li>物件情報ルーレットの確率を見直しました（SUPER RARE 1.5%・PREMIUM 8.5%・RARE 1%）</li>'+
+  '<li>家賃のPREMIUMは60万円以上になりました。家賃の称号の条件も60万円以上にそろえました</li>'+
+  '<li>称号のメダルの色を、取れる確率に合わせて付け直しました</li>'+
+  '<li>完成ボタンは、土地の半分以上を埋めると押せるようになりました（半分まで埋まらずに置けなくなった時はリトライできます）</li>'+
+  '</ul><div class="upd-h">■ 直したこと</div><ul>'+
+  '<li>PCでシェア画像が古い見た目になることがある不具合を直しました</li>'+
+  '<li>スマホのスタート画面で、家の絵が上のボタンと重なる不具合を直しました</li>'+
+  '</ul>'},
+  {ver:'1.2', date:'2026年9月27日', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
   '<li>「遊び方」から、チュートリアルをもう一度遊べるようになりました</li>'+
   '<li>チュートリアルの案内を増やしました（回転・現在の間取り・完成・収納）。説明中のボタンが光ります</li>'+
@@ -3708,7 +3826,21 @@ const UPDATE_HTML=
   '<li>「獲得称号を確認」「物件完成」ボタンがPCで左にずれる不具合を直しました</li>'+
   '<li>完成後にスキップボタンが灰色になる表示を直しました</li>'+
   '<li>お知らせは、案内している操作をすると消えるようにしました</li>'+
-  '</ul>';
+  '</ul>'},
+];
+const UPDATE_VER=UPDATES[0].ver;
+// スマホのスタート画面：左上のリンクの下端を測って、ロゴをその下から始める
+function fitStartTop(){
+  try{
+    const scr=document.getElementById('screen-start'), links=document.querySelector('.start-toplinks-left');
+    if(!scr||!links)return;
+    const b=links.getBoundingClientRect().bottom-scr.getBoundingClientRect().top+scr.scrollTop;
+    if(b>0)document.documentElement.style.setProperty('--start-top',Math.round(b+26)+'px');
+  }catch(e){}
+}
+window.addEventListener('resize',()=>{ clearTimeout(window._fstT); window._fstT=setTimeout(fitStartTop,100); });
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitStartTop);
+setTimeout(fitStartTop,0);
 function refreshUpdateBadge(){
   const el=document.getElementById('upd-new');
   if(!el)return;
@@ -3718,7 +3850,12 @@ function refreshUpdateBadge(){
 function openUpdateInfo(){
   playSE('page');
   document.getElementById('modal-title').textContent='アップデート情報';
-  document.getElementById('modal-body').innerHTML='<div class="upd-body">'+UPDATE_HTML+'</div>';
+  // 新しいものは開いた状態、前のものは「過去のアップデート」としてたたむ
+  const body=UPDATES.map((u,i)=>{
+    const head='<div class="upd-date">Ver.'+u.ver+'<span class="upd-when">'+u.date+'</span></div>';
+    return i===0?head+u.html:'<details class="upd-old"><summary>'+head+'</summary>'+u.html+'</details>';
+  }).join('');
+  document.getElementById('modal-body').innerHTML='<div class="upd-body">'+body+'</div>';
   document.getElementById('modal-overlay').classList.add('active');
   try{ localStorage.setItem('madori-update-seen',UPDATE_VER); }catch(e){}
   refreshUpdateBadge();
@@ -4180,6 +4317,7 @@ function showResult(){
   }
   // お気に入りボタンの状態を反映
   refreshFavButton();
+  try{ refreshFairPops(); }catch(e){}
 }
 
 // ════════════════════════════════════════
@@ -4902,6 +5040,7 @@ function svgToCanvas(dataUrl){
 
 const CS=54,COLS=8,ROWS=10,UI_R=0;
 const SKIP_MAX=3;   // 1ゲームで使えるスキップ回数
+const COMPLETE_MIN_FILL=0.5;   // 完成できるのは、土地のマスがこの割合以上埋まってから（連打で即完成を防ぐ）
 const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
 // 土地形状定義
 // null = 配置不可マス、0 = 通常マス
@@ -5832,7 +5971,7 @@ class PuzzleGame extends Phaser.Scene{
     if(!this.currentDef)return;   // 起動直後などパーツが未確定のとき
 
     const curOk=this._canPlaceAnywhere(this.currentDef);
-    if(curOk){ this._noPlaceWarnedFor=null; return; }
+    if(curOk){ this._noPlaceWarnedFor=null; this._failStuck=false; return; }
 
     // 今のパーツが置けない。スキップが残っていればまだ続けられる
     if(this.skipCount>0){
@@ -5845,9 +5984,14 @@ class PuzzleGame extends Phaser.Scene{
       return;
     }
 
-    // 置けない かつ スキップも残っていない → 終了
-
-    // 全て置けない → 終了
+    // 置けない かつ スキップも残っていない → 終了。
+    // ただし土地の半分まで埋まっていない時は完成にせず、リトライをすすめる
+    if(this._landFillRatio()<COMPLETE_MIN_FILL){
+      if(!this._failStuck){ this._failStuck=true; this._cfHidden=false; try{ hideGameToast(); }catch(e){} this._updateActionBtns(); }
+      return;
+    }
+    try{ hideGameToast(); }catch(e){}
+    this._failStuck=false;
     this._doComplete();
   }
   // 完成処理（自動判定・手動「ここで完成」共通）
@@ -5891,7 +6035,7 @@ class PuzzleGame extends Phaser.Scene{
   // ☰メニューの「ここで完成にする」（自動判定が拾えないケースの保険）
   forceComplete(){
     if(this.isFinished)return;
-    if(this.partCount<5){ showGameToast('パーツを5個以上置いてから完成できるよ！'); return; }
+    if(this._landFillRatio()<COMPLETE_MIN_FILL){ showGameToast('土地の半分以上を埋めると完成できるよ！（いま'+Math.floor(this._landFillRatio()*100)+'%）'); return; }
     this._doComplete();
   }
   canPlace(shape,c,r){
@@ -6163,8 +6307,19 @@ class PuzzleGame extends Phaser.Scene{
   _updateActionBtns(){
     const fin=!!this.isFinished;
     const ov=document.getElementById('btn-complete-overlay');
-    if(!fin)this._cfHidden=false;
-    if(ov)ov.classList.toggle('visible',fin&&!this._cfHidden);
+    // 半分まで埋まらずに詰んだ時は、完成ではなくリトライをすすめる確認を出す
+    const failSt=!fin&&!!this._failStuck;
+    if(!fin&&!failSt)this._cfHidden=false;
+    if(ov)ov.classList.toggle('visible',(fin||failSt)&&!this._cfHidden);
+    const cfMain=document.getElementById('cf-main'), cfFail=document.getElementById('cf-fail');
+    if(cfMain)cfMain.style.display=failSt?'none':'';
+    if(cfFail){
+      cfFail.style.display=failSt?'':'none';
+      if(failSt){
+        const p=document.getElementById('cf-fail-pct'); if(p)p.textContent=Math.floor(this._landFillRatio()*100)+'%';
+        const u=document.getElementById('cf-fail-undo'); if(u)u.style.display=(this.undoStack&&this.undoStack.length)?'':'none';
+      }
+    }
     const stuck=fin&&!this._canContinue();
     const keep=document.getElementById('btn-keep-playing');
     if(keep)keep.classList.toggle('is-locked',stuck);
@@ -6174,7 +6329,7 @@ class PuzzleGame extends Phaser.Scene{
     if(done){
       // 完成後も消さない。場所が空くと画面が動いて分かりにくくなるため
       done.style.display='';
-      const unlocked=fin||this.partCount>=5;
+      const unlocked=fin||this._landFillRatio()>=COMPLETE_MIN_FILL;
       done.classList.toggle('is-locked',!unlocked);
       // 初回プレイだけ、押せない→押せるに変わった瞬間に知らせる。
       // リロード復帰で最初から押せる状態のときは出さない（前回が「押せない」だった時だけ）
@@ -6403,6 +6558,15 @@ class PuzzleGame extends Phaser.Scene{
   }
   // 全パーツ・全スロット共通の固定1マスpx（これで見た目の大きさが完全に揃う）
   // 最大パーツ3マス × この値 が各canvasに収まるサイズで描画する
+  // 土地（置けるマス）のうち、埋まっている割合
+  _landFillRatio(){
+    let tot=0, fill=0;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      if(LAND_MAP[r][c]===null)continue;
+      tot++; if(this.grid&&this.grid[r]&&this.grid[r][c])fill++;
+    }
+    return tot?fill/tot:0;
+  }
   _unifiedCellPx(){
     const w=window.innerWidth||400;
     if(w<600)return 38;
@@ -6845,6 +7009,26 @@ function devPickPart(type){
     showGameToast('「'+def.name+'」にしたよ');
   }catch(e){ showGameToast('差し替えできなかった'); }
 }
+// 曜日を切り替える（フェアの見た目・確率・スキップ数の確認用。スキップ数は次のゲームから）
+function devSetDay(d){
+  if(d===null){ delete window._devDay; try{ localStorage.removeItem('madori-dev-day'); }catch(e){} }
+  else{ window._devDay=d; try{ localStorage.setItem('madori-dev-day',String(d)); }catch(e){} }
+  refreshFairPops(); devDayMark();
+  const scr=document.querySelector('.screen.active');
+  if(scr&&scr.id==='screen-roulette'){ try{ startRoulette(); }catch(e){} }
+  showGameToast(d===null?'本当の曜日に戻したよ':WEEK_JA[d]+'曜日にしたよ（スキップ数は次のゲームから）');
+}
+function devResetFirst(){
+  try{ localStorage.removeItem('madori-fair-first'); }catch(e){}
+  refreshFairPops();
+  showGameToast('今日の「1回目確定」を未使用に戻したよ');
+}
+function devDayMark(){
+  document.querySelectorAll('[data-devday]').forEach(b=>b.classList.toggle('on',String(window._devDay)===b.dataset.devday));
+}
+(function(){
+  try{ const d=localStorage.getItem('madori-dev-day'); if(d!==null&&d!==''){ window._devDay=+d; refreshFairPops(); devDayMark(); } }catch(e){}
+})();
 function devReroll(){
   const scr=document.querySelector('.screen.active');
   if(!scr||scr.id!=='screen-roulette'){ showGameToast('物件情報の画面で使ってね'); return; }
@@ -6860,6 +7044,18 @@ tryResumeGame();
   <div class="dev-grid" id="dev-parts"></div>
   <div class="dev-sec">物件情報</div>
   <button class="dev-btn dev-wide" onclick="devReroll()">ぜんぶ引き直す</button>
+  <div class="dev-sec">曜日を切り替え（フェアの確認用）</div>
+  <div class="dev-grid">
+    <button class="dev-btn" data-devday="1" onclick="devSetDay(1)">月</button>
+    <button class="dev-btn" data-devday="2" onclick="devSetDay(2)">火</button>
+    <button class="dev-btn" data-devday="3" onclick="devSetDay(3)">水</button>
+    <button class="dev-btn" data-devday="4" onclick="devSetDay(4)">木</button>
+    <button class="dev-btn" data-devday="5" onclick="devSetDay(5)">金</button>
+    <button class="dev-btn" data-devday="6" onclick="devSetDay(6)">土</button>
+    <button class="dev-btn" data-devday="0" onclick="devSetDay(0)">日</button>
+    <button class="dev-btn dev-wide" onclick="devSetDay(null)">本当の曜日に戻す</button>
+    <button class="dev-btn dev-wide" onclick="devResetFirst()">今日の「1回目確定」を未使用に戻す</button>
+  </div>
   <div class="dev-note">※ここはテスト版だけの機能です。<br>本番には入っていません。</div>
 </div>
 
