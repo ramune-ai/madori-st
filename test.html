@@ -499,7 +499,7 @@ body.resume-hide #screen-game{opacity:0!important;}
 .odds-sec{font-family:'Noto Serif JP',serif;font-weight:700;font-size:16px;color:var(--brown-dark);margin:14px 0 6px;text-align:left;}
 .odds-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;color:var(--brown-dark);}
 .odds-table th{font-size:11px;color:var(--brown-light);font-weight:700;text-align:left;padding:4px 6px;border-bottom:1px solid rgba(90,74,58,.2);}
-.odds-table td{padding:6px;border-bottom:1px solid rgba(90,74,58,.1);vertical-align:top;text-align:left;}
+.odds-table td{padding:6px;word-break:keep-all;border-bottom:1px solid rgba(90,74,58,.1);vertical-align:top;text-align:left;}
 .odds-table td.p{text-align:right;white-space:nowrap;font-weight:700;}
 .odds-each{display:block;font-size:11px;font-weight:400;color:var(--brown-light);}
 .odds-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;white-space:nowrap;}
@@ -2393,40 +2393,42 @@ function persistFlow(screen){
 // ════════════════════════════════════════
 // 物件情報ガチャ：ブロック重み付き抽選
 // ════════════════════════════════════════
-// 各ブロック: {lo,hi,step,weight}（lo以上hi以下・step刻み）
-// A.築年数  ①0-5(レア) ②6-29(最頻) ③30-50(5刻み,50が逆レア)
-// B.駅徒歩  ①0-5(レア) ②6-15(最頻1) ③16-29(最頻2) ④30-50(10刻み,50が逆レア)
-// C.家賃    ①5-9(5が逆レア) ②10-20(最頻) ③21-39 ④40-75(5刻み) ⑤80-100(レア,10刻み)
+// 各ブロック: {lo,hi,step,weight}（lo以上hi以下・step刻み）／飛び飛びの数字は {vals:[…],weight}
+// weight はそのまま「％」で書く（項目ごとの合計が100になるように）
+// A.築年数  SUPER RARE 0 ／ PREMIUM 1-5 ／ ノーマル1 6-19 ／ ノーマル2 20-45（5刻み）／ RARE 50
+// B.駅徒歩  SUPER RARE 0 ／ PREMIUM 1-5 ／ ノーマル1 6-19 ／ ノーマル2 20・25・30・40 ／ RARE 50
+// C.家賃    RARE 5 ／ ノーマル2 6-29 ／ ノーマル1 30-50（5刻み）／ PREMIUM 60-90（10刻み）／ SUPER RARE 100
 const GACHA_BLOCKS=[
-  // ※重みは「ブロック全体」に効くので、候補の少ないブロックほど
-  //   1つ1つの値が出やすくなる。候補数を見て重みを決めること
   // A.築年数
   [
-    {lo:0,  hi:5,  step:1, weight:6},   // ①レア（6通り）
-    {lo:6,  hi:29, step:1, weight:68},  // ②最頻（24通り）
-    {lo:30, hi:50, step:5, weight:10},  // ③（5通り／50が逆レア）
+    {lo:0,  hi:0,  step:1, weight:1.5}, // SUPER RARE
+    {lo:1,  hi:5,  step:1, weight:8.5}, // PREMIUM
+    {lo:6,  hi:19, step:1, weight:59},  // ノーマル1
+    {lo:20, hi:45, step:5, weight:30},  // ノーマル2
+    {lo:50, hi:50, step:1, weight:1},   // RARE
   ],
   // B.駅徒歩
   [
-    {lo:0,  hi:5,  step:1, weight:6},   // ①レア（6通り）
-    {lo:6,  hi:15, step:1, weight:46},  // ②最頻1（10通り）
-    {lo:16, hi:29, step:1, weight:32},  // ③最頻2（14通り）
-    {lo:30, hi:50, step:10,weight:6},   // ④（3通り／50が逆レア）
+    {lo:0,  hi:0,  step:1, weight:1.5}, // SUPER RARE
+    {lo:1,  hi:5,  step:1, weight:8.5}, // PREMIUM
+    {lo:6,  hi:19, step:1, weight:65},  // ノーマル1
+    {vals:[20,25,30,40],   weight:24},  // ノーマル2
+    {lo:50, hi:50, step:1, weight:1},   // RARE
   ],
-  // C.家賃  ①5-9(5が逆レア) ②10-20(最頻) ③21-39 ④40-65(5刻み) ⑤70-100(レア,10刻み)
+  // C.家賃
   [
-    {lo:5,  hi:9,  step:1, weight:16},  // ①（5通り／5が逆レア）
-    {lo:10, hi:20, step:1, weight:56},  // ②最頻（11通り）
-    {lo:21, hi:39, step:1, weight:16},  // ③（19通り）
-    {lo:40, hi:65, step:5, weight:8},   // ④（6通り）
-    {lo:70, hi:100,step:10,weight:4},   // ⑤レア（4通り）
+    {lo:5,  hi:5,  step:1, weight:1},   // RARE
+    {lo:6,  hi:29, step:1, weight:60},  // ノーマル2
+    {lo:30, hi:50, step:5, weight:29},  // ノーマル1
+    {lo:60, hi:90, step:10,weight:8.5}, // PREMIUM
+    {lo:100,hi:100,step:1, weight:1.5}, // SUPER RARE
   ],
 ];
-// レア値（プレミアム）：A①0-5, B①0-5, C 50以上
+// レア値（プレミアム）：A 0-5, B 0-5, C 60以上（0と100はスーパーレアが優先）
 function isRareGacha(idx,val){
   if(idx===0) return val<=5;
   if(idx===1) return val<=5;
-  if(idx===2) return val>=50;
+  if(idx===2) return val>=60;
   return false;
 }
 // 逆レア値（ニッチ）：A 50, B 50, C 5
@@ -2445,6 +2447,7 @@ function isSuperRare(idx,val){
 }
 // ブロック内の取りうる値リスト
 function blockValues(b){
+  if(b.vals)return b.vals.slice();
   const arr=[];
   for(let v=b.lo; v<=b.hi; v+=b.step) arr.push(v);
   return arr;
@@ -2478,9 +2481,14 @@ function gachaOddsRows(idx){
     vals.forEach(v=>{
       const c=cls(v), last=rows[rows.length-1];
       if(last&&last.c===c&&last.bi===bi)last.vals.push(v);
-      else rows.push({c,bi,p,step:b.step,vals:[v]});
+      else rows.push({c,bi,p,step:b.vals?0:b.step,vals:[v]});
     });
   });
+  // 家賃は築年数・駅徒歩とそろえて「嬉しい順」（高い家賃が上）に並べる
+  if(idx===2)rows.reverse();
+  // ノーマルが複数ある時は、上から ノーマル1・ノーマル2
+  const normals=rows.filter(r=>r.c==='normal');
+  if(normals.length>1)normals.forEach((r,i)=>r.n=i+1);
   return rows;
 }
 function openGachaOdds(){
@@ -2492,8 +2500,8 @@ function openGachaOdds(){
     html+='<div class="odds-sec">'+name[idx]+'</div><table class="odds-table"><tr><th style="width:34%">種類</th><th>出る数字</th><th style="width:24%;text-align:right">確率</th></tr>';
     gachaOddsRows(idx).forEach(r=>{
       const n=r.vals.length, a=r.vals[0], z=r.vals[n-1];
-      const label=n===1?a+unit[idx]:(r.step===1?a+'〜'+z+unit[idx]:r.vals.join('・')+unit[idx]);
-      html+='<tr><td><span class="odds-tag '+r.c+'">'+tag[r.c]+'</span></td><td>'+label+'</td>'
+      const label=n===1?a+unit[idx]:(r.step===1?a+'〜'+z+unit[idx]:r.vals.join('・<wbr>')+unit[idx]);
+      html+='<tr><td><span class="odds-tag '+r.c+'">'+tag[r.c]+(r.n||'')+'</span></td><td>'+label+'</td>'
         +'<td class="p">'+pct(r.p*n)+(n>1?'<span class="odds-each">各'+pct(r.p)+'</span>':'')+'</td></tr>';
     });
     html+='</table>';
@@ -2508,7 +2516,7 @@ function openGachaOdds(){
 const RARE_COND=[
   v=>v<=5,    // 築年数5以下
   v=>v<=5,    // 駅徒歩5以下
-  v=>v>=70,   // 家賃70以上（高級＝レア）
+  v=>v>=60,   // 家賃60以上（高級＝レア）
 ];
 function isRare(idx,val){return isRareGacha(idx,val);}
 
@@ -2516,7 +2524,7 @@ function isRare(idx,val){return isRareGacha(idx,val);}
 const REROLL_POOLS={
   0:[0,1,2,3,4,5],        // 築浅確定（レア）
   1:[0,1,2,3,4,5],          // 駅近確定（レア）
-  2:[70,80,90,100],       // 高級確定（家賃レア70以上）
+  2:[60,70,80,90,100],    // 高級確定（家賃レア60以上）
 };
 // 再抽選済みフラグ（per slot）
 // 再抽選（リワード広告用）。課金を実装するまでは非表示にしておく。
@@ -3308,38 +3316,38 @@ const TITLE_RENAMES={'美品コレクター':'築浅ハンター'};
 })();
 const ALL_TITLES_MASTER=[
   // ══ 物件情報面・単独 ══
-  {title:'新築の香りソムリエ', badge:'🌸', rar:2, rp:.012, condition:'築0年',
+  {title:'新築の香りソムリエ', badge:'🌸', rar:2, rp:.015, condition:'築0年',
     pop:'新築の香り、ここにあります！', check:x=>x.age===0},
-  {title:'築浅ハンター', badge:'🔍', rar:5, rp:.060, condition:'築1〜5年',
+  {title:'築浅ハンター', badge:'🔍', rar:5, rp:.085, condition:'築1〜5年',
     pop:'築浅物件、見つけました！', check:x=>x.age>=1&&x.age<=5},
-  {title:'レトロ愛好家', badge:'🏚️', rar:5, rp:.048, condition:'築40〜49年',
+  {title:'レトロ愛好家', badge:'🏚️', rar:5, rp:.100, condition:'築40〜49年',
     pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
-  {title:'古民家ロマンチスト', badge:'🏮', rar:4, rp:.024, condition:'築50年（最古）',
+  {title:'古民家ロマンチスト', badge:'🏮', rar:4, rp:.010, condition:'築50年（最古）',
     pop:'ロマンを感じたい人へ！', check:x=>x.age>=50},
-  {title:'もはや駅の住人', badge:'🚉', rar:2, rp:.011, condition:'駅徒歩0分',
+  {title:'もはや駅の住人', badge:'🚉', rar:2, rp:.015, condition:'駅徒歩0分',
     pop:'もう改札が玄関です！', check:x=>x.walk===0},
-  {title:'ギリギリまで寝てたい', badge:'⏰', rar:5, rp:.056, condition:'駅徒歩1〜5分',
+  {title:'ギリギリまで寝てたい', badge:'⏰', rar:5, rp:.085, condition:'駅徒歩1〜5分',
     pop:'朝に弱い人、必見！', check:x=>x.walk>=1&&x.walk<=5},
-  {title:'いい運動になる', badge:'👟', rar:5, rp:.044, condition:'駅徒歩30〜49分',
+  {title:'いい運動になる', badge:'👟', rar:5, rp:.120, condition:'駅徒歩30〜49分',
     pop:'健康第一な人へおすすめ！', check:x=>x.walk>=30&&x.walk<50},
-  {title:'通勤という名の小旅行', badge:'🧳', rar:4, rp:.022, condition:'駅徒歩50分（最遠）',
+  {title:'通勤という名の小旅行', badge:'🧳', rar:4, rp:.010, condition:'駅徒歩50分（最遠）',
     pop:'旅気分を味わいたい人へ！', check:x=>x.walk>=50},
-  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, rp:.032, condition:'家賃5万円（最安値）',
+  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, rp:.010, condition:'家賃5万円（最安値）',
     pop:'掘り出し物件、見つかりました！', check:x=>x.rent===5},
-  {title:'コスパ王', badge:'👑', rar:5, rp:.128, condition:'家賃6〜9万円',
+  {title:'コスパ王', badge:'👑', rar:5, rp:.100, condition:'家賃6〜9万円',
     pop:'コスパ重視な人、必見！', check:x=>x.rent>=6&&x.rent<=9},
-  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, rp:.083, condition:'家賃50〜90万円',
+  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, rp:.143, condition:'家賃50〜90万円',
     pop:'ワンランク上を求める人へ！', check:x=>x.rent>=50&&x.rent<100},
-  {title:'新時代の宮殿', badge:'🏰', rar:2, rp:.010, condition:'家賃100万円（最高値）',
+  {title:'新時代の宮殿', badge:'🏰', rar:2, rp:.015, condition:'家賃100万円（最高値）',
     pop:'宮殿暮らし、はじめませんか！', check:x=>x.rent>=100},
   // ══ 物件情報面・複合（レア値の掛け算） ══
-  {title:'憧れの都会ライフ', badge:'✨', rar:3, rp:.0043, condition:'築0〜5年、かつ駅徒歩0〜5分',
+  {title:'憧れの都会ライフ', badge:'✨', rar:3, rp:.0084, condition:'築0〜5年、かつ駅徒歩0〜5分',
     pop:'都会ライフに憧れる人へ！', check:x=>x.age<=5&&x.walk<=5&&!(x.rent>=50)},
-  {title:'腕利きマドリスト', badge:'🔨', rar:3, rp:.0062, condition:'築0〜5年、かつ家賃50万円以上',
+  {title:'腕利きマドリスト', badge:'🔨', rar:3, rp:.0142, condition:'築0〜5年、かつ家賃50万円以上',
     pop:'腕利きの自信作です！', check:x=>x.age<=5&&x.rent>=50&&!(x.walk<=5)},
-  {title:'立地こそ正義', badge:'📍', rar:3, rp:.0058, condition:'駅徒歩0〜5分、かつ家賃50万円以上',
+  {title:'立地こそ正義', badge:'📍', rar:3, rp:.0142, condition:'駅徒歩0〜5分、かつ家賃50万円以上',
     pop:'立地で選びたい人、必見！', check:x=>x.walk<=5&&x.rent>=50&&!(x.age<=5)},
-  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.00044, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
+  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.00158, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
     pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=50},
   // ══ パーツ配置面・単独 ══
   {title:'洋室はおあずけ', badge:'🛋️', rar:4, rp:.076, condition:'洋室0個で完成',
