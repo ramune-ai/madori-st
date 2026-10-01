@@ -10,7 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- 画像を作る部品はゲームと同じ場所に置く（外部サイトだと、広告ブロック等で読み込めない環境があったため） -->
+<script src="lib/html2canvas.min.js?v=1"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
@@ -492,6 +493,21 @@ body.resume-hide #screen-game{opacity:0!important;}
 }
 .tut-focus{animation:tutFocus 1.1s ease-out infinite!important;position:relative;z-index:30;}
 #game-confirm-msg{white-space:pre-line;}
+/* ガチャの確率表 */
+.odds-link{margin:-14px 0 16px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-light);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 14px;cursor:pointer;}
+.odds-note{font-size:12px;color:var(--brown-light);line-height:1.6;margin:0 0 12px;text-align:left;}
+.odds-sec{font-family:'Noto Serif JP',serif;font-weight:700;font-size:16px;color:var(--brown-dark);margin:14px 0 6px;text-align:left;}
+.odds-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;color:var(--brown-dark);}
+.odds-table th{font-size:11px;color:var(--brown-light);font-weight:700;text-align:left;padding:4px 6px;border-bottom:1px solid rgba(90,74,58,.2);}
+.odds-table td{padding:6px;border-bottom:1px solid rgba(90,74,58,.1);vertical-align:top;text-align:left;}
+.odds-table td.p{text-align:right;white-space:nowrap;font-weight:700;}
+.odds-each{display:block;font-size:11px;font-weight:400;color:var(--brown-light);}
+.odds-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;white-space:nowrap;}
+.odds-tag.super{color:#fff;background:linear-gradient(90deg,#ff5a5a,#ffb43b,#5ac878,#5a8cff,#b45aff);}
+.odds-tag.rare{color:#c8860a;background:#fff8d6;border:1px solid #e8c040;}
+.odds-tag.niche{color:#7a5fa8;background:#efe7f8;border:1px solid #b9a3d9;}
+.odds-tag.normal{color:var(--brown-light);background:rgba(90,74,58,.06);}
+@media(min-width:600px){ .odds-link{font-size:15px;padding:7px 16px;margin:-18px 0 22px;} .odds-table{font-size:15px;} }
 /* 音の設定：常に消音 */
 .snd-mute{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;font-weight:700;color:var(--brown-dark);cursor:pointer;user-select:none;}
 .snd-mute input{width:20px;height:20px;accent-color:var(--accent);margin:0;cursor:pointer;}
@@ -1461,6 +1477,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 <!-- ③ ルーレット -->
 <div id="screen-roulette" class="screen">
   <div class="roulette-title">物件情報ルーレット！</div>
+  <button class="odds-link" onclick="openGachaOdds()">📊 確率を見る</button>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-0" onpointerdown="if(event.button===0)lockRoulette(0)">
       <div class="roulette-item-label">築年数</div>
@@ -2449,6 +2466,43 @@ function drawGachaValue(idx){
   return vals[Math.floor(Math.random()*vals.length)];
 }
 
+// ── ガチャの確率表（抽選の設定 GACHA_BLOCKS から自動で作るので、設定を変えても表示はずれない） ──
+function gachaOddsRows(idx){
+  const blocks=GACHA_BLOCKS[idx];
+  const total=blocks.reduce((s,b)=>s+b.weight,0);
+  const cls=v=>isSuperRare(idx,v)?'super':isRareGacha(idx,v)?'rare':isInverseRare(idx,v)?'niche':'normal';
+  // 値ごとの確率を出し、「同じ演出・同じ確率・同じブロック」で続く値をひとまとめにする
+  const rows=[];
+  blocks.forEach((b,bi)=>{
+    const vals=blockValues(b), p=b.weight/total/vals.length;
+    vals.forEach(v=>{
+      const c=cls(v), last=rows[rows.length-1];
+      if(last&&last.c===c&&last.bi===bi)last.vals.push(v);
+      else rows.push({c,bi,p,step:b.step,vals:[v]});
+    });
+  });
+  return rows;
+}
+function openGachaOdds(){
+  const unit=['年','分','万円'], name=['築年数','駅徒歩','家賃'];
+  const tag={super:'SUPER RARE',rare:'PREMIUM',niche:'RARE',normal:'ノーマル'};
+  const pct=x=>(x*100).toFixed(2)+'%';
+  let html='<div class="odds-note">それぞれの数字は「タップで確定」を押した瞬間に、下の確率で決まります。止めるタイミングで結果は変わりません（回っている数字は演出です）。</div>';
+  [0,1,2].forEach(idx=>{
+    html+='<div class="odds-sec">'+name[idx]+'</div><table class="odds-table"><tr><th style="width:34%">種類</th><th>出る数字</th><th style="width:24%;text-align:right">確率</th></tr>';
+    gachaOddsRows(idx).forEach(r=>{
+      const n=r.vals.length, a=r.vals[0], z=r.vals[n-1];
+      const label=n===1?a+unit[idx]:(r.step===1?a+'〜'+z+unit[idx]:r.vals.join('・')+unit[idx]);
+      html+='<tr><td><span class="odds-tag '+r.c+'">'+tag[r.c]+'</span></td><td>'+label+'</td>'
+        +'<td class="p">'+pct(r.p*n)+(n>1?'<span class="odds-each">各'+pct(r.p)+'</span>':'')+'</td></tr>';
+    });
+    html+='</table>';
+  });
+  document.getElementById('modal-title').textContent='物件情報ルーレットの確率';
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
 // ────────────────────────────────────────
 // レア判定
 const RARE_COND=[
@@ -3051,7 +3105,7 @@ function _fmtHistDate(d){
 // 結果画面のカードを複製して、保存してある物件の内容を入れて写す（画面の外で行う）
 async function renderHistoryCard(entry,snap){
   const tpl=document.getElementById('res-card');
-  if(!tpl||!window.html2canvas)return null;
+  if(!tpl||!(await ensureHtml2canvas()))return null;
   const host=document.createElement('div');
   host.id='hist-render-host';
   host.style.cssText='position:fixed;left:0;top:0;width:400px;text-align:center;z-index:-10;opacity:0;pointer-events:none;';
@@ -4167,15 +4221,40 @@ function buildPropertyCard(opt){
   // 最初のコマ（透明）から再生し直されていたため。複製の中では動きを全部止める。
   // 過去の物件を作り直す時（画面に無いカード）は旧方式を使う
   const onScreen=document.getElementById('screen-result').classList.contains('active');
-  const canUseDom = !!window.html2canvas && onScreen && !opt.snapshot && !opt.titles && opt.name===undefined;
+  const wantDom = onScreen && !opt.snapshot && !opt.titles && opt.name===undefined;
   const card=document.getElementById('res-card');
-  if(canUseDom){
-    return _captureCardEl(card).catch(e=>{ console.warn('[card] 画面からの生成に失敗→旧方式:',e); return buildPropertyCardLegacy(opt); });
+  if(wantDom){
+    // 部品が読み込めていなければその場で読み込み、失敗したら1回だけ倍率を下げて作り直す。
+    // それでもだめな時だけ旧方式（古い見た目）にする
+    return ensureHtml2canvas().then(ok=>{
+      if(!ok)throw new Error('画像を作る部品を読み込めませんでした');
+      return _captureCardEl(card).catch(e=>{
+        console.warn('[card] 1回目に失敗→作り直し:',e);
+        return new Promise(r=>setTimeout(r,300)).then(()=>_captureCardEl(card,{scale:1}));
+      });
+    }).catch(e=>{
+      console.warn('[card] 画面からの生成に失敗→旧方式:',e);
+      try{ localStorage.setItem('madori-card-err',new Date().toISOString()+' '+String(e&&e.message||e).slice(0,200)); }catch(_){}
+      return buildPropertyCardLegacy(opt);
+    });
   }
   return buildPropertyCardLegacy(opt);
 }
+// 画像を作る部品（html2canvas）が無ければ読み込む
+function ensureHtml2canvas(){
+  if(window.html2canvas)return Promise.resolve(true);
+  if(ensureHtml2canvas._p)return ensureHtml2canvas._p;
+  ensureHtml2canvas._p=new Promise(res=>{
+    const sc=document.createElement('script');
+    sc.src='lib/html2canvas.min.js?v=1&r='+Date.now();
+    sc.onload=()=>res(!!window.html2canvas);
+    sc.onerror=()=>{ ensureHtml2canvas._p=null; res(false); };
+    document.head.appendChild(sc);
+  });
+  return ensureHtml2canvas._p;
+}
 // カードの要素をそのまま画像にする（結果画面のカード／マイ物件を作り直す時の複製カード）
-function _captureCardEl(card){
+function _captureCardEl(card,o){
   {
     // 金・紫・虹の数字は html2canvas が描けない（文字の形に切り抜く書き方のため）。
     // 位置を測っておき、撮った後に同じ色の帯で自分で描く
@@ -4196,7 +4275,7 @@ function _captureCardEl(card){
     try{
       return html2canvas(card,{
         backgroundColor:'#ffffff',
-        scale:Math.min(3,(window.devicePixelRatio||1)*1.5),
+        scale:(o&&o.scale)||Math.min(3,(window.devicePixelRatio||1)*1.5),
         useCORS:true, logging:false,
         // 画面はスクロール禁止・高さ固定で作ってあるが、その指定のままだと
         // html2canvasの複製側で位置が合わず真っ白になる。複製の中だけ解除する
