@@ -536,6 +536,25 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fair-pop-res{position:absolute;top:-18px;right:-6px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
 .fair-pop-res .fp-mini{font-size:10.5px;font-weight:700;line-height:1.3;}
 .fair-pop-res .fp-mini b{color:#ffe14d;font-size:12px;}
+/* スタート画面：1週間のフェアの帯 */
+.fair-week{width:100%;max-width:340px;margin:-4px auto 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.fw-cap{display:flex;justify-content:space-between;align-items:center;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:11px;font-weight:800;color:var(--brown-light);margin:0 2px 3px;letter-spacing:.06em;}
+.fw-cap span{font-size:10px;text-decoration:underline;}
+.fw-row{display:flex;gap:4px;}
+.fw-d{position:relative;flex:1;min-width:0;text-align:center;background:rgba(255,255,255,.55);border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 0 4px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;color:var(--brown-light);}
+.fw-d.on{background:#fff;border-color:rgba(217,68,58,.35);color:var(--brown-dark);}
+.fw-d.today{border:2px solid #d9443a;box-shadow:0 2px 6px rgba(217,68,58,.25);}
+.fw-wd{font-size:12px;font-weight:800;line-height:1.2;}
+.fw-ico{font-size:15px;line-height:1.25;}
+.fw-w{font-size:9px;font-weight:800;line-height:1.2;white-space:nowrap;letter-spacing:-.02em;min-height:11px;}
+.fw-d.on .fw-w{color:#c0392b;}
+.fw-today{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:#fff;background:#d9443a;border-radius:8px;padding:0 5px;white-space:nowrap;line-height:1.5;}
+@media(min-width:600px){
+  #screen-start .fair-week{zoom:var(--pcs,1);max-width:440px;}
+  .fw-cap{font-size:13px;} .fw-cap span{font-size:12px;}
+  .fw-wd{font-size:15px;} .fw-ico{font-size:19px;} .fw-w{font-size:11px;min-height:14px;}
+  .fw-today{font-size:11px;top:-10px;}
+}
 /* フェアの一覧 */
 .fair-table{width:100%;border-collapse:collapse;font-size:14px;color:var(--brown-dark);text-align:left;}
 .fair-table td{padding:8px 6px;border-bottom:1px solid rgba(90,74,58,.12);vertical-align:top;line-height:1.5;}
@@ -1013,17 +1032,22 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 @media(max-width:599px){
   #screen-start{justify-content:flex-start;overflow-y:auto;padding-top:var(--start-top, 200px);padding-bottom:20px;}
   #screen-start .logo-wrap{margin-top:auto;margin-bottom:20px;}
+  #screen-start > *{flex-shrink:0;}
   #screen-start .start-sub-btns{margin-bottom:auto;}
 }
 /* 背の低いスマホは、ロゴとボタンを少し小さくして1画面に収める */
 @media(max-width:599px) and (max-height:720px){
-  #screen-start .logo-icon{font-size:42px;margin-bottom:4px;}
-  #screen-start .logo-title{font-size:32px;}
-  #screen-start .logo-sub{font-size:16px;margin-top:6px;}
-  #screen-start .logo-wrap{margin-bottom:14px;}
-  #screen-start .fair-pop{margin:2px auto 10px;}
+  #screen-start .logo-icon{font-size:34px;margin-bottom:2px;}
+  #screen-start .logo-title{font-size:28px;}
+  #screen-start .logo-sub{font-size:14px;margin-top:5px;}
+  #screen-start .logo-wrap{margin-bottom:12px;}
+  #screen-start .fair-pop .fp-main{font-size:17px;}
+  #screen-start .fair-pop{padding:7px 14px 8px;}
+  #screen-start .fair-pop{margin:2px auto 8px;}
+  #screen-start .fair-week{margin:-2px auto 10px;}
+  .fw-ico{font-size:13px;}
   #screen-start .btn-start{padding:17px 70px;}
-  #screen-start .start-sub-btns{margin-top:22px;}
+  #screen-start .start-sub-btns{margin-top:16px;}
 }
 /* スマホ（縦長・狭い画面）：上部パーツゾーンと下部ボタンを縮めて盤を広く */
 @media(max-width:600px){
@@ -1379,7 +1403,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
      （zoom だと位置の数値まで倍率がかかってずれるため scale を使う） */
   .start-toplinks-left{scale:var(--pcs,1);transform-origin:top left;
     top:calc(env(safe-area-inset-top, 0px) + 12px * var(--pcs,1));
-    left:max(12px, calc(50% - 340px * var(--pcs,1)));}
+    left:max(12px, calc(50% - 440px * var(--pcs,1)));}
   .start-flyer{scale:var(--pcs,1);
     top:calc(env(safe-area-inset-top, 0px) + 58px * var(--pcs,1));
     right:max(17px, calc(50% - 310px * var(--pcs,1) + 106px * (var(--pcs,1) - 1)));}
@@ -1415,6 +1439,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   </div>
   <!-- 曜日ごとのフェアのお知らせ（中身は refreshFairPops が入れる） -->
   <div class="fair-pop" id="fair-pop-start" style="display:none;" onclick="openFairInfo()"></div>
+  <!-- 1週間のフェアの帯（押すと詳細） -->
+  <div class="fair-week" id="fair-week" onclick="openFairInfo()"></div>
   <!-- プロフィール：名前と称号をそれぞれ編集 -->
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <!-- 集めたものを見る3枠。左からプロフィール／称号／マイ物件 -->
@@ -2525,7 +2551,7 @@ const GACHA_BLOCKS=[
     {lo:1,  hi:5,  step:1, weight:8.5}, // PREMIUM
     {lo:6,  hi:9,  step:1, weight:27},  // ノーマル1
     {lo:10, hi:19, step:1, weight:40},  // ノーマル2
-    {vals:[20,25,30,40],   weight:21},  // ノーマル3
+    {vals:[20,25,30,40],   weight:22},  // ノーマル3
     {lo:50, hi:50, step:1, weight:1},   // RARE
   ],
   // C.家賃
@@ -2574,18 +2600,18 @@ function gachaAllValues(idx){
 }
 // 重み付き抽選で1つの値を返す
 // ── 曜日ごとのフェア（端末の時計の曜日で決める） ──
-// 月：築浅フェア／木：駅近フェア／金：高級賃貸フェア … その項目の PREMIUM以上が2倍出やすい。
+// 月：築浅フェア／木：駅近フェア／金：高級賃貸フェア … その項目の PREMIUM以上が3倍出やすい。
 //      その日はじめてのガチャだけは、その項目が PREMIUM以上で確定（逆RAREの確率は変えない）
-// 水：定休日 … 1か所だけ無料で引き直せる（確率はいつもどおり）
+// 水：水に流せる日 … 1か所だけ無料で引き直せる（確率はいつもどおり）
 // 日：オープンハウスの日 … スキップがいつもより1回多い
 const FAIRS={
-  1:{type:'boost',idx:0,name:'築浅フェア',   what:'築5年以内',    short:'築5年以内'},
-  4:{type:'boost',idx:1,name:'駅近フェア',   what:'駅徒歩5分以内',short:'徒歩5分以内'},
-  5:{type:'boost',idx:2,name:'高級賃貸フェア',what:'家賃60万円以上',short:'60万円以上'},
-  3:{type:'closed',name:'定休日'},
-  0:{type:'openhouse',name:'オープンハウスの日'},
+  1:{type:'boost',idx:0,name:'築浅フェア',   what:'築5年以内',    short:'築5年以内',  ico:'✨',word:'築浅'},
+  4:{type:'boost',idx:1,name:'駅近フェア',   what:'駅徒歩5分以内',short:'徒歩5分以内',ico:'🚃',word:'駅近'},
+  5:{type:'boost',idx:2,name:'高級賃貸フェア',what:'家賃60万円以上',short:'60万円以上', ico:'💎',word:'高級'},
+  3:{type:'closed',name:'水に流せる日',ico:'💧',word:'流せる'},
+  0:{type:'openhouse',name:'オープンハウスの日',ico:'🏡',word:'スキップ+1'},
 };
-const FAIR_BOOST=2;   // フェアの日の PREMIUM以上の倍率
+const FAIR_BOOST=3;   // フェアの日の PREMIUM以上の倍率
 const WEEK_JA=['日','月','火','水','木','金','土'];
 // テスト版の開発用ツールで曜日を切り替えた時は window._devDay を使う（本番では使われない）
 function _fairDay(){ return (typeof window._devDay==='number')?window._devDay:new Date().getDay(); }
@@ -2654,7 +2680,7 @@ function fairPopHTML(where){
   if(where==='res'){
     if(!f){ const g=nextFair(); return g?'<div class="fp-mini">'+(g.d===(day+1)%7?'あした':WEEK_JA[g.d]+'曜')+'は<br><b>'+g.f.name+'</b></div>':''; }
     if(f.type==='boost') return '<div class="fp-mini">本日'+f.name+'<br><b>'+f.short+(first?' 1回目確定！':' 確率'+FAIR_BOOST+'倍！')+'</b></div>';
-    if(f.type==='closed') return '<div class="fp-mini">本日定休日<br><b>1か所 無料で引き直し</b></div>';
+    if(f.type==='closed') return '<div class="fp-mini">本日 水に流せる日<br><b>1か所 無料で引き直し</b></div>';
     return '<div class="fp-mini">オープンハウスの日<br><b>スキップ+1回</b></div>';
   }
   // ガチャ：フェアの項目の枠の左に貼る（PCは詳しく、スマホは要点だけ）
@@ -2665,20 +2691,33 @@ function fairPopHTML(where){
       +'<div class="fp-compact">'+f.short+'<br><b>'+(first?'確定！':'確率'+FAIR_BOOST+'倍')+'</b></div>';
   }
   // ガチャ：水曜は1行で
-  if(where==='line') return (f&&f.type==='closed')?'💧 本日定休日：止めたあと<b>1か所だけ無料で引き直し</b>OK':'';
+  if(where==='line') return (f&&f.type==='closed')?'💧 本日は水に流せる日：止めたあと<b>1か所だけ無料で引き直し</b>OK':'';
   // スタート画面
-  if(!f){ const g=nextFair(); return g?'<div class="fp-next">次回フェア　'+WEEK_JA[g.d]+'曜日は<b>'+g.f.name+'</b>　<span class="fp-more">くわしく ▶</span></div>':''; }
-  const more='<div class="fp-more">タップでくわしく ▶</div>';
+  if(!f){ const g=nextFair(); return g?'<div class="fp-next">次回フェア　'+WEEK_JA[g.d]+'曜日は<b>'+g.f.name+'</b></div>':''; }
+  const more='';
   if(f.type==='boost'){
     return '<div class="fp-tag">本日'+wd+'曜限定</div><div class="fp-main">'+f.name+'開催中！</div>'
       +'<div class="fp-line'+(first?'':' used')+'">① 本日1回目は <b>'+f.what+' 確定！</b>'+(first?'':'（使用済み）')+'</div>'
       +'<div class="fp-line">② 2回目以降も <b>'+f.what+'が'+FAIR_BOOST+'倍</b>出やすい！</div>'+more;
   }
-  if(f.type==='closed') return '<div class="fp-tag">本日'+wd+'曜は定休日</div><div class="fp-main">嫌な数字は水に流そう！</div><div class="fp-line">ルーレットを<b>1か所だけ無料で引き直し</b>OK</div>'+more;
+  if(f.type==='closed') return '<div class="fp-tag">本日'+wd+'曜限定</div><div class="fp-main">水に流せる日！</div><div class="fp-line">ルーレットを<b>1か所だけ無料で引き直し</b>OK</div>'+more;
   return '<div class="fp-tag">本日'+wd+'曜限定</div><div class="fp-main">オープンハウスの日！</div><div class="fp-line">スキップが<b>いつもより1回多い</b>（4回）</div>'+more;
+}
+// 1週間のフェアの帯（月〜日）。今日に印を付ける
+function fairWeekHTML(){
+  const day=_fairDay();
+  return '<div class="fw-cap">今週のフェア<span>くわしく ▶</span></div><div class="fw-row">'+[1,2,3,4,5,6,0].map(d=>{
+    const f=FAIRS[d];
+    return '<div class="fw-d'+(f?' on':'')+(d===day?' today':'')+'">'
+      +'<div class="fw-wd">'+WEEK_JA[d]+'</div>'
+      +'<div class="fw-ico">'+(f?f.ico:'・')+'</div>'
+      +'<div class="fw-w">'+(f?f.word:'')+'</div>'
+      +(d===day?'<div class="fw-today">今日</div>':'')+'</div>';
+  }).join('')+'</div>';
 }
 function refreshFairPops(){
   const f=todayFair();
+  const fw=document.getElementById('fair-week'); if(fw)fw.innerHTML=fairWeekHTML();
   const set=(id,h)=>{ const el=document.getElementById(id); if(!el)return null; el.innerHTML=h; el.style.display=h?'':'none'; return el; };
   const st=set('fair-pop-start',fairPopHTML('start')); if(st)st.classList.toggle('is-next',!f);
   set('fair-pop-res',fairPopHTML('res'));
@@ -2698,7 +2737,7 @@ function openFairInfo(){
     const f=FAIRS[d]; let t='いつもどおり';
     if(f){
       if(f.type==='boost')t='<b>'+f.name+'</b><br>'+f.what+'（PREMIUM以上）が'+FAIR_BOOST+'倍出やすい。その日はじめての1回は確定';
-      else if(f.type==='closed')t='<b>定休日</b><br>ルーレットを止めたあと、1か所だけ無料で引き直し（確率はいつもどおり）';
+      else if(f.type==='closed')t='<b>水に流せる日</b><br>ルーレットを止めたあと、1か所だけ無料で引き直し（確率はいつもどおり）';
       else t='<b>オープンハウスの日</b><br>スキップがいつもより1回多い（4回）';
     }
     return '<tr'+(d===day?' class="today"':'')+'><td class="d">'+WEEK_JA[d]+(d===day?'<span>今日</span>':'')+'</td><td>'+t+'</td></tr>';
@@ -2714,7 +2753,7 @@ function openGachaOdds(){
   const tag={super:'SUPER RARE',rare:'PREMIUM',niche:'RARE',normal:'ノーマル'};
   const pct=x=>(x*100).toFixed(2)+'%';
   let html='<div class="odds-note">それぞれの数字は「タップで確定」を押した瞬間に、下の確率で決まります。止めるタイミングで結果は変わりません（回っている数字は演出です）。'
-    +'<br>曜日ごとのフェア：月曜 築浅フェア／木曜 駅近フェア／金曜 高級賃貸フェア（その項目のPREMIUM以上が'+FAIR_BOOST+'倍・その日はじめての1回は確定）、水曜 定休日（1か所だけ無料で引き直し・確率はいつもどおり）、日曜 オープンハウスの日（スキップ+1回）。曜日はお使いの端末の時計で決まります。</div>';
+    +'<br>曜日ごとのフェア：月曜 築浅フェア／木曜 駅近フェア／金曜 高級賃貸フェア（その項目のPREMIUM以上が'+FAIR_BOOST+'倍・その日はじめての1回は確定）、水曜 水に流せる日（1か所だけ無料で引き直し・確率はいつもどおり）、日曜 オープンハウスの日（スキップ+1回）。曜日はお使いの端末の時計で決まります。</div>';
   const f=todayFair();
   [0,1,2].forEach(idx=>{
     const mode=gachaModeToday(idx);
@@ -3786,7 +3825,7 @@ function updateTitlesNewBadge(){
 const UPDATES=[
   {ver:'1.3', date:'（次回公開予定）', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
-  '<li><b>曜日ごとのフェア</b>を始めました。月曜「築浅フェア」・木曜「駅近フェア」・金曜「高級賃貸フェア」はその項目のPREMIUM以上が2倍出やすく、その日はじめての1回は確定！ 水曜は定休日で、1か所だけ無料で引き直し。日曜はオープンハウスの日でスキップが1回多くなります</li>'+
+  '<li><b>曜日ごとのフェア</b>を始めました。月曜「築浅フェア」・木曜「駅近フェア」・金曜「高級賃貸フェア」はその項目のPREMIUM以上が3倍出やすく、その日はじめての1回は確定！ 水曜は「水に流せる日」で1か所だけ無料で引き直し。日曜はオープンハウスの日でスキップが1回多くなります</li>'+
   '<li>物件情報ルーレットの確率を見られるようになりました（📊 確率を見る）</li>'+
   '</ul><div class="upd-h">■ 変わったこと</div><ul>'+
   '<li>物件情報ルーレットの確率を見直しました（SUPER RARE 1.5%・PREMIUM 8.5%・RARE 1%）</li>'+
@@ -3972,7 +4011,7 @@ function lockRoulette(idx){
   persistFlow('screen-roulette');
 }
 
-// ── 水曜（定休日）：嫌な数字は「水に流す」。1回のガチャで1か所だけ、無料・いつもの確率で引き直せる ──
+// ── 水曜（水に流せる日）：1回のガチャで1か所だけ、無料・いつもの確率で引き直せる ──
 function refreshWashBtns(){
   const can=isWashDay()&&lockedCount===3&&!rerollDone.some(Boolean);
   for(let i=0;i<3;i++){ const b=document.getElementById('wash-btn-'+i); if(b)b.classList.toggle('visible',can); }
