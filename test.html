@@ -493,9 +493,44 @@ body.resume-hide #screen-game{opacity:0!important;}
 }
 .tut-focus{animation:tutFocus 1.1s ease-out infinite!important;position:relative;z-index:30;}
 #game-confirm-msg{white-space:pre-line;}
+/* 曜日ごとのフェアのPOP（店頭の値札・チラシ風） */
+.fair-pop{
+  position:relative;display:inline-block;margin:6px auto 14px;padding:9px 18px 10px;
+  background:#d9443a;color:#fff;border-radius:6px;text-align:center;line-height:1.35;
+  box-shadow:0 3px 10px rgba(160,40,30,.3);transform:rotate(-2deg);
+  outline:1.5px dashed rgba(255,255,255,.7);outline-offset:-6px;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+}
+.fair-pop .fp-tag{display:inline-block;background:#ffe14d;color:#a3241b;font-size:11px;font-weight:800;letter-spacing:.06em;padding:1px 10px;border-radius:10px;margin-bottom:3px;}
+.fair-pop .fp-main{font-size:19px;font-weight:800;letter-spacing:.04em;}
+.fair-pop .fp-sub{font-size:12px;font-weight:700;opacity:.95;}
+.fair-pop .fp-sub b{color:#ffe14d;}
+/* フェアの無い日の予告は控えめに */
+.fair-pop.is-next{background:transparent;color:var(--brown-light);box-shadow:none;outline:none;transform:none;padding:0;margin:4px auto 10px;}
+.fair-pop.is-next .fp-next{font-size:12px;font-weight:700;}
+.fair-pop.is-next .fp-next b{color:#c0392b;}
+.fair-pop-rou{margin:-8px auto 14px;}
+/* 水曜：水に流す（無料の引き直し） */
+.wash-btn{
+  display:none;position:absolute;right:-10px;bottom:-18px;z-index:21;pointer-events:auto;
+  font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:13px;font-weight:800;
+  color:#fff;background:#3a8fd6;border:none;border-radius:20px;padding:8px 14px;cursor:pointer;
+  box-shadow:0 3px 10px rgba(30,90,150,.35);white-space:nowrap;
+}
+.wash-btn.visible{display:block;}
+@media(min-width:600px){
+  #screen-start .fair-pop{zoom:var(--pcs,1);}
+  .fair-pop .fp-main{font-size:24px;}
+  .fair-pop .fp-sub{font-size:15px;}
+  .fair-pop .fp-tag{font-size:13px;}
+  /* ガチャ画面のPCは縦に余裕がないので、枠の左に貼り紙のように置く */
+  #screen-roulette .fair-pop-rou{position:absolute;top:calc(200px * var(--pcs,1));right:calc(50% + 300px * var(--pcs,1));margin:0;width:230px;scale:var(--pcs,1);transform-origin:top right;}
+  .wash-btn{font-size:17px;padding:10px 18px;right:-14px;bottom:-22px;}
+}
 /* ガチャの確率表 */
 .odds-link{margin:-14px 0 16px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-light);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 14px;cursor:pointer;}
 .odds-note{font-size:12px;color:var(--brown-light);line-height:1.6;margin:0 0 12px;text-align:left;}
+.odds-fair{display:inline-block;margin-left:8px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:11px;font-weight:800;color:#fff;background:#d9443a;padding:2px 8px;border-radius:10px;vertical-align:middle;}
 .odds-sec{font-family:'Noto Serif JP',serif;font-weight:700;font-size:16px;color:var(--brown-dark);margin:14px 0 6px;text-align:left;}
 .odds-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;color:var(--brown-dark);}
 .odds-table th{font-size:11px;color:var(--brown-light);font-weight:700;text-align:left;padding:4px 6px;border-bottom:1px solid rgba(90,74,58,.2);}
@@ -1321,6 +1356,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <div class="logo-title">間取りすと</div>
     <div class="logo-sub">MADORI-ST</div>
   </div>
+  <!-- 曜日ごとのフェアのお知らせ（中身は refreshFairPops が入れる） -->
+  <div class="fair-pop" id="fair-pop-start" style="display:none;"></div>
   <!-- プロフィール：名前と称号をそれぞれ編集 -->
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <!-- 集めたものを見る3枠。左からプロフィール／称号／マイ物件 -->
@@ -1477,6 +1514,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 <!-- ③ ルーレット -->
 <div id="screen-roulette" class="screen">
   <div class="roulette-title">物件情報ルーレット！</div>
+  <div class="fair-pop fair-pop-rou" id="fair-pop-rou" style="display:none;"></div>
   <button class="odds-link" onclick="openGachaOdds()">📊 確率を見る</button>
   <div class="roulette-item-wrap">
     <div class="roulette-item" id="rou-0" onpointerdown="if(event.button===0)lockRoulette(0)">
@@ -1484,6 +1522,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="roulette-item-value" id="rou-val-0">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-0" onclick="event.stopPropagation();doRerollSlot(0)">🎲 再抽選</button>
+      <button class="wash-btn" id="wash-btn-0" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();doWashSlot(0)">💧 水に流す（無料）</button>
       <div class="reroll-pop">再抽選で築浅確定！</div>
     </div>
   </div>
@@ -1493,6 +1532,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="roulette-item-value" id="rou-val-1">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-1" onclick="event.stopPropagation();doRerollSlot(1)">🎲 再抽選</button>
+      <button class="wash-btn" id="wash-btn-1" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();doWashSlot(1)">💧 水に流す（無料）</button>
       <div class="reroll-pop">再抽選で駅近確定！</div>
     </div>
   </div>
@@ -1502,6 +1542,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="roulette-item-value" id="rou-val-2">---</div>
       <span class="tap-hint">タップで確定</span>
       <button class="reroll-slot-btn" id="reroll-btn-2" onclick="event.stopPropagation();doRerollSlot(2)">🎲 再抽選</button>
+      <button class="wash-btn" id="wash-btn-2" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();doWashSlot(2)">💧 水に流す（無料）</button>
       <div class="reroll-pop">再抽選で高級確定！</div>
     </div>
   </div>
@@ -2358,6 +2399,7 @@ document.addEventListener('click',()=>{
 });
 
 function gotoStart(){
+  try{ refreshFairPops(); }catch(e){}
   showMadoriBg(false);
   updateStartProfile();
   updateTitlesNewBadge();
@@ -2395,31 +2437,34 @@ function persistFlow(screen){
 // ════════════════════════════════════════
 // 各ブロック: {lo,hi,step,weight}（lo以上hi以下・step刻み）／飛び飛びの数字は {vals:[…],weight}
 // weight はそのまま「％」で書く（項目ごとの合計が100になるように）
-// A.築年数  SUPER RARE 0 ／ PREMIUM 1-5 ／ ノーマル1 6-19 ／ ノーマル2 20-45（5刻み）／ RARE 50
-// B.駅徒歩  SUPER RARE 0 ／ PREMIUM 1-5 ／ ノーマル1 6-19 ／ ノーマル2 20・25・30・40 ／ RARE 50
-// C.家賃    RARE 5 ／ ノーマル2 6-29 ／ ノーマル1 30-50（5刻み）／ PREMIUM 60-90（10刻み）／ SUPER RARE 100
+// A.築年数  SUPER RARE 0 ／ PREMIUM 1-5 ／ ノーマル1 6-9 ／ ノーマル2 10-19 ／ ノーマル3 20-45（5刻み）／ RARE 50
+// B.駅徒歩  SUPER RARE 0 ／ PREMIUM 1-5 ／ ノーマル1 6-9 ／ ノーマル2 10-19 ／ ノーマル3 20・25・30・40 ／ RARE 50
+// C.家賃    RARE 5 ／ ノーマル3 6-9 ／ ノーマル2 10-29 ／ ノーマル1 30-50（5刻み）／ PREMIUM 60-90（10刻み）／ SUPER RARE 100
 const GACHA_BLOCKS=[
   // A.築年数
   [
     {lo:0,  hi:0,  step:1, weight:1.5}, // SUPER RARE
     {lo:1,  hi:5,  step:1, weight:8.5}, // PREMIUM
-    {lo:6,  hi:19, step:1, weight:59},  // ノーマル1
-    {lo:20, hi:45, step:5, weight:30},  // ノーマル2
+    {lo:6,  hi:9,  step:1, weight:19},  // ノーマル1
+    {lo:10, hi:19, step:1, weight:40},  // ノーマル2
+    {lo:20, hi:45, step:5, weight:30},  // ノーマル3
     {lo:50, hi:50, step:1, weight:1},   // RARE
   ],
   // B.駅徒歩
   [
     {lo:0,  hi:0,  step:1, weight:1.5}, // SUPER RARE
     {lo:1,  hi:5,  step:1, weight:8.5}, // PREMIUM
-    {lo:6,  hi:19, step:1, weight:65},  // ノーマル1
-    {vals:[20,25,30,40],   weight:24},  // ノーマル2
+    {lo:6,  hi:9,  step:1, weight:27},  // ノーマル1
+    {lo:10, hi:19, step:1, weight:40},  // ノーマル2
+    {vals:[20,25,30,40],   weight:21},  // ノーマル3
     {lo:50, hi:50, step:1, weight:1},   // RARE
   ],
   // C.家賃
   [
     {lo:5,  hi:5,  step:1, weight:1},   // RARE
-    {lo:6,  hi:29, step:1, weight:60},  // ノーマル2
-    {lo:30, hi:50, step:5, weight:29},  // ノーマル1
+    {lo:6,  hi:9,  step:1, weight:20},  // ノーマル3
+    {lo:10, hi:29, step:1, weight:49},  // ノーマル2
+    {lo:30, hi:50, step:5, weight:20},  // ノーマル1
     {lo:60, hi:90, step:10,weight:8.5}, // PREMIUM
     {lo:100,hi:100,step:1, weight:1.5}, // SUPER RARE
   ],
@@ -2459,8 +2504,46 @@ function gachaAllValues(idx){
   return out;
 }
 // 重み付き抽選で1つの値を返す
-function drawGachaValue(idx){
-  const blocks=GACHA_BLOCKS[idx];
+// ── 曜日ごとのフェア（端末の時計の曜日で決める） ──
+// 月：築浅フェア／木：駅近フェア／金：高級賃貸フェア … その項目の PREMIUM以上が2倍出やすい。
+//      その日はじめてのガチャだけは、その項目が PREMIUM以上で確定（逆RAREの確率は変えない）
+// 水：定休日 … 1か所だけ無料で引き直せる（確率はいつもどおり）
+// 日：オープンハウスの日 … スキップがいつもより1回多い
+const FAIRS={
+  1:{type:'boost',idx:0,name:'築浅フェア',   what:'築5年以内'},
+  4:{type:'boost',idx:1,name:'駅近フェア',   what:'駅徒歩5分以内'},
+  5:{type:'boost',idx:2,name:'高級賃貸フェア',what:'家賃60万円以上'},
+  3:{type:'closed',name:'定休日'},
+  0:{type:'openhouse',name:'オープンハウスの日'},
+};
+const FAIR_BOOST=2;   // フェアの日の PREMIUM以上の倍率
+const WEEK_JA=['日','月','火','水','木','金','土'];
+function todayFair(){ return FAIRS[new Date().getDay()]||null; }
+function _todayKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+// その日はじめてのガチャの「確定」がまだ使えるか
+function fairFirstAvailable(){ try{ return localStorage.getItem('madori-fair-first')!==_todayKey(); }catch(e){ return false; } }
+function _markFairFirstUsed(){ try{ localStorage.setItem('madori-fair-first',_todayKey()); }catch(e){} }
+function isWashDay(){ const f=todayFair(); return !!f&&f.type==='closed'; }
+function isOpenHouseDay(){ const f=todayFair(); return !!f&&f.type==='openhouse'; }
+// ブロックの種類（そのブロックの最初の数字で判断する）
+function _blockClass(idx,b){ const v=blockValues(b)[0]; return isSuperRare(idx,v)?'super':isRareGacha(idx,v)?'rare':isInverseRare(idx,v)?'niche':'normal'; }
+// mode … 'base'（いつも）／'boost'（フェアの日：PREMIUM以上を倍に、ノーマルを同じ割合で減らす）／'sure'（PREMIUM以上で確定）
+function gachaBlocksFor(idx,mode){
+  const bl=GACHA_BLOCKS[idx];
+  if(mode==='sure') return bl.filter(b=>{ const c=_blockClass(idx,b); return c==='super'||c==='rare'; });
+  if(mode!=='boost') return bl;
+  const up=bl.filter(b=>{ const c=_blockClass(idx,b); return c==='super'||c==='rare'; });
+  const upSum=up.reduce((s,b)=>s+b.weight,0);
+  const nicheSum=bl.filter(b=>_blockClass(idx,b)==='niche').reduce((s,b)=>s+b.weight,0);
+  const normSum=bl.filter(b=>_blockClass(idx,b)==='normal').reduce((s,b)=>s+b.weight,0);
+  const total=bl.reduce((s,b)=>s+b.weight,0);
+  const k=(total-upSum*FAIR_BOOST-nicheSum)/normSum;
+  return bl.map(b=>{ const c=_blockClass(idx,b); return {...b,weight:(c==='super'||c==='rare')?b.weight*FAIR_BOOST:(c==='normal'?b.weight*k:b.weight)}; });
+}
+// 今日この項目に使う確率（フェアの項目なら倍、それ以外はいつもどおり）
+function gachaModeToday(idx){ const f=todayFair(); return (f&&f.type==='boost'&&f.idx===idx)?'boost':'base'; }
+function drawGachaValue(idx,blocksOverride){
+  const blocks=blocksOverride||GACHA_BLOCKS[idx];
   const total=blocks.reduce((s,b)=>s+b.weight,0);
   let r=Math.random()*total;
   let chosen=blocks[blocks.length-1];
@@ -2470,8 +2553,8 @@ function drawGachaValue(idx){
 }
 
 // ── ガチャの確率表（抽選の設定 GACHA_BLOCKS から自動で作るので、設定を変えても表示はずれない） ──
-function gachaOddsRows(idx){
-  const blocks=GACHA_BLOCKS[idx];
+function gachaOddsRows(idx,blocksOverride){
+  const blocks=blocksOverride||GACHA_BLOCKS[idx];
   const total=blocks.reduce((s,b)=>s+b.weight,0);
   const cls=v=>isSuperRare(idx,v)?'super':isRareGacha(idx,v)?'rare':isInverseRare(idx,v)?'niche':'normal';
   // 値ごとの確率を出し、「同じ演出・同じ確率・同じブロック」で続く値をひとまとめにする
@@ -2491,14 +2574,58 @@ function gachaOddsRows(idx){
   if(normals.length>1)normals.forEach((r,i)=>r.n=i+1);
   return rows;
 }
+// フェアのPOP。不動産屋さんの店頭に貼ってある値札・チラシ風
+function fairPopHTML(where){
+  const f=todayFair();
+  const wd=WEEK_JA[new Date().getDay()];
+  if(!f){
+    if(where!=='start')return '';
+    // フェアの無い日は、次のフェアを小さく予告する
+    let nd=new Date().getDay(), g=null;
+    for(let k=1;k<=7&&!g;k++){ const d=(nd+k)%7; if(FAIRS[d]&&FAIRS[d].type==='boost')g={d,f:FAIRS[d]}; }
+    return g?'<div class="fp-next">次回フェア　'+WEEK_JA[g.d]+'曜日は<b>'+g.f.name+'</b></div>':'';
+  }
+  let tag, main, sub;
+  if(f.type==='boost'){
+    tag='本日'+wd+'曜限定'; main=f.name+'開催中！';
+    sub=fairFirstAvailable()?'本日はじめての1回は<b>'+f.what+'確定！</b>':'<b>'+f.what+'</b>がいつもの'+FAIR_BOOST+'倍出やすい！';
+  }else if(f.type==='closed'){
+    tag='本日'+wd+'曜は定休日'; main='嫌な数字は水に流そう！';
+    sub='ルーレットを<b>1か所だけ無料で引き直し</b>OK';
+  }else{
+    tag='本日'+wd+'曜限定'; main='オープンハウスの日！';
+    sub='スキップが<b>いつもより1回多い</b>（4回）';
+  }
+  return '<div class="fp-tag">'+tag+'</div><div class="fp-main">'+main+'</div><div class="fp-sub">'+sub+'</div>';
+}
+function refreshFairPops(){
+  [['fair-pop-start','start'],['fair-pop-rou','rou']].forEach(([id,w])=>{
+    const el=document.getElementById(id); if(!el)return;
+    const h=fairPopHTML(w);
+    el.innerHTML=h; el.style.display=h?'':'none';
+    el.classList.toggle('is-next',!todayFair());
+  });
+}
+refreshFairPops();
 function openGachaOdds(){
   const unit=['年','分','万円'], name=['築年数','駅徒歩','家賃'];
   const tag={super:'SUPER RARE',rare:'PREMIUM',niche:'RARE',normal:'ノーマル'};
   const pct=x=>(x*100).toFixed(2)+'%';
-  let html='<div class="odds-note">それぞれの数字は「タップで確定」を押した瞬間に、下の確率で決まります。止めるタイミングで結果は変わりません（回っている数字は演出です）。</div>';
+  let html='<div class="odds-note">それぞれの数字は「タップで確定」を押した瞬間に、下の確率で決まります。止めるタイミングで結果は変わりません（回っている数字は演出です）。'
+    +'<br>曜日ごとのフェア：月曜 築浅フェア／木曜 駅近フェア／金曜 高級賃貸フェア（その項目のPREMIUM以上が'+FAIR_BOOST+'倍・その日はじめての1回は確定）、水曜 定休日（1か所だけ無料で引き直し・確率はいつもどおり）、日曜 オープンハウスの日（スキップ+1回）。曜日はお使いの端末の時計で決まります。</div>';
+  const f=todayFair();
   [0,1,2].forEach(idx=>{
-    html+='<div class="odds-sec">'+name[idx]+'</div><table class="odds-table"><tr><th style="width:34%">種類</th><th>出る数字</th><th style="width:24%;text-align:right">確率</th></tr>';
-    gachaOddsRows(idx).forEach(r=>{
+    const mode=gachaModeToday(idx);
+    html+='<div class="odds-sec">'+name[idx]+(mode==='boost'?'<span class="odds-fair">本日'+f.name+'</span>':'')+'</div>';
+    if(mode==='boost'){
+      const sure=gachaOddsRows(idx,gachaBlocksFor(idx,'sure'));
+      const sp=sure.map(r=>(r.c==='super'?'SUPER RARE ':'PREMIUM ')+pct(r.p*r.vals.length)).join('・');
+      html+='<div class="odds-note">本日は'+f.name+'のため、PREMIUM以上が'+FAIR_BOOST+'倍出やすくなっています（RAREはいつもどおり）。'
+        +'<br>本日はじめての1回は<b>PREMIUM以上で確定</b>（'+sp+'）'+(fairFirstAvailable()?'…<b>まだ使えます</b>':'…本日分は使用済み')+'。'
+        +'<br>2回目以降は下の確率です。</div>';
+    }
+    html+='<table class="odds-table"><tr><th style="width:34%">種類</th><th>出る数字</th><th style="width:24%;text-align:right">確率</th></tr>';
+    gachaOddsRows(idx,gachaBlocksFor(idx,mode)).forEach(r=>{
       const n=r.vals.length, a=r.vals[0], z=r.vals[n-1];
       const label=n===1?a+unit[idx]:(r.step===1?a+'〜'+z+unit[idx]:r.vals.join('・<wbr>')+unit[idx]);
       html+='<tr><td><span class="odds-tag '+r.c+'">'+tag[r.c]+(r.n||'')+'</span></td><td>'+label+'</td>'
@@ -3276,7 +3403,9 @@ function titleBadgeHTML(emoji,rar,size){
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
-// rar … バッジの見た目の階級（1が最上位）
+// rar … バッジの見た目の階級（1が最上位）。1回のプレイで取れる確率（rp）で決める：
+//       虹(1)＝0.5%未満／金(2)＝0.5%以上2%未満／銀(3)＝2%以上9%未満／銅(5)＝9%以上
+//       ※完成回数の称号（駆け出し〜神域）は確率ではなく回数の重みで決めている
 // rp  … 1ゲームで出る推定確率。小さいほどレア。赤文字のキャッチコピーは
 //       獲得した中で rp が一番小さい＝一番レアな称号から採る。
 //       物件情報系はガチャの重みから、パーツ系は1ゲーム約12個設置の二項分布から算出
@@ -3318,7 +3447,7 @@ const ALL_TITLES_MASTER=[
   // ══ 物件情報面・単独 ══
   {title:'新築の香りソムリエ', badge:'🌸', rar:2, rp:.015, condition:'築0年',
     pop:'新築の香り、ここにあります！', check:x=>x.age===0},
-  {title:'築浅ハンター', badge:'🔍', rar:5, rp:.085, condition:'築1〜5年',
+  {title:'築浅ハンター', badge:'🔍', rar:3, rp:.085, condition:'築1〜5年',
     pop:'築浅物件、見つけました！', check:x=>x.age>=1&&x.age<=5},
   {title:'レトロ愛好家', badge:'🏚️', rar:5, rp:.100, condition:'築40〜49年',
     pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
@@ -3326,66 +3455,66 @@ const ALL_TITLES_MASTER=[
     pop:'ロマンを感じたい人へ！', check:x=>x.age>=50},
   {title:'もはや駅の住人', badge:'🚉', rar:2, rp:.015, condition:'駅徒歩0分',
     pop:'もう改札が玄関です！', check:x=>x.walk===0},
-  {title:'ギリギリまで寝てたい', badge:'⏰', rar:5, rp:.085, condition:'駅徒歩1〜5分',
+  {title:'ギリギリまで寝てたい', badge:'⏰', rar:3, rp:.085, condition:'駅徒歩1〜5分',
     pop:'朝に弱い人、必見！', check:x=>x.walk>=1&&x.walk<=5},
-  {title:'いい運動になる', badge:'👟', rar:5, rp:.120, condition:'駅徒歩30〜49分',
+  {title:'いい運動になる', badge:'👟', rar:5, rp:.105, condition:'駅徒歩30〜49分',
     pop:'健康第一な人へおすすめ！', check:x=>x.walk>=30&&x.walk<50},
   {title:'通勤という名の小旅行', badge:'🧳', rar:2, rp:.010, condition:'駅徒歩50分（最遠）',
     pop:'旅気分を味わいたい人へ！', check:x=>x.walk>=50},
   {title:'伝説の掘り出し物件', badge:'🏆', rar:2, rp:.010, condition:'家賃5万円（最安値）',
     pop:'掘り出し物件、見つかりました！', check:x=>x.rent===5},
-  {title:'コスパ王', badge:'👑', rar:5, rp:.100, condition:'家賃6〜9万円',
+  {title:'コスパ王', badge:'👑', rar:5, rp:.200, condition:'家賃6〜9万円',
     pop:'コスパ重視な人、必見！', check:x=>x.rent>=6&&x.rent<=9},
-  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, rp:.085, condition:'家賃60〜90万円',
+  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:3, rp:.085, condition:'家賃60〜90万円',
     pop:'ワンランク上を求める人へ！', check:x=>x.rent>=60&&x.rent<100},
   {title:'新時代の宮殿', badge:'🏰', rar:2, rp:.015, condition:'家賃100万円（最高値）',
     pop:'宮殿暮らし、はじめませんか！', check:x=>x.rent>=100},
   // ══ 物件情報面・複合（レア値の掛け算） ══
-  {title:'憧れの都会ライフ', badge:'✨', rar:3, rp:.0090, condition:'築0〜5年、かつ駅徒歩0〜5分',
+  {title:'憧れの都会ライフ', badge:'✨', rar:2, rp:.0090, condition:'築0〜5年、かつ駅徒歩0〜5分',
     pop:'都会ライフに憧れる人へ！', check:x=>x.age<=5&&x.walk<=5&&!(x.rent>=60)},
-  {title:'腕利きマドリスト', badge:'🔨', rar:3, rp:.0090, condition:'築0〜5年、かつ家賃60万円以上',
+  {title:'腕利きマドリスト', badge:'🔨', rar:2, rp:.0090, condition:'築0〜5年、かつ家賃60万円以上',
     pop:'腕利きの自信作です！', check:x=>x.age<=5&&x.rent>=60&&!(x.walk<=5)},
-  {title:'立地こそ正義', badge:'📍', rar:3, rp:.0090, condition:'駅徒歩0〜5分、かつ家賃60万円以上',
+  {title:'立地こそ正義', badge:'📍', rar:2, rp:.0090, condition:'駅徒歩0〜5分、かつ家賃60万円以上',
     pop:'立地で選びたい人、必見！', check:x=>x.walk<=5&&x.rent>=60&&!(x.age<=5)},
   {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.0010, condition:'築0〜5年・駅徒歩0〜5分・家賃60万円以上をすべて満たす',
     pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=60},
   // ══ パーツ配置面・単独 ══
-  {title:'洋室はおあずけ', badge:'🛋️', rar:4, rp:.076, condition:'洋室0個で完成',
+  {title:'洋室はおあずけ', badge:'🛋️', rar:3, rp:.076, condition:'洋室0個で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
-  {title:'フローリング王国', badge:'🪵', rar:4, rp:.155, condition:'洋室4個以上',
+  {title:'フローリング王国', badge:'🪵', rar:5, rp:.155, condition:'洋室4個以上',
     pop:'フローリング好き、集まれ！', check:x=>x.n.youshitsu>=4},
-  {title:'畳はおあずけ', badge:'🪑', rar:4, rp:.172, condition:'和室0個で完成',
+  {title:'畳はおあずけ', badge:'🪑', rar:5, rp:.172, condition:'和室0個で完成',
     pop:'畳なし物件、あります！', check:x=>x.n.washitsu===0&&x.n.youshitsu>0},
-  {title:'サザエさん家', badge:'🐟', rar:4, rp:.060, condition:'和室4個以上',
+  {title:'サザエさん家', badge:'🐟', rar:3, rp:.060, condition:'和室4個以上',
     pop:'大きな茶の間に憧れる人へ！', check:x=>x.n.washitsu>=4},
-  {title:'洗練された都会', badge:'🏙️', rar:4, rp:.248, condition:'バルコニー0個で完成',
+  {title:'洗練された都会', badge:'🏙️', rar:5, rp:.248, condition:'バルコニー0個で完成',
     pop:'都会派なあなたへ！', check:x=>x.n.balcony===0},
-  {title:'園芸師', badge:'🪴', rar:4, rp:.035, condition:'バルコニー4個以上',
+  {title:'園芸師', badge:'🪴', rar:3, rp:.035, condition:'バルコニー4個以上',
     pop:'植物と暮らしたい人、必見！', check:x=>x.n.balcony>=4},
-  {title:'銭湯派', badge:'♨️', rar:4, rp:.193, condition:'お風呂0個で完成',
+  {title:'銭湯派', badge:'♨️', rar:5, rp:.193, condition:'お風呂0個で完成',
     pop:'銭湯めぐりが好きな人へ！', check:x=>x.n.bath===0&&x.n.toilet>0},
-  {title:'圧倒的清潔感', badge:'🛁', rar:4, rp:.035, condition:'お風呂4個以上',
+  {title:'圧倒的清潔感', badge:'🛁', rar:3, rp:.035, condition:'お風呂4個以上',
     pop:'いつでもピカピカでいたい人へ！', check:x=>x.n.bath>=4},
-  {title:'コンビニトイレの常連', badge:'🏪', rar:4, rp:.193, condition:'トイレ0個で完成',
+  {title:'コンビニトイレの常連', badge:'🏪', rar:5, rp:.193, condition:'トイレ0個で完成',
     pop:'おおらかに暮らしたい人へ！', check:x=>x.n.toilet===0&&x.n.bath>0},
-  {title:'1秒も待てない', badge:'🚽', rar:4, rp:.035, condition:'トイレ4個以上',
+  {title:'1秒も待てない', badge:'🚽', rar:3, rp:.035, condition:'トイレ4個以上',
     pop:'順番待ちにサヨナラしたい人へ！', check:x=>x.n.toilet>=4},
-  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:4, rp:.165, condition:'キッチン0個で完成',
+  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:5, rp:.165, condition:'キッチン0個で完成',
     pop:'ウーバーヘビーユーザー必見！', check:x=>x.n.kitchen===0},
-  {title:'厨房', badge:'🍳', rar:4, rp:.075, condition:'キッチン4個以上',
+  {title:'厨房', badge:'🍳', rar:3, rp:.075, condition:'キッチン4個以上',
     pop:'料理が主役の暮らし、いかが！', check:x=>x.n.kitchen>=4},
-  {title:'動線が命', badge:'🧭', rar:4, rp:.051, condition:'廊下0個で完成',
+  {title:'動線が命', badge:'🧭', rar:3, rp:.051, condition:'廊下0個で完成',
     pop:'ムダのない動線、求む人へ！', check:x=>x.n.roka===0},
-  {title:'ウォーキングコース', badge:'🚶', rar:4, rp:.100, condition:'廊下5個以上',
+  {title:'ウォーキングコース', badge:'🚶', rar:5, rp:.100, condition:'廊下5個以上',
     pop:'家の中でお散歩したい人へ！', check:x=>x.n.roka>=5},
-  {title:'ミニマリスト', badge:'🍃', rar:4, rp:.050, condition:'収納0マスで完成',
+  {title:'ミニマリスト', badge:'🍃', rar:3, rp:.050, condition:'収納0マスで完成',
     pop:'ミニマリスト必見！', check:x=>x.st===0},
   {title:'いつか使うかも', badge:'📦', rar:5, rp:.300, condition:'収納10〜19マス',
     pop:'捨てられない人、安心です！', check:x=>x.st>=10&&x.st<20},
-  {title:'トランクルーム', badge:'🗄️', rar:4, rp:.150, condition:'収納20マス以上',
+  {title:'トランクルーム', badge:'🗄️', rar:5, rp:.150, condition:'収納20マス以上',
     pop:'荷物が多い人、必見！', check:x=>x.st>=20},
   // ══ パーツ配置面・複合 ══
-  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, rp:.012, condition:'洋室も和室も0個で完成',
+  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:2, rp:.012, condition:'洋室も和室も0個で完成',
     pop:'部屋がなくても夢はある！', check:x=>x.n.youshitsu===0&&x.n.washitsu===0},
   {title:'水回り共用シェアハウス', badge:'🚿', rar:3, rp:.051, condition:'お風呂もトイレも0個で完成',
     pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
@@ -3623,6 +3752,7 @@ let lockedCount=0;
 // silent=true で回転音を鳴らさずに開始する（リロード復帰用）
 function startRoulette(silent){
   if(!silent)startSpinSE();
+  refreshFairPops();
   lockedCount=0;
   rerollDone[0]=rerollDone[1]=rerollDone[2]=false;
   for(let i=0;i<3;i++){
@@ -3640,6 +3770,7 @@ function startRoulette(silent){
   }
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
+  refreshWashBtns();
   for(let i=0;i<3;i++){
     if(rouletteIntervals[i])clearInterval(rouletteIntervals[i]);
     (idx=>{
@@ -3654,7 +3785,11 @@ function lockRoulette(idx){
   if(rouletteLocked[idx])return;
   for(let i=0;i<idx;i++)if(!rouletteLocked[i])return;
   clearInterval(rouletteIntervals[idx]);
-  const val=drawGachaValue(idx);
+  let val;
+  if(gachaModeToday(idx)==='boost'&&!rerollDone[idx]){
+    if(fairFirstAvailable()){ val=drawGachaValue(idx,gachaBlocksFor(idx,'sure')); _markFairFirstUsed(); }
+    else val=drawGachaValue(idx,gachaBlocksFor(idx,'boost'));
+  }else val=drawGachaValue(idx);
   rouletteValues[idx]=val;
   rouletteLocked[idx]=true;
   if(rouletteLocked.every(v=>v))stopSpinSE(); // 最後の1つが確定→回転音を止める
@@ -3674,9 +3809,10 @@ function lockRoulette(idx){
   else if(isInverseRare(idx,val)){ document.getElementById('rou-'+idx).classList.add('niche'); playSE('gyaku-rare'); }
   else playSE('lock');
   // 次のスロットをアクティブに
-  if(idx+1<3) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
+  if(idx+1<3&&!rouletteLocked[idx+1]) document.getElementById('rou-'+(idx+1)).classList.add('active-slot');
   if(++lockedCount===3){
     document.getElementById('btn-rou-next').classList.add('visible');
+    refreshWashBtns();
     for(let i=0;i<3;i++){
       const rb=document.getElementById('reroll-btn-'+i);
       if(rb){rb.classList.add('visible');updateRerollBtnSlot(i);}
@@ -3697,12 +3833,36 @@ function lockRoulette(idx){
   persistFlow('screen-roulette');
 }
 
+// ── 水曜（定休日）：嫌な数字は「水に流す」。1回のガチャで1か所だけ、無料・いつもの確率で引き直せる ──
+function refreshWashBtns(){
+  const can=isWashDay()&&lockedCount===3&&!rerollDone.some(Boolean);
+  for(let i=0;i<3;i++){ const b=document.getElementById('wash-btn-'+i); if(b)b.classList.toggle('visible',can); }
+}
+function doWashSlot(idx){
+  if(!isWashDay()||rerollDone.some(Boolean)||!rouletteLocked[idx])return;
+  rerollDone[idx]=true;
+  refreshWashBtns();
+  startSpinSE();
+  const item=document.getElementById('rou-'+idx), valEl=document.getElementById('rou-val-'+idx);
+  document.getElementById('btn-rou-next').classList.remove('visible');
+  item.classList.remove('locked','rare','niche','super-rare');
+  item.classList.add('active-slot');
+  valEl.classList.add('spinning');
+  rouletteValues[idx]=null; rouletteLocked[idx]=false;
+  lockedCount=[0,1,2].filter(i=>rouletteLocked[i]).length;
+  if(rouletteIntervals[idx])clearInterval(rouletteIntervals[idx]);
+  const all=gachaAllValues(idx);
+  rouletteIntervals[idx]=setInterval(()=>{ valEl.textContent=all[Math.floor(Math.random()*all.length)]+rouletteUnits[idx]; },80);
+  // 止める操作はいつもと同じ（押した瞬間に lockRoulette）
+  persistFlow('screen-roulette');
+}
+
 // リロード復帰用：確定済みスロットの値と見た目を再現（紙吹雪等の演出なし）
 function restoreRouletteLocks(rv,rl,rd){
   if(Array.isArray(rd)){for(let i=0;i<3;i++)rerollDone[i]=!!rd[i];}
   let cnt=0;
   for(let i=0;i<3;i++){
-    if(!rl[i]||rv[i]===null||rv[i]===undefined)break; // 確定は必ず先頭から連続
+    if(!rl[i]||rv[i]===null||rv[i]===undefined)continue; // 水曜の引き直し中は途中の枠だけ空く
     clearInterval(rouletteIntervals[i]);
     rouletteValues[i]=rv[i]; rouletteLocked[i]=true; cnt++;
     const el=document.getElementById('rou-'+i);
@@ -3717,7 +3877,12 @@ function restoreRouletteLocks(rv,rl,rd){
   lockedCount=cnt;
   // 次のアクティブスロット
   document.querySelectorAll('.roulette-item.active-slot').forEach(e=>e.classList.remove('active-slot'));
-  if(cnt<3) document.getElementById('rou-'+cnt).classList.add('active-slot');
+  const firstOpen=[0,1,2].find(i=>!rouletteLocked[i]);
+  if(firstOpen!==undefined){
+    document.getElementById('rou-'+firstOpen).classList.add('active-slot');
+    // 引き直し中の枠は回して見せる（startRoulette で回り始めている）
+  }
+  refreshWashBtns();
   if(cnt===3){
     document.getElementById('btn-rou-next').classList.add('visible');
     for(let i=0;i<3;i++){
@@ -4863,7 +5028,7 @@ class PuzzleGame extends Phaser.Scene{
     this.undoStack=[];
     this.currentDef=null; this.rotation=0;
     this.curC=Math.floor(COLS/2); this.curR=0;
-    this.skipCount=SKIP_MAX;
+    this.skipCount=SKIP_MAX+(isOpenHouseDay()?1:0);   // 日曜はオープンハウスの日でスキップ+1
     this.isFinished=false;
     this.queue=[];
     for(let i=0;i<4;i++)this.queue.push(this.pickRandom());
