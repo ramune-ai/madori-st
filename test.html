@@ -3506,7 +3506,9 @@ function titleBadgeHTML(emoji,rar,size){
 }
 function titleRarOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.rar||6):6; }
 function titleBadgeOf(title){ const m=ALL_TITLES_MASTER.find(x=>x.title===title); return m?(m.badge||''):''; }
-// rar … バッジの見た目の階級（1が最上位）。1回のプレイで取れる確率（rp）で決める：
+// rar … バッジの見た目の階級（1が最上位）。1回のプレイで取れる確率（rp）で決める
+//       （置き方で決まる称号の rp は、ゲームと同じ土地・パーツの出やすさで自動プレイを2万回×2通り
+//        ＝すき間なく置く人／ざっくり置く人 を試した真ん中の値）：
 //       虹(1)＝0.5%未満／金(2)＝0.5%以上2%未満／銀(3)＝2%以上9%未満／銅(5)＝9%以上
 //       ※完成回数の称号（駆け出し〜神域）は確率ではなく回数の重みで決めている
 // rp  … 1ゲームで出る推定確率。小さいほどレア。赤文字のキャッチコピーは
@@ -3582,46 +3584,46 @@ const ALL_TITLES_MASTER=[
   {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.0010, condition:'築0〜5年・駅徒歩0〜5分・家賃60万円以上をすべて満たす',
     pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=60},
   // ══ パーツ配置面・単独 ══
-  {title:'洋室はおあずけ', badge:'🛋️', rar:3, rp:.076, condition:'洋室0個で完成',
+  {title:'洋室はおあずけ', badge:'🛋️', rar:5, rp:.131, condition:'洋室0個で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
-  {title:'フローリング王国', badge:'🪵', rar:5, rp:.155, condition:'洋室4個以上',
+  {title:'フローリング王国', badge:'🪵', rar:3, rp:.046, condition:'洋室4個以上',
     pop:'フローリング好き、集まれ！', check:x=>x.n.youshitsu>=4},
-  {title:'畳はおあずけ', badge:'🪑', rar:5, rp:.172, condition:'和室0個で完成',
+  {title:'畳はおあずけ', badge:'🪑', rar:5, rp:.243, condition:'和室0個で完成',
     pop:'畳なし物件、あります！', check:x=>x.n.washitsu===0&&x.n.youshitsu>0},
-  {title:'サザエさん家', badge:'🐟', rar:3, rp:.060, condition:'和室4個以上',
+  {title:'サザエさん家', badge:'🐟', rar:2, rp:.015, condition:'和室4個以上',
     pop:'大きな茶の間に憧れる人へ！', check:x=>x.n.washitsu>=4},
-  {title:'洗練された都会', badge:'🏙️', rar:5, rp:.248, condition:'バルコニー0個で完成',
+  {title:'洗練された都会', badge:'🏙️', rar:5, rp:.190, condition:'バルコニー0個で完成',
     pop:'都会派なあなたへ！', check:x=>x.n.balcony===0},
-  {title:'園芸師', badge:'🪴', rar:3, rp:.035, condition:'バルコニー4個以上',
+  {title:'園芸師', badge:'🪴', rar:5, rp:.091, condition:'バルコニー4個以上',
     pop:'植物と暮らしたい人、必見！', check:x=>x.n.balcony>=4},
-  {title:'銭湯派', badge:'♨️', rar:5, rp:.193, condition:'お風呂0個で完成',
+  {title:'銭湯派', badge:'♨️', rar:5, rp:.162, condition:'お風呂0個で完成',
     pop:'銭湯めぐりが好きな人へ！', check:x=>x.n.bath===0&&x.n.toilet>0},
-  {title:'圧倒的清潔感', badge:'🛁', rar:3, rp:.035, condition:'お風呂4個以上',
+  {title:'圧倒的清潔感', badge:'🛁', rar:3, rp:.062, condition:'お風呂4個以上',
     pop:'いつでもピカピカでいたい人へ！', check:x=>x.n.bath>=4},
-  {title:'コンビニトイレの常連', badge:'🏪', rar:5, rp:.193, condition:'トイレ0個で完成',
+  {title:'コンビニトイレの常連', badge:'🏪', rar:5, rp:.141, condition:'トイレ0個で完成',
     pop:'おおらかに暮らしたい人へ！', check:x=>x.n.toilet===0&&x.n.bath>0},
-  {title:'1秒も待てない', badge:'🚽', rar:3, rp:.035, condition:'トイレ4個以上',
+  {title:'1秒も待てない', badge:'🚽', rar:5, rp:.111, condition:'トイレ4個以上',
     pop:'順番待ちにサヨナラしたい人へ！', check:x=>x.n.toilet>=4},
-  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:5, rp:.165, condition:'キッチン0個で完成',
+  {title:'ウーバーヘビーユーザー', badge:'🛵', rar:5, rp:.200, condition:'キッチン0個で完成',
     pop:'ウーバーヘビーユーザー必見！', check:x=>x.n.kitchen===0},
-  {title:'厨房', badge:'🍳', rar:3, rp:.075, condition:'キッチン4個以上',
+  {title:'厨房', badge:'🍳', rar:3, rp:.048, condition:'キッチン4個以上',
     pop:'料理が主役の暮らし、いかが！', check:x=>x.n.kitchen>=4},
-  {title:'動線が命', badge:'🧭', rar:3, rp:.051, condition:'廊下0個で完成',
+  {title:'動線が命', badge:'🧭', rar:3, rp:.037, condition:'廊下0個で完成',
     pop:'ムダのない動線、求む人へ！', check:x=>x.n.roka===0},
-  {title:'ウォーキングコース', badge:'🚶', rar:5, rp:.100, condition:'廊下5個以上',
+  {title:'ウォーキングコース', badge:'🚶', rar:5, rp:.287, condition:'廊下5個以上',
     pop:'家の中でお散歩したい人へ！', check:x=>x.n.roka>=5},
-  {title:'ミニマリスト', badge:'🍃', rar:3, rp:.050, condition:'収納0マスで完成',
+  {title:'ミニマリスト', badge:'🍃', rar:5, rp:.104, condition:'収納0マスで完成',
     pop:'ミニマリスト必見！', check:x=>x.st===0},
-  {title:'いつか使うかも', badge:'📦', rar:5, rp:.300, condition:'収納10〜19マス',
+  {title:'いつか使うかも', badge:'📦', rar:5, rp:.263, condition:'収納10〜19マス',
     pop:'捨てられない人、安心です！', check:x=>x.st>=10&&x.st<20},
-  {title:'トランクルーム', badge:'🗄️', rar:5, rp:.150, condition:'収納20マス以上',
+  {title:'トランクルーム', badge:'🗄️', rar:5, rp:.190, condition:'収納20マス以上',
     pop:'荷物が多い人、必見！', check:x=>x.st>=20},
   // ══ パーツ配置面・複合 ══
-  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:2, rp:.012, condition:'洋室も和室も0個で完成',
+  {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, rp:.021, condition:'洋室も和室も0個で完成',
     pop:'部屋がなくても夢はある！', check:x=>x.n.youshitsu===0&&x.n.washitsu===0},
-  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, rp:.051, condition:'お風呂もトイレも0個で完成',
+  {title:'水回り共用シェアハウス', badge:'🚿', rar:3, rp:.038, condition:'お風呂もトイレも0個で完成',
     pop:'みんなでシェアする暮らし！', check:x=>x.n.bath===0&&x.n.toilet===0},
-  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:5, rp:.300, condition:'和室＋洋室が合計5個以上',
+  {title:'大家族ハウス', badge:'👨‍👩‍👧‍👦', rar:3, rp:.071, condition:'和室＋洋室が合計5個以上',
     pop:'にぎやかに暮らしたい人へ！', check:x=>(x.n.youshitsu+x.n.washitsu)>=5},
   // ══ 完成回数（プレイを重ねるほど昇格） ══
   {title:'駆け出しマドリスト', badge:'📐', rar:6, rp:.5, condition:'はじめて物件を完成させる',
