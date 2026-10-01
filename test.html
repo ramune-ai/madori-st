@@ -3166,7 +3166,7 @@ async function renderHistoryCard(entry,snap){
 // レア値判定（称号用）：中央の「ふつう帯」以外をレアとみなす
 const rareAge =a=>(a<=5||a>=40);
 const rareWalk=w=>(w<=5||w>=30);
-const rareRent=r=>(r<=9||r>=50);
+const rareRent=r=>(r<=9||r>=60);
 // 称号マスター。一覧はこの並び順（物件情報：単独→複合 → パーツ配置：単独→複合）で表示。
 // rar=レア度（小さいほどレア。POP表示や獲得時の並びに使用）
 // check(x) … x={age,walk,rent,n:パーツ数,st:収納マス数}
@@ -3322,7 +3322,7 @@ const ALL_TITLES_MASTER=[
     pop:'築浅物件、見つけました！', check:x=>x.age>=1&&x.age<=5},
   {title:'レトロ愛好家', badge:'🏚️', rar:5, rp:.100, condition:'築40〜49年',
     pop:'レトロ好きにはたまりません！', check:x=>x.age>=40&&x.age<50},
-  {title:'古民家ロマンチスト', badge:'🏮', rar:4, rp:.010, condition:'築50年（最古）',
+  {title:'古民家ロマンチスト', badge:'🏮', rar:2, rp:.010, condition:'築50年（最古）',
     pop:'ロマンを感じたい人へ！', check:x=>x.age>=50},
   {title:'もはや駅の住人', badge:'🚉', rar:2, rp:.015, condition:'駅徒歩0分',
     pop:'もう改札が玄関です！', check:x=>x.walk===0},
@@ -3330,25 +3330,25 @@ const ALL_TITLES_MASTER=[
     pop:'朝に弱い人、必見！', check:x=>x.walk>=1&&x.walk<=5},
   {title:'いい運動になる', badge:'👟', rar:5, rp:.120, condition:'駅徒歩30〜49分',
     pop:'健康第一な人へおすすめ！', check:x=>x.walk>=30&&x.walk<50},
-  {title:'通勤という名の小旅行', badge:'🧳', rar:4, rp:.010, condition:'駅徒歩50分（最遠）',
+  {title:'通勤という名の小旅行', badge:'🧳', rar:2, rp:.010, condition:'駅徒歩50分（最遠）',
     pop:'旅気分を味わいたい人へ！', check:x=>x.walk>=50},
-  {title:'伝説の掘り出し物件', badge:'🏆', rar:4, rp:.010, condition:'家賃5万円（最安値）',
+  {title:'伝説の掘り出し物件', badge:'🏆', rar:2, rp:.010, condition:'家賃5万円（最安値）',
     pop:'掘り出し物件、見つかりました！', check:x=>x.rent===5},
   {title:'コスパ王', badge:'👑', rar:5, rp:.100, condition:'家賃6〜9万円',
     pop:'コスパ重視な人、必見！', check:x=>x.rent>=6&&x.rent<=9},
-  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, rp:.143, condition:'家賃50〜90万円',
-    pop:'ワンランク上を求める人へ！', check:x=>x.rent>=50&&x.rent<100},
+  {title:'コンシェルジュのいる暮らし', badge:'🛎️', rar:5, rp:.085, condition:'家賃60〜90万円',
+    pop:'ワンランク上を求める人へ！', check:x=>x.rent>=60&&x.rent<100},
   {title:'新時代の宮殿', badge:'🏰', rar:2, rp:.015, condition:'家賃100万円（最高値）',
     pop:'宮殿暮らし、はじめませんか！', check:x=>x.rent>=100},
   // ══ 物件情報面・複合（レア値の掛け算） ══
-  {title:'憧れの都会ライフ', badge:'✨', rar:3, rp:.0084, condition:'築0〜5年、かつ駅徒歩0〜5分',
-    pop:'都会ライフに憧れる人へ！', check:x=>x.age<=5&&x.walk<=5&&!(x.rent>=50)},
-  {title:'腕利きマドリスト', badge:'🔨', rar:3, rp:.0142, condition:'築0〜5年、かつ家賃50万円以上',
-    pop:'腕利きの自信作です！', check:x=>x.age<=5&&x.rent>=50&&!(x.walk<=5)},
-  {title:'立地こそ正義', badge:'📍', rar:3, rp:.0142, condition:'駅徒歩0〜5分、かつ家賃50万円以上',
-    pop:'立地で選びたい人、必見！', check:x=>x.walk<=5&&x.rent>=50&&!(x.age<=5)},
-  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.00158, condition:'築0〜5年・駅徒歩0〜5分・家賃50万円以上をすべて満たす',
-    pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=50},
+  {title:'憧れの都会ライフ', badge:'✨', rar:3, rp:.0090, condition:'築0〜5年、かつ駅徒歩0〜5分',
+    pop:'都会ライフに憧れる人へ！', check:x=>x.age<=5&&x.walk<=5&&!(x.rent>=60)},
+  {title:'腕利きマドリスト', badge:'🔨', rar:3, rp:.0090, condition:'築0〜5年、かつ家賃60万円以上',
+    pop:'腕利きの自信作です！', check:x=>x.age<=5&&x.rent>=60&&!(x.walk<=5)},
+  {title:'立地こそ正義', badge:'📍', rar:3, rp:.0090, condition:'駅徒歩0〜5分、かつ家賃60万円以上',
+    pop:'立地で選びたい人、必見！', check:x=>x.walk<=5&&x.rent>=60&&!(x.age<=5)},
+  {title:'殿堂入りマドリスト', badge:'🌈', rar:1, rp:.0010, condition:'築0〜5年・駅徒歩0〜5分・家賃60万円以上をすべて満たす',
+    pop:'これぞ殿堂入りの間取り…！', check:x=>x.age<=5&&x.walk<=5&&x.rent>=60},
   // ══ パーツ配置面・単独 ══
   {title:'洋室はおあずけ', badge:'🛋️', rar:4, rp:.076, condition:'洋室0個で完成',
     pop:'洋室なしでも快適です！', check:x=>x.n.youshitsu===0&&x.n.washitsu>0},
