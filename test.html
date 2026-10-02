@@ -585,7 +585,7 @@ body.resume-hide #screen-game{opacity:0!important;}
 /* 完成画面：もう一度あそぶの右上に貼る */
 /* POPの置き場として、ボタンの上に毎日同じだけ間をあける（文字にかぶらないように） */
 .again-wrap{position:relative;margin-top:16px;}
-.fair-pop-res{position:absolute;top:-32px;right:-6px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
+.fair-pop-res{position:absolute;top:-32px;right:0;width:max-content;max-width:none;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
 .fair-pop-res .fp-mini{font-size:11px;font-weight:800;line-height:1.3;white-space:nowrap;}
 .fair-pop-res .fp-mini b{color:#ffe14d;font-size:12px;}
 .fair-pop-res .fp-mini b.fm-name{color:#fff;font-size:13px;}
@@ -4071,18 +4071,29 @@ function updateTitlesNewBadge(){
 // 本番に入れるたびに先頭へ1つ足す。先頭の ver が変わると、まだ見ていない人のボタンに NEW!! が付く
 // Ver.1.0＝2026/9/11 一般公開／Ver.1.1＝9/12／Ver.1.2＝9/27
 const UPDATES=[
-  {ver:'1.3', date:'（次回公開予定）', html:
+  {ver:'1.3', date:'2026年10月2日', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
-  '<li><b>曜日ごとのフェア</b>を始めました。月曜「築浅フェア」・火曜「駅近フェア」・金曜「高級賃貸フェア」はその項目のPREMIUM以上が3倍出やすく、その日はじめての1回は確定！ 水曜は「水に流せる日」で1か所だけ無料で引き直し。日曜は「間取り日和」でスキップが1回多くなります</li>'+
-  '<li>物件情報ルーレットの確率を見られるようになりました（📊 確率を見る）</li>'+
+  '<li><b>曜日ごとのフェア</b>を始めました（スタート画面の「今週のフェア」から内容を見られます）<br>'+
+  '・月曜「築浅フェア」／火曜「駅近フェア」／金曜「高級賃貸フェア」…その項目のPREMIUM以上が<b>3倍</b>出やすく、その日はじめての1回は<b>確定</b>！<br>'+
+  '・水曜「水に流せる日」…ルーレットを止めたあと、1か所だけ無料で引き直せます（やっぱりもどす、もできます）<br>'+
+  '・日曜「間取り日和」…スキップがいつもより1回多くなります</li>'+
+  '<li>物件情報ルーレットの<b>確率</b>を見られるようになりました（📊 確率を見る）</li>'+
+  '<li>新しい土地「<b>庭付き</b>」（芝生の庭のある土地）が登場しました</li>'+
+  '<li>好きな称号の<b>バッジを完成カードにつけられる</b>ようになりました（プロフィール、または称号一覧でタップ）</li>'+
+  '<li>スタート画面に「<b>友達にシェア</b>」ボタンを追加しました</li>'+
   '</ul><div class="upd-h">■ 変わったこと</div><ul>'+
   '<li>物件情報ルーレットの確率を見直しました（SUPER RARE 1.5%・PREMIUM 8.5%・RARE 1%）</li>'+
   '<li>家賃のPREMIUMは60万円以上になりました。家賃の称号の条件も60万円以上にそろえました</li>'+
   '<li>称号のメダルの色を、取れる確率に合わせて付け直しました</li>'+
   '<li>完成ボタンは、土地の半分以上を埋めると押せるようになりました（半分まで埋まらずに置けなくなった時はリトライできます）</li>'+
+  '<li>台形の土地を置きやすい形にし、芝生の描き方を新しくしました</li>'+
+  '<li>収納は、本物の間取り図のようにバツ印で表すようにしました。廊下は置いたら文字が消えるようにしました</li>'+
+  '<li>スキップの残り回数を大きくしました。ルーレットを止め終わったら、次に押すボタンが光ります</li>'+
+  '<li>スタート画面・ガチャ画面・プロフィール・称号一覧を見やすく整えました</li>'+
   '</ul><div class="upd-h">■ 直したこと</div><ul>'+
   '<li>PCでシェア画像が古い見た目になることがある不具合を直しました</li>'+
   '<li>スマホのスタート画面で、家の絵が上のボタンと重なる不具合を直しました</li>'+
+  '<li>リンクを貼った時に「読み込み中…」と出ていたのを、ゲームの紹介が出るようにしました</li>'+
   '</ul>'},
   {ver:'1.2', date:'2026年9月27日', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
@@ -4349,7 +4360,7 @@ function doWashSlot(idx){
   rerollDone[idx]=true;
   // 水に流す音を鳴らしてから、回転の音につなぐ（止めた後なら鳴らさない）
   playSE('flush');
-  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },400);
+  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },300);
   const item=document.getElementById('rou-'+idx), valEl=document.getElementById('rou-val-'+idx);
   document.getElementById('btn-rou-next').classList.remove('visible');
   item.classList.remove('locked','rare','niche','super-rare');
