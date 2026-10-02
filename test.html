@@ -59,7 +59,7 @@ body{background:var(--cream);font-family:'M PLUS Rounded 1c','Noto Sans JP',sans
    結果画面の「賃貸物件情報」チラシと同じ一族にして、画面をまたいで世界観をつなぐ */
 .start-flyer{
   position:absolute;right:max(17px, calc(50% - 176px));
-  top:calc(env(safe-area-inset-top, 0px) + 58px);
+  top:calc(env(safe-area-inset-top, 0px) + 18px);
   /* 左上のリンクとぶつからない幅まで自動で細くする */
   width:clamp(134px, calc(100vw - 215px), 168px);
   z-index:4;box-sizing:border-box;
@@ -240,8 +240,9 @@ body.resume-hide #screen-game{opacity:0!important;}
   display:flex;flex-direction:column;align-items:flex-start;gap:14px;z-index:5;
 }
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
-.start-share{position:absolute;z-index:6;top:8px;right:20px;font-size:12px;padding:6px 12px;}
-@media(min-width:600px){ .start-share{scale:var(--pcs,1);transform-origin:top right;font-size:16px;padding:11px 20px;} }
+.top-link.start-share{position:absolute;z-index:6;top:150px;right:20px;font-size:14px;padding:8px 16px;
+  background:var(--accent);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(200,160,96,.45);}
+@media(min-width:600px){ .top-link.start-share{scale:var(--pcs,1);transform-origin:top right;font-size:20px;padding:13px 28px;} }
 #btn-update-info{position:relative;}
 .upd-new{position:absolute;top:-9px;right:-12px;background:#d9534f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.2);animation:updPulse 1.6s ease-in-out infinite;}
 @keyframes updPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
@@ -1505,7 +1506,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     top:calc(env(safe-area-inset-top, 0px) + 12px * var(--pcs,1));
     left:max(12px, calc(50% - 440px * var(--pcs,1)));}
   .start-flyer{scale:var(--pcs,1);
-    top:calc(env(safe-area-inset-top, 0px) + 58px * var(--pcs,1));
+    top:calc(env(safe-area-inset-top, 0px) + 22px * var(--pcs,1));
     /* 左上のリンク（左端＝中央から440px左）と対称に、右端を中央から440px右にそろえる。
        拡大は上の真ん中を支点にするので、その分（幅の半分×(倍率-1)）を足して戻す */
     right:max(17px, calc(50% - 440px * var(--pcs,1) + 106px * (var(--pcs,1) - 1)));}
@@ -4101,12 +4102,14 @@ function fitStartTop(){
     const fl=document.querySelector('.start-flyer'), sh=document.querySelector('.start-share');
     if(fl&&sh){
       const fr=fl.getBoundingClientRect();
-      // 付箋の上の空き（画面の右上の角）に置く。縦の場所を取らないので、ロゴが下がらない
-      sh.style.top=Math.max(6,Math.round(fr.top-sr.top+scr.scrollTop-sh.getBoundingClientRect().height-6))+'px';
+      // 付箋の真下に置く（付箋のテープと重ならないように）
+      sh.style.top=Math.round(fr.bottom-sr.top+scr.scrollTop+12)+'px';
       sh.style.right=Math.round(sr.right-fr.right)+'px';
     }
     // ロゴは、左上のリンクより下から始める
     let b=links.getBoundingClientRect().bottom-sr.top+scr.scrollTop;
+    // スマホはシェアボタンより下からも始める（ロゴとシェアボタンが重ならないように）
+    if(sh&&(window.innerWidth||400)<600) b=Math.max(b, sh.getBoundingClientRect().bottom-sr.top+scr.scrollTop);
     if(b>0)document.documentElement.style.setProperty('--start-top',Math.round(b+26)+'px');
   }catch(e){}
 }
