@@ -4879,7 +4879,10 @@ function _shareText(){
   const r=window._lastResult||{};
   const tags=(window._shareTags||(r.titles||[]).slice(0,1)).map(titleToHashtag);
   const titleTags=tags.join(' ');
-  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'')+'\nhttps://ramune-ai.github.io/madori-st/';
+  // 半角の「+」は、Xなどのアプリが共有の文面を受け取る時に空白に変えてしまう
+  // （URLの書き方で「+」＝空白のため）。全角の「＋」にしておけば消えない
+  const label=String(r.label||'').replace(/\+/g,'＋');
+  return '間取りすとで自分だけの間取り物件を作ったよ！ '+label+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'')+'\nhttps://ramune-ai.github.io/madori-st/';
 }
 async function saveAndShare(){
   const text=_shareText();
