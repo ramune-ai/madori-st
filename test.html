@@ -520,6 +520,10 @@ body.resume-hide #screen-game{opacity:0!important;}
 .title-grid-card.owned{cursor:pointer;}
 .title-grid-card.equipped{border-color:#5a8a50;box-shadow:0 0 0 2px rgba(90,138,80,.45);}
 .title-grid-eq{position:absolute;top:6px;left:6px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#5a8a50;color:#fff;padding:2px 7px;border-radius:10px;}
+/* 称号一覧の見出しの右の案内（×ボタンにかからない幅で） */
+.modal-title:has(.mt-hint){display:flex;align-items:center;padding-right:34px;}
+.modal-title .mt-hint{flex:1;min-width:0;margin-left:10px;white-space:nowrap;font-family:'Noto Sans JP',sans-serif;font-size:11px;line-height:1.45;letter-spacing:0;color:var(--brown);font-weight:700;}
+@media(min-width:600px){ .modal-title .mt-hint{font-size:14px;} }
 .titles-hint{font-size:13px;color:var(--brown);background:#fff8ea;border:1px dashed rgba(200,160,96,.6);border-radius:8px;padding:6px 10px;margin:-4px 0 12px;text-align:center;}
 /* 称号をつける・外す時の確認 */
 #mini-confirm{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;background:rgba(40,28,18,.45);}
@@ -630,8 +634,9 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fw-wd{font-size:14px;font-weight:800;line-height:1.25;}
 .fw-w{font-size:12px;font-weight:800;line-height:1.3;white-space:nowrap;letter-spacing:-.04em;min-height:15px;margin-top:1px;}
 .fw-w2{font-size:12px;font-weight:800;line-height:1.25;white-space:nowrap;min-height:15px;}
-.fw-d.on .fw-w2{color:#c0392b;}
-.fw-d.on .fw-w{color:#c0392b;}
+/* フェアの内容は今日の分だけ赤。ほかの日はブラウン */
+.fw-d.on.today .fw-w2{color:#c0392b;}
+.fw-d.on.today .fw-w{color:#c0392b;}
 .fw-w.long{font-size:10.5px;letter-spacing:-.08em;}
 .fw-today{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:#fff;background:#d9443a;border-radius:8px;padding:0 5px;white-space:nowrap;line-height:1.5;}
 @media(min-width:600px){
@@ -894,9 +899,9 @@ body.no-reroll .reroll-note{display:none!important;}
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
 .res-hashtags{
-  display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;min-height:0;justify-content:center;
 }
-.res-hashtags>*{background:none !important;border:none !important;color:#7a5a30 !important;font-weight:900 !important;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:anywhere;line-height:1.3;text-align:left;padding:1px 0 !important;text-indent:0;}
+.res-hashtags>*{background:none !important;border:none !important;color:#7a5a30 !important;font-weight:900 !important;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:normal;line-break:strict;line-height:1.3;text-align:left;padding:1px 0 !important;text-indent:0;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
@@ -929,7 +934,7 @@ body.no-reroll .reroll-note{display:none!important;}
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:4px 0 2px;flex-wrap:nowrap;}
+.res-main-row{display:flex;gap:12px;align-items:stretch;justify-content:center;margin:4px 0 2px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
 .res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
@@ -947,6 +952,13 @@ body.no-reroll .reroll-note{display:none!important;}
 html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:8px;scrollbar-gutter:stable both-edges;}
 .result-wrap{padding-bottom:40px;}
+/* スマホ：body がステータスバーのぶん下がっているので、画面の高さもそのぶん引く
+   （引かないと一番下の「タイトルへもどる」が画面の外にはみ出す）。全体も少し上へ */
+@media(max-width:599px){
+  #screen-result{padding-top:2px;height:calc(100dvh - env(safe-area-inset-top, 0px));}
+  .again-wrap{margin-top:12px;}
+  .btn-tolink{padding:4px 0 6px;}
+}
 #title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.4;padding:4px 8px 0;max-width:100%;}
 .res-meta-name{font-family:'Noto Serif JP',serif;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:3px;}
@@ -2645,14 +2657,15 @@ function miniConfirm(html,okLabel,noLabel){
     el.innerHTML='<div class="mc-card">'+html+'<div class="mc-btns"><button class="mc-no">'+(noLabel||'やめる')+'</button><button class="mc-ok">'+(okLabel||'OK')+'</button></div></div>';
     el.classList.add('active');
     const done=v=>{ el.classList.remove('active'); res(v); };
-    el.querySelector('.mc-ok').onclick=()=>done(true);
-    el.querySelector('.mc-no').onclick=()=>done(false);
+    el.querySelector('.mc-ok').onclick=()=>{ playSE('tap'); done(true); };
+    el.querySelector('.mc-no').onclick=()=>{ playSE('tap'); done(false); };
     el.onclick=e=>{ if(e.target===el)done(false); };
   });
 }
 // 称号一覧から、タップでつける・外す
 async function toggleEquipTitle(title){
   const m=ALL_TITLES_MASTER.find(x=>x.title===title); if(!m)return;
+  playSE('tap');
   const cur=localStorage.getItem('madori-selected-title')||'';
   const on=cur===title;
   const html='<div class="mc-badge">'+titleBadgeHTML(m.badge,m.rar,64)+'</div><div class="mc-name">'+title+'</div>'
@@ -3587,7 +3600,7 @@ function upgradeHistoryCards(){
 // 同じ内容で旧方式を空描きして、間取り図が置かれた位置を記録する
 async function _cropLegacyMadori(entry,im){
   const fake=document.createElement('canvas');
-  fake.width=CANVAS_W; fake.height=CANVAS_H;
+  fake.width=COLS*CS; fake.height=ROWS*CS;
   let rect=null;
   const P=CanvasRenderingContext2D.prototype, orig=P.drawImage;
   P.drawImage=function(img){
@@ -3644,7 +3657,7 @@ async function renderHistoryCard(entry,snap){
     if(titles[0]){
       const sp=document.createElement('span');
       sp.className='res-hashtag';
-      sp.innerHTML='#'+wbrBoundaries(titleToHashtag(titles[0]).replace(/^#/,''));
+      sp.innerHTML='#2060'+wbrBoundaries(titleToHashtag(titles[0]).replace(/^#/,''));
       tw.appendChild(sp); tw.style.display='flex';
     }else tw.style.display='none';
     q('res-name2').textContent=(entry.propName||'').replace(/^間取りすと：/,'')||'とくめい';
@@ -3658,7 +3671,7 @@ async function renderHistoryCard(entry,snap){
     // 画面の描き直しを待つ（タブが裏にあると描き直しが止まるので、時間で待つ）
     await new Promise(r=>setTimeout(r,80));
     fitHeroLabel(q('res-room-label'));
-    tw.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
+    tw.querySelectorAll('.res-hashtag').forEach(el=>fitTagToSpace(el,14,11));
     let fs=18, g=8;
     while(pop.style.display!=='none'&&pop.scrollWidth>pop.clientWidth+1&&fs>13&&g-->0){ fs--; pop.style.fontSize=fs+'px'; }
     return await _captureCardEl(card);
@@ -3757,6 +3770,23 @@ function fitToWidth(el,startFs,minFs){
     if(el.scrollWidth<=el.clientWidth+1)break;
     fs-=1; el.style.fontSize=fs+'px';
   }
+}
+// ハッシュタグ：家賃の下から間取り図の下端までの空きに収まるまで小さくする
+// （言葉の途中では折り返さないので、いちばん長いひとかたまりが横に入らない時も小さくする。
+//   いちばん小さくしても入らない長い言葉だけは、途中で折り返してよいことにして測り直す）
+function fitTagToSpace(el,startFs,minFs){
+  if(!el)return;
+  const wrap=el.parentElement; if(!wrap)return;
+  const fit=()=>{
+    let fs=startFs, guard=40;
+    el.style.fontSize=fs+'px';
+    while(fs>minFs && guard-->0 && (wrap.scrollHeight>wrap.clientHeight+1||el.offsetWidth>wrap.clientWidth+1)){
+      fs-=0.5; el.style.fontSize=fs+'px';
+    }
+  };
+  el.style.overflowWrap='';
+  fit();
+  if(el.offsetWidth>wrap.clientWidth+1){ el.style.overflowWrap='anywhere'; fit(); }
 }
 function fitToLines(el,maxLines,startFs,minFs){
 
@@ -3949,7 +3979,7 @@ function renderTitlesPage(){
   // NEW＝獲得済みだが一覧でまだ見ていない称号（既読はmadori-titles-seenで管理）
   const seen=new Set(JSON.parse(localStorage.getItem('madori-titles-seen')||'[]'));
   const newSet=new Set([...owned].filter(t=>!seen.has(t)));
-  title.textContent='称号一覧';
+  title.innerHTML='称号一覧'+(owned.size?'<span class="mt-hint">獲得した称号をタップすると、<br>完成カードにバッジをつけられます</span>':'');
   if(ALL_TITLES_MASTER.length===0){
     body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
     return;
@@ -3993,12 +4023,6 @@ function renderTitlesPage(){
   }
   body.appendChild(header);
 
-  if(owned.size){
-    const hint=document.createElement('div');
-    hint.className='titles-hint';
-    hint.textContent='獲得した称号をタップすると、完成カードにバッジをつけられます';
-    body.appendChild(hint);
-  }
   const equipped=localStorage.getItem('madori-selected-title')||'';
   const grid=document.createElement('div');
   grid.className='title-grid';
@@ -4235,7 +4259,8 @@ function startRoulette(silent){
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
   refreshWashBtns();
-  requestAnimationFrame(fitRouletteMobile); setTimeout(fitRouletteMobile,150);
+  // 画面を出したその場で縮める（描いてから縮めるとガクッと動く）。後の2回は文字の読み込み待ちの念のため
+  fitRouletteMobile(); requestAnimationFrame(fitRouletteMobile); setTimeout(fitRouletteMobile,150);
   for(let i=0;i<3;i++){
     if(rouletteIntervals[i])clearInterval(rouletteIntervals[i]);
     (idx=>{
@@ -4645,13 +4670,13 @@ function showResult(){
         const isNew=newTitles.includes(t);
         const span=document.createElement('span');
         span.className='res-hashtag'+(isNew?' new':'');
-        const _ht=titleToHashtag(t); span.innerHTML='#'+wbrBoundaries(_ht.replace(/^#/,''));
+        const _ht=titleToHashtag(t); span.innerHTML='#2060'+wbrBoundaries(_ht.replace(/^#/,''));
         tagWrap.appendChild(span);
       });
       tagWrap.style.display='flex';
       // 各タグを2行以内に縮小（単語境界優先）
       requestAnimationFrame(()=>{
-        tagWrap.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
+        tagWrap.querySelectorAll('.res-hashtag').forEach(el=>fitTagToSpace(el,14,11));
       });
     } else {
       tagWrap.style.display='none';
@@ -5427,7 +5452,9 @@ function svgToCanvas(dataUrl){
 const CS=54,COLS=8,ROWS=10,UI_R=0;
 const SKIP_MAX=3;   // 1ゲームで使えるスキップ回数
 const COMPLETE_MIN_FILL=0.5;   // 完成できるのは、土地のマスがこの割合以上埋まってから（連打で即完成を防ぐ）
-const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
+// 盤のまわりの余白。土地の枠を土地の外側に描くためのもの（枠がパーツに重ならない）
+const BPAD=6;
+const CANVAS_W=COLS*CS+BPAD*2, CANVAS_H=ROWS*CS+BPAD*2;
 // 土地形状定義
 // null = 配置不可マス、0 = 通常マス
 // COLS=8, ROWS=10 のグリッド内で形を定義（外側はnull扱い）
@@ -5647,6 +5674,8 @@ class PuzzleGame extends Phaser.Scene{
     // document レベルのリスナーをリセット
     if(document._madoriMouseMove){document.removeEventListener('mousemove',document._madoriMouseMove);document._madoriMouseMove=null;}
     if(document._madoriMouseUp)  {document.removeEventListener('mouseup',  document._madoriMouseUp);  document._madoriMouseUp=null;}
+    // 余白のぶん、盤の原点をずらす（マスの座標はこれまでどおり c*CS, r*CS）
+    this.cameras.main.setScroll(-BPAD,-BPAD);
     this.bgGfx=this.add.graphics().setDepth(0);
     this.gridGfx=this.add.graphics().setDepth(1);
     this.borderGfx=this.add.graphics().setDepth(8); // 土地外枠（パーツより前面）
@@ -5856,8 +5885,8 @@ class PuzzleGame extends Phaser.Scene{
       const r=canvas.getBoundingClientRect();
       // offsetWidthではなく実際の表示矩形(r.width/height)で換算する：
       // 拡大の方式（CSSサイズ/transform）に関わらず常に正確
-      const bx=(cx-r.left)*(CANVAS_W/r.width);
-      const by=(cy-r.top )*(CANVAS_H/r.height);
+      const bx=(cx-r.left)*(CANVAS_W/r.width)-BPAD;
+      const by=(cy-r.top )*(CANVAS_H/r.height)-BPAD;
       // 土地のすぐ外側まではドラッグ有効とみなす（端でプレビューが消えないようマージンCS分）
       const M=CS;
       const ok = bx>=-M && by>=-M && bx<=CANVAS_W+M && by<=CANVAS_H+M;
@@ -6693,78 +6722,43 @@ class PuzzleGame extends Phaser.Scene{
     }
     this.drawBorder();
   }
-  // 土地の外周枠を最前面レイヤーに描く（パーツ画像に隠れない）
+  // 土地の外周枠を最前面レイヤーに描く。
+  // 枠は土地のマスの「外側」に引く。内側に引くとパーツのふち（台所・お風呂など）が隠れてしまうため
   drawBorder(){
     if(!this.borderGfx)return;
     const g=this.borderGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
     const BW=6;
-    // ※ 以前ここに半透明のにじみを描いていたが、マスごとに1pxずつ描くため
-    //   隣のマスと重なって交差部だけ濃く（＝枠が太く）見えていたので廃止した。
-    //   枠自体が十分濃いので、にじみは無くても輪郭は失われない
-    // 外枠メイン：濃いダークブラウン
+    // 外枠メイン：濃いダークブラウン（へこんだ角は、隣どうしの枠が重なって自然に埋まる）
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px,py,CS,BW);
-      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,BW);
-      if(!isLand(r,c-1)) g.fillRect(px,py,BW,CS);
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,BW,CS);
+      if(!isLand(r-1,c)) g.fillRect(px,py-BW,CS,BW);
+      if(!isLand(r+1,c)) g.fillRect(px,py+CS,CS,BW);
+      if(!isLand(r,c-1)) g.fillRect(px-BW,py,BW,CS);
+      if(!isLand(r,c+1)) g.fillRect(px+CS,py,BW,CS);
     }
-    // 内側ハイライト（二重線効果）：明るいブラウン1px。
-    // マスの幅いっぱいに描く。以前は両端をBWぶん詰めていたため、マスの境目で
-    // ハイライトが途切れ、そこだけ枠が太く（濃く）見えていた
+    // 出っぱった角は、角の点を中心にした扇形で丸く埋める
+    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
+      const tl=isLand(r-1,c-1),tr=isLand(r-1,c),bl=isLand(r,c-1),br=isLand(r,c);
+      if((tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0)!==1)continue;
+      const X=c*CS,Y=r*CS;
+      if(br)      g.slice(X,Y,BW,Math.PI,1.5*Math.PI);
+      else if(bl) g.slice(X,Y,BW,1.5*Math.PI,2*Math.PI);
+      else if(tr) g.slice(X,Y,BW,0.5*Math.PI,Math.PI);
+      else        g.slice(X,Y,BW,0,0.5*Math.PI);
+      g.fillPath();
+    }
+    // 内側ハイライト（二重線効果）：土地に接する側に明るいブラウン1px
     g.fillStyle(0xb09070,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px,py+BW-1,CS,1);
-      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,1);
-      if(!isLand(r,c-1)) g.fillRect(px+BW-1,py,1,CS);
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,1,CS);
-    }
-
-    // L字土地の内側コーナーで欠ける交点
-    g.fillStyle(0x5d4037,1);
-    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
-      const tl=isLand(r-1,c-1), tr=isLand(r-1,c), bl=isLand(r,c-1), br=isLand(r,c);
-      const cnt=(tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0);
-      if(cnt!==3)continue; // 3マスが土地＝内側コーナー
-      const X=c*CS, Y=r*CS;
-      if(!tl) g.fillRect(X,Y,BW,BW);
-      else if(!tr) g.fillRect(X-BW,Y,BW,BW);
-      else if(!bl) g.fillRect(X,Y-BW,BW,BW);
-      else g.fillRect(X-BW,Y-BW,BW,BW);
-    }
-    // ── 凸角（外側コーナー）を丸める ──
-    const RC=BW;  // 6px
-    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
-      const tl2=isLand(r-1,c-1),tr2=isLand(r-1,c),bl2=isLand(r,c-1),br2=isLand(r,c);
-      const cnt2=(tl2?1:0)+(tr2?1:0)+(bl2?1:0)+(br2?1:0);
-      if(cnt2!==1)continue;
-      const X2=c*CS,Y2=r*CS;
-      // 角の四角を「後ろにある色」で塗って消す。
-      // 盤の外なら画面の地色、盤の中なら駐車場／植え込みの色
-      const outAt=(rr,cc)=>(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)
-        ? (this._outsideColor||0xa9a59e) : 0xf5f0e8;
-      let ec;
-      if(br2)      ec=outAt(r-1,c-1);
-      else if(bl2) ec=outAt(r-1,c);
-      else if(tr2) ec=outAt(r,c-1);
-      else         ec=outAt(r,c);
-      g.fillStyle(ec,1);
-      if(br2)      g.fillRect(X2,Y2,RC,RC);
-      else if(bl2) g.fillRect(X2-RC,Y2,RC,RC);
-      else if(tr2) g.fillRect(X2,Y2-RC,RC,RC);
-      else         g.fillRect(X2-RC,Y2-RC,RC,RC);
-      // 扇形で丸角を描画
-      g.fillStyle(0x5d4037,1);
-      if(br2)      g.slice(X2+RC,Y2+RC,RC,Math.PI,1.5*Math.PI);
-      else if(bl2) g.slice(X2-RC,Y2+RC,RC,1.5*Math.PI,2*Math.PI);
-      else if(tr2) g.slice(X2+RC,Y2-RC,RC,0.5*Math.PI,Math.PI);
-      else         g.slice(X2-RC,Y2-RC,RC,0,0.5*Math.PI);
-      g.fillPath();
+      if(!isLand(r-1,c)) g.fillRect(px,py-1,CS,1);
+      if(!isLand(r+1,c)) g.fillRect(px,py+CS,CS,1);
+      if(!isLand(r,c-1)) g.fillRect(px-1,py,1,CS);
+      if(!isLand(r,c+1)) g.fillRect(px+CS,py,1,CS);
     }
   }
   drawBoard(){
