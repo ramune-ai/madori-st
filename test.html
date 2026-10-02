@@ -504,12 +504,12 @@ body.resume-hide #screen-game{opacity:0!important;}
 /* 曜日ごとのフェアのPOP（店頭の値札・チラシ風） */
 .fair-pop{
   position:relative;display:inline-block;margin:6px auto 14px;padding:9px 18px 10px;
-  background:#8b5a34;color:#fff;border-radius:6px;text-align:center;line-height:1.35;
-  box-shadow:0 3px 10px rgba(90,55,25,.35);transform:rotate(-2deg);
-  outline:1.5px dashed rgba(255,240,215,.75);outline-offset:-6px;
+  background:#d9443a;color:#fff;border-radius:6px;text-align:center;line-height:1.35;
+  box-shadow:0 3px 10px rgba(160,40,30,.3);transform:rotate(-2deg);
+  outline:1.5px dashed rgba(255,255,255,.7);outline-offset:-6px;
   font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
 }
-.fair-pop .fp-tag{display:inline-block;background:#ffe14d;color:#6b3f1d;font-size:11px;font-weight:800;letter-spacing:.06em;padding:1px 10px;border-radius:10px;margin-bottom:3px;}
+.fair-pop .fp-tag{display:inline-block;background:#ffe14d;color:#a3241b;font-size:11px;font-weight:800;letter-spacing:.06em;padding:1px 10px;border-radius:10px;margin-bottom:3px;}
 .fair-pop .fp-main{font-size:19px;font-weight:800;letter-spacing:.04em;}
 .fair-pop .fp-sub{font-size:12px;font-weight:700;opacity:.95;}
 .fair-pop .fp-sub b{color:#ffe14d;}
@@ -525,8 +525,9 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fair-pop.is-next .fp-more{display:inline;color:var(--brown-light);text-decoration:underline;}
 /* ガチャ：フェアの項目の枠に貼る */
 .roulette-item-wrap .fair-pop-rou{position:absolute;z-index:22;margin:0;cursor:default;}
-.fair-pop-rou .fp-cond{font-size:13px;font-weight:900;color:#ffe14d;line-height:1.25;white-space:nowrap;}
-.fair-pop-rou .fp-big{font-size:20px;font-weight:900;color:#fff;line-height:1.15;white-space:nowrap;}
+.fair-pop-rou .fp-cond{font-size:17px;font-weight:900;color:#ffe14d;line-height:1.2;white-space:nowrap;}
+.fair-pop-rou .fp-big{font-size:15px;font-weight:900;color:#fff;line-height:1.2;white-space:nowrap;}
+.fair-pop-rou .fp-n{font-size:1.6em;color:#ffe14d;line-height:1;margin:0 1px;}
 @media(max-width:599px){
   .roulette-item-wrap .fair-pop-rou{left:-12px;top:50%;transform:translateY(-50%) rotate(-6deg);padding:7px 9px;}
 }
@@ -573,7 +574,8 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fw-cap span{font-size:10px;text-decoration:underline;}
 .fw-row{display:flex;gap:3px;margin-top:15px;}
 .fw-d{position:relative;flex:1;min-width:0;text-align:center;background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:8px;padding:3px 0 4px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;color:var(--brown-light);}
-.fw-d{color:#8b5a34;border-color:rgba(139,90,52,.3);background:#f6ecd9 !important;}
+.fw-d{color:#8b5a34;border-color:rgba(139,90,52,.3);}
+.fw-d .fw-wd{color:#2a1d12;}   /* 曜日の字はどの日も黒 */
 .fw-d.on{background:#fff;border-color:rgba(217,68,58,.35);color:var(--brown-dark);}
 .fw-d.today{border:2px solid #d9443a;box-shadow:0 2px 6px rgba(217,68,58,.25);}
 .fw-wd{font-size:14px;font-weight:800;line-height:1.25;}
@@ -616,10 +618,12 @@ body.resume-hide #screen-game{opacity:0!important;}
   /* ガチャ画面のPCは縦に余裕がないので、枠の左に貼り紙のように置く */
   /* ガチャのPCは、フェアの項目の枠の左に詳しく貼る（枠ごと拡大されるので大きさは合う） */
   .roulette-item-wrap .fair-pop-rou{right:100%;top:50%;transform:translateY(-50%) rotate(-3deg);margin-right:26px;padding:12px 20px 14px;}
-  .fair-pop-rou .fp-cond{font-size:24px;}
-  .fair-pop-rou .fp-big{font-size:40px;}
+  .fair-pop-rou .fp-cond{font-size:34px;}
+  .fair-pop-rou .fp-big{font-size:26px;}
   .fair-pop .fp-line{font-size:15px;}
-  #screen-roulette .rou-toprow{zoom:var(--pcs,1);width:560px;max-width:none;height:44px;}
+  #screen-roulette .rou-toprow{zoom:var(--pcs,1);width:560px;max-width:none;height:48px;margin:-20px auto 26px;}
+  .rou-toprow .odds-link{font-size:17px;padding:9px 18px;}
+  .rou-toprow .fair-line{font-size:19px;height:44px;}
   .fair-line{font-size:18px;height:40px;padding:0 18px;}
   .fair-line .wl-chip{font-size:14px;}
   .fair-pop-res .fp-mini{font-size:13px;}
@@ -629,9 +633,10 @@ body.resume-hide #screen-game{opacity:0!important;}
 }
 @media(max-width:599px){ #screen-roulette .roulette-item-wrap{zoom:var(--rou-z,1);} }
 /* ガチャの確率表 */
-.rou-toprow{display:flex;align-items:center;justify-content:space-between;gap:8px;width:340px;max-width:calc(100vw - 24px);height:36px;margin:-10px auto 14px;}
-.rou-toprow .odds-link{margin:0 0 0 auto;flex-shrink:0;font-size:12px;padding:5px 10px;}
-.rou-toprow .fair-line{font-size:16px;}
+/* SUPER RARE などの札（枠の上に14pxはみ出す）と重ならないよう、下を22pxあける */
+.rou-toprow{display:flex;align-items:center;justify-content:space-between;gap:8px;width:340px;max-width:calc(100vw - 24px);height:40px;margin:-14px auto 22px;}
+.rou-toprow .odds-link{margin:0 0 0 auto;flex-shrink:0;font-size:14px;padding:8px 14px;}
+.rou-toprow .fair-line{font-size:17px;height:38px;}
 .odds-link{margin:-14px 0 16px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-light);background:#fff;border:1px solid rgba(90,74,58,.22);border-radius:16px;padding:6px 14px;cursor:pointer;}
 .odds-note{font-size:12px;color:var(--brown-light);line-height:1.6;margin:0 0 12px;text-align:left;}
 .odds-fair{display:inline-block;margin-left:8px;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:11px;font-weight:800;color:#fff;background:#d9443a;padding:2px 8px;border-radius:10px;vertical-align:middle;}
@@ -654,7 +659,7 @@ input[type=range]:disabled{opacity:.35;}
 .snd-reset{display:block;margin:16px auto 0;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:18px;padding:8px 18px;cursor:pointer;}
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
-.roulette-title{font-family:'Noto Serif JP',serif;font-size:27px;font-weight:700;color:var(--brown-dark);letter-spacing:.12em;margin-bottom:24px;text-align:center;}
+.roulette-title{font-family:'Noto Serif JP',serif;font-size:27px;font-weight:700;color:var(--brown-dark);letter-spacing:.12em;margin-bottom:24px;margin-top:-10px;text-align:center;}
 /* スロットのラッパー：高さを固定してブレを防ぐ */
 .roulette-item-wrap{width:340px;height:136px;margin-bottom:32px;position:relative;flex-shrink:0;}
 .roulette-item{
@@ -791,6 +796,15 @@ body.no-reroll .reroll-note{display:none!important;}
   animation:readyPulse 2.2s ease-in-out infinite;
 }
 #btn-rou-next:active,#title-next-btn:active{transform:translateX(-50%) scale(.96);}
+/* 押せるようになった緑のボタンは、外側に広がる光の輪と明るさで点滅させる
+   （box-shadow は !important で固定されているので、輪は別の層で描く） */
+#btn-rou-next::after,#title-next-btn::after{
+  content:'';position:absolute;inset:-4px;border-radius:999px;pointer-events:none;
+  border:3px solid rgba(120,170,90,.85);animation:nextRing 1.2s ease-out infinite;
+}
+#btn-rou-next.visible,#title-next-btn{animation:nextGlow 1.2s ease-in-out infinite !important;}
+@keyframes nextRing{0%{opacity:.9;transform:scale(1);}100%{opacity:0;transform:scale(1.12,1.35);}}
+@keyframes nextGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.18);}}
 .btn-roulette-next:hover{transform:translateY(-2px);}
 
 /* ── ④ 結果 ── */
@@ -2570,6 +2584,7 @@ function persistFlow(screen){
       rv:(typeof rouletteValues!=='undefined')?rouletteValues.slice():[null,null,null],
       rl:(typeof rouletteLocked!=='undefined')?rouletteLocked.slice():[false,false,false],
       rd:(typeof rerollDone!=='undefined')?rerollDone.slice():[false,false,false],
+      wp:window._washPrev||null,   // 水に流す前の数字（読み込み直しても「やっぱりもどす」できるように）
       nt:(window._newTitles||[]).slice()   // 新規獲得称号（再計算すると消えるので保存する）
     };
     if(gs&&gs.grid){
@@ -2746,7 +2761,7 @@ function fairPopHTML(where){
   if(where==='rou'){
     if(!f||f.type!=='boost')return '';
     // 強調したいのは「何がお得か」。条件（黄色）と 確定！／確率3倍！（白・大きく）だけを見せる
-    return '<div class="fp-cond">'+f.short+'</div><div class="fp-big">'+(first?'確定！':'確率'+FAIR_BOOST+'倍！')+'</div>';
+    return '<div class="fp-cond">'+f.short+'</div><div class="fp-big">'+(first?'確定！':'確率<span class="fp-n">'+FAIR_BOOST+'</span>倍！')+'</div>';
   }
   // ガチャ：水曜は1行で
   // 水曜：1回のガチャで1か所だけ。止める前は予告、止めたら「どれか1つだけ」、使ったら完了
@@ -3736,7 +3751,7 @@ const ALL_TITLES_MASTER=[
     pop:'ミニマリスト必見！', check:x=>x.st===0},
   {title:'いつか使うかも', badge:'📦', rar:5, rp:.263, condition:'収納10〜19マス',
     pop:'捨てられない人、安心です！', check:x=>x.st>=10&&x.st<20},
-  {title:'トランクルーム', badge:'🗄️', rar:5, rp:.190, condition:'収納20マス以上',
+  {title:'トランクルーム', badge:'🗄️', rar:5, rp:.350, condition:'収納20マス以上',
     pop:'荷物が多い人、必見！', check:x=>x.st>=20},
   // ══ パーツ配置面・複合 ══
   {title:'お部屋探しの旅は続く', badge:'🗺️', rar:3, rp:.021, condition:'洋室も和室も0個で完成',
@@ -4118,7 +4133,7 @@ function refreshWashBtns(){
     const b=document.getElementById('wash-btn-'+i); if(!b)continue;
     const undo=!can&&isWashDay()&&prev&&prev.idx===i&&!prev.undone&&rouletteLocked[i]&&lockedCount===3;
     b.dataset.mode=undo?'undo':'wash';
-    b.textContent=undo?'↩ やっぱりもどす':'これを流す';
+    b.textContent=undo?'やっぱりもどす':'これを流す';
     b.classList.toggle('is-undo',!!undo);
     b.classList.toggle('visible',can||!!undo);
   }
@@ -4155,7 +4170,6 @@ function doWashSlot(idx){
   if(!isWashDay()||rerollDone.some(Boolean)||!rouletteLocked[idx])return;
   window._washPrev={idx,val:rouletteValues[idx],undone:false};   // 「やっぱりもどす」用に控える
   rerollDone[idx]=true;
-  refreshWashBtns();
   startSpinSE();
   const item=document.getElementById('rou-'+idx), valEl=document.getElementById('rou-val-'+idx);
   document.getElementById('btn-rou-next').classList.remove('visible');
@@ -4164,6 +4178,7 @@ function doWashSlot(idx){
   valEl.classList.add('spinning');
   rouletteValues[idx]=null; rouletteLocked[idx]=false;
   lockedCount=[0,1,2].filter(i=>rouletteLocked[i]).length;
+  refreshWashBtns();   // 回している間はボタンを出さない（止めてから「やっぱりもどす」を出す）
   if(rouletteIntervals[idx])clearInterval(rouletteIntervals[idx]);
   const all=gachaAllValues(idx);
   rouletteIntervals[idx]=setInterval(()=>{ valEl.textContent=all[Math.floor(Math.random()*all.length)]+rouletteUnits[idx]; },80);
@@ -5520,6 +5535,7 @@ class PuzzleGame extends Phaser.Scene{
                 showMadoriBg(true);
                 showScreen('screen-roulette');
                 startRoulette(true);   // 復帰時は回転音を鳴らさない
+                window._washPrev=this._restoreWp||null;
                 restoreRouletteLocks(rv,rl,this._restoreRd);
                 // まだ回っているスロットが残っている時だけ音を出す
                 if(lockedCount<3)startSpinSE();
@@ -5581,6 +5597,7 @@ class PuzzleGame extends Phaser.Scene{
     this._restoreRv=Array.isArray(st.rv)?st.rv:[null,null,null];
     this._restoreRl=Array.isArray(st.rl)?st.rl:[false,false,false];
     this._restoreRd=Array.isArray(st.rd)?st.rd:[false,false,false];
+    this._restoreWp=(st.wp&&typeof st.wp.idx==='number')?st.wp:null;
     return true;
   }
 
@@ -6377,13 +6394,22 @@ class PuzzleGame extends Phaser.Scene{
       // 芝生の柄：草（ひよこの足あとのような形）をマスごとにずらして散らす。
       // 位置は場所から決まる値なので毎回同じ絵になり、格子のようには並ばない
       const hash=(r,c,k)=>{ const n=Math.sin(r*73.1+c*29.7+k*13.3)*43758.5453; return n-Math.floor(n); };
-      // 地面のむら（少し明るい点）
-      g.fillStyle(0xc4e0a8,0.55);
-      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-        if(isLand(r,c))continue;
-        for(let i=0;i<2;i++) g.fillCircle(c*CS+CS*(0.15+0.7*hash(r,c,20+i)), r*CS+CS*(0.15+0.7*hash(r,c,30+i)), CS*(0.05+0.04*hash(r,c,40+i)));
-      }
-      g.lineStyle(2,0x7fa964,0.85);
+      // 芝の葉：短い線を2色でびっしり描いて、芝らしい手ざわりを出す
+      const blades=(col,alpha,n,k0)=>{
+        g.lineStyle(1.4,col,alpha);
+        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+          if(isLand(r,c))continue;
+          for(let i=0;i<n;i++){
+            const x=c*CS+CS*hash(r,c,k0+i), y=r*CS+CS*(0.12+0.86*hash(r,c,k0+50+i));
+            const len=CS*(0.07+0.06*hash(r,c,k0+90+i)), lean=(hash(r,c,k0+130+i)-0.5)*CS*0.06;
+            g.beginPath(); g.moveTo(x,y); g.lineTo(x+lean,y-len); g.strokePath();
+          }
+        }
+      };
+      blades(0x96c27a,0.9,16,100);   // 濃い葉
+      blades(0xcfe8b6,0.9,10,400);   // 明るい葉
+      // アクセントの草（ひよこの足あとのような形）
+      g.lineStyle(2,0x6f9a55,0.85);
       for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
         if(isLand(r,c))continue;
         const h=hash(r,c,0);
@@ -6396,6 +6422,19 @@ class PuzzleGame extends Phaser.Scene{
           g.moveTo(x,y); g.lineTo(x,y-9*s);
           g.strokePath();
         }
+      }
+    }
+    if(_pCount>0&&_green){
+      // 盤の外側に面したふちは、濃い緑の線で縁取る（白っぽく見えないように）
+      g.lineStyle(3,0x7fa964,1);
+      const off=(rr,cc)=>(rr<0||rr>=ROWS||cc<0||cc>=COLS);
+      for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+        if(isLand(r,c))continue;
+        const X=c*CS, Y=r*CS;
+        if(off(r-1,c)){ g.beginPath(); g.moveTo(X,Y+1.5); g.lineTo(X+CS,Y+1.5); g.strokePath(); }
+        if(off(r+1,c)){ g.beginPath(); g.moveTo(X,Y+CS-1.5); g.lineTo(X+CS,Y+CS-1.5); g.strokePath(); }
+        if(off(r,c-1)){ g.beginPath(); g.moveTo(X+1.5,Y); g.lineTo(X+1.5,Y+CS); g.strokePath(); }
+        if(off(r,c+1)){ g.beginPath(); g.moveTo(X+CS-1.5,Y); g.lineTo(X+CS-1.5,Y+CS); g.strokePath(); }
       }
     }
     if(_pCount>0&&!_stepped){
@@ -7347,6 +7386,15 @@ function devDayMark(){
 (function(){
   try{ const d=localStorage.getItem('madori-dev-day'); if(d!==null&&d!==''){ window._devDay=+d; refreshFairPops(); devDayMark(); } }catch(e){}
 })();
+function devResetWash(){
+  const scr=document.querySelector('.screen.active');
+  if(!scr||scr.id!=='screen-roulette'){ showGameToast('物件情報の画面で使ってね'); return; }
+  for(let i=0;i<3;i++)rerollDone[i]=false;
+  window._washPrev=null;
+  refreshWashBtns();
+  persistFlow('screen-roulette');
+  showGameToast(isWashDay()?'水に流せる回数を戻したよ':'水曜日にすると水に流せるよ（曜日を切り替えてね）');
+}
 function devReroll(){
   const scr=document.querySelector('.screen.active');
   if(!scr||scr.id!=='screen-roulette'){ showGameToast('物件情報の画面で使ってね'); return; }
@@ -7362,6 +7410,7 @@ tryResumeGame();
   <div class="dev-grid" id="dev-parts"></div>
   <div class="dev-sec">物件情報</div>
   <button class="dev-btn dev-wide" onclick="devReroll()">ぜんぶ引き直す</button>
+  <button class="dev-btn dev-wide" onclick="devResetWash()">水に流す（再抽選）の回数を戻す</button>
   <div class="dev-sec">土地を選ぶ（押すと新しいゲームを始める）</div>
   <div class="dev-grid" id="dev-lands"></div>
   <div class="dev-sec">曜日を切り替え（フェアの確認用）</div>
