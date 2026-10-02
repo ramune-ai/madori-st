@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>間取りすと｜自分だけの間取り物件を作るパズル</title>
 <!-- リンクを貼った時に出る紹介（LINE・X など） -->
-<meta name="description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。築年数・駅徒歩・家賃はルーレットで決まる！レアな物件と称号を集めて、SNSで自慢しよう🏠">
+<meta name="description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。レアな物件と称号を集めて、SNSで自慢しよう🏠">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="間取りすと">
 <meta property="og:title" content="間取りすと｜自分だけの間取り物件を作るパズル">
-<meta property="og:description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。築年数・駅徒歩・家賃はルーレットで決まる！レアな物件と称号を集めて、SNSで自慢しよう🏠">
+<meta property="og:description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。レアな物件と称号を集めて、SNSで自慢しよう🏠">
 <meta property="og:url" content="https://ramune-ai.github.io/madori-st/">
 <meta property="og:image" content="https://ramune-ai.github.io/madori-st/image/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -504,6 +504,26 @@ body.resume-hide #screen-game{opacity:0!important;}
   border-color:rgba(90,74,58,.14);cursor:default;
 }
 
+/* プロフィール：欄の見出し */
+.ne-label{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;color:var(--brown-dark);margin:2px 0 8px;letter-spacing:.06em;text-align:left;}
+.ne-label span{display:block;font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:var(--brown-light);letter-spacing:.02em;margin-top:2px;}
+/* 称号一覧：つけている称号 */
+.title-grid-card.owned{cursor:pointer;}
+.title-grid-card.equipped{border-color:#5a8a50;box-shadow:0 0 0 2px rgba(90,138,80,.45);}
+.title-grid-eq{position:absolute;top:6px;left:6px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#5a8a50;color:#fff;padding:2px 7px;border-radius:10px;}
+.titles-hint{font-size:13px;color:var(--brown);background:#fff8ea;border:1px dashed rgba(200,160,96,.6);border-radius:8px;padding:6px 10px;margin:-4px 0 12px;text-align:center;}
+/* 称号をつける・外す時の確認 */
+#mini-confirm{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;background:rgba(40,28,18,.45);}
+#mini-confirm.active{display:flex;}
+#mini-confirm .mc-card{background:#f5f0e8;border-radius:16px;padding:22px 22px 18px;width:min(300px,86vw);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3);font-family:'Noto Sans JP',sans-serif;}
+#mini-confirm .mc-badge{display:flex;justify-content:center;margin-bottom:8px;}
+#mini-confirm .mc-name{font-family:'Noto Serif JP',serif;font-size:18px;font-weight:700;color:var(--brown-dark);margin-bottom:6px;}
+#mini-confirm .mc-msg{font-size:14px;color:var(--brown);margin-bottom:16px;line-height:1.6;}
+#mini-confirm .mc-btns{display:flex;gap:10px;}
+#mini-confirm button{flex:1;padding:12px 0;border-radius:999px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+#mini-confirm .mc-ok{background:var(--brown-dark);color:#f5f0e8;border:none;}
+#mini-confirm .mc-no{background:#fff;color:var(--brown-dark);border:1.5px solid rgba(90,74,58,.25);}
+@media(min-width:600px){ #mini-confirm .mc-card{zoom:var(--pcs,1);} }
 /* チュートリアル：説明しているボタンに目が行くよう、光の輪を広げる */
 @keyframes tutFocus{
   0%{box-shadow:0 0 0 3px rgba(232,160,32,.95),0 0 0 3px rgba(232,160,32,.6);}
@@ -914,7 +934,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.4;padding:4px 8px 0;max-width:100%;}
 .res-meta-name{font-family:'Noto Serif JP',serif;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:3px;}
 .res-name-text{white-space:nowrap;}
-.res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:4px;}
+.res-meta{display:flex;align-items:center;justify-content:center;gap:12px;}
+.res-name-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin:0;}
 .res-meta-date{color:#8a7060;font-size:12px;text-align:center;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:6px 8px 0;}
 .res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
@@ -1084,19 +1105,19 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   display:grid;
   grid-template-columns:repeat(4,1fr);
   /* auto だと称号名が2行のカードだけ背が伸びて高さが揃わないので固定する */
-  grid-auto-rows:164px;
+  grid-auto-rows:180px;
   gap:10px;
   padding:4px 0;
   align-content:start;
 }
 @media(max-width:520px){
-  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:142px;gap:9px;}
+  .title-grid{grid-template-columns:repeat(2,1fr);grid-auto-rows:162px;gap:9px;}
   .title-grid-badge{font-size:30px;}
   .title-grid-name{font-size:16px;line-height:1.2;}
-  .title-grid-cond{font-size:11px;line-height:1.3;}
+
   .title-grid-name{font-size:17px;line-height:1.25;}
   .title-grid-card.locked .title-grid-name{font-size:16px;}
-  .title-grid-cond{font-size:12px;line-height:1.35;}
+  .title-grid-cond{font-size:14px;line-height:1.35;}
   .title-grid-card{padding:8px 8px;min-height:0;gap:4px;}
 }
 /* スマホのスタート画面：左上のリンクの下からロゴを始める（--start-top は fitStartTop が測る）。
@@ -1189,7 +1210,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   font-size:11px;
 }
 .title-grid-cond{
-  font-size:11px;color:var(--brown-light);
+  font-size:14px;color:var(--brown-light);
   line-height:1.45;letter-spacing:.02em;
 }
 /* NEWは右上の角に。縦の場所を取らないのでカードの中身が押し出されない */
@@ -1528,8 +1549,8 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <button class="btn-start" onclick="gotoGame()">は じ め る</button>
   <!-- 集めたものを見る3枠。左からプロフィール／称号／マイ物件 -->
   <div class="start-sub-btns">
-    <button class="btn-sub" onclick="openNameEdit('name')">
-      <span class="sub-ico">👤</span>
+    <button class="btn-sub" onclick="openNameEdit('profile')">
+      <span class="sub-ico" id="start-prof-ico">👤</span>
       <span class="sub-name">プロフィール</span>
       <span class="sub-val" id="start-name-text">名前未設定</span>
     </button>
@@ -1552,11 +1573,13 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="modal-box name-edit-box" style="padding:28px 28px 0;display:flex;flex-direction:column;max-height:84vh;">
     <button class="modal-close" onclick="closeNameEdit()">✕</button>
     <div class="modal-title" id="name-edit-modal-title">マドリスト名を設定</div>
+    <div class="ne-label" id="name-edit-title-label">つける称号<span>完成カードにバッジが付きます（レア度の高い順）</span></div>
+    <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:10px;display:none;">称号を選んで名前と一緒に表示できます</div>
+    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;overflow-y:auto;flex:1;min-height:0;"></div>
+    <div class="ne-label">マドリスト名</div>
     <input id="player-name-input" type="text" maxlength="8" placeholder="名前を入力（最大8文字）"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
-    <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:16px;">称号を選んで名前と一緒に表示できます</div>
-    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;overflow-y:auto;flex:1;"></div>
     <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">決　定</button></div>
   </div>
 </div>
@@ -1770,8 +1793,12 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       </div>
       <!-- マドリスト名+称号バッジ → 公開日（中央） -->
       <div class="res-meta" id="res-meta">
-        <div class="res-meta-name"><span class="res-name-badge" id="res-meta-title" style="display:none;"></span><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span></div>
-        <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
+        <div class="res-meta-lines">
+          <div class="res-meta-name"><span class="res-name-text">マドリスト　<span id="res-name2">とくめい</span></span></div>
+          <div class="res-meta-date">情報公開日　<span id="res-date">--</span></div>
+        </div>
+        <!-- つけている称号のバッジ（言葉はなし） -->
+        <span class="res-name-badge" id="res-meta-title" style="display:none;"></span>
       </div>
       <div class="res-promo-sep"></div>
       <div class="res-promo"><span class="res-promo-sns">X・Instagram・TikTok｜@ramune_aiai</span><span class="res-promo-author">　制作：らむねあい</span></div>
@@ -2471,6 +2498,13 @@ function updateStartProfile(){
     if(sc) sc.textContent=(hist.length-favN)+' / '+HISTORY_MAX+(favN?'　★'+favN:'');
   }catch(e){}
   window._playerName=name;
+  // つけている称号があれば、プロフィールのアイコンをそのバッジにする
+  try{
+    const sel=localStorage.getItem('madori-selected-title')||'';
+    const m=sel?ALL_TITLES_MASTER.find(x=>x.title===sel):null;
+    const ico=document.getElementById('start-prof-ico');
+    if(ico) ico.innerHTML=m?titleBadgeHTML(m.badge,m.rar,46):'👤';
+  }catch(e){}
 }
 function openNameEdit(mode){
   playSE('tap');
@@ -2502,6 +2536,11 @@ function openNameEdit(mode){
     noneBtn.style.cssText='padding:6px 14px;border-radius:20px;border:1.5px solid '+(sel===''?'var(--brown-dark)':'rgba(90,74,58,.25)')+';background:'+(sel===''?'var(--brown-dark)':'#fff')+';color:'+(sel===''?'#f5f0e8':'var(--brown-light)')+';font-size:12px;cursor:pointer;font-family:Noto Serif JP,serif;letter-spacing:.06em;transition:all .15s;';
     noneBtn.onclick=()=>selectTitleChip('');
     listEl.appendChild(noneBtn);
+    // レア度の高い順（出にくい順）に並べる
+    titles=titles.slice().sort((a,b)=>{
+      const ma=ALL_TITLES_MASTER.find(x=>x.title===a)||{}, mb=ALL_TITLES_MASTER.find(x=>x.title===b)||{};
+      return ((ma.rp==null?1:ma.rp)-(mb.rp==null?1:mb.rp))||((ma.rar||9)-(mb.rar||9));
+    });
     titles.forEach(t=>{
       const btn=document.createElement('button');
       btn.dataset.val=t;
@@ -2518,9 +2557,11 @@ function openNameEdit(mode){
   const hint=document.getElementById('name-edit-hint');
   const list2=document.getElementById('name-edit-title-list');
   if(inp) inp.style.display=(emode==='title')?'none':'';
-  if(hint) hint.style.display=(emode==='name')?'none':'';
   if(list2) list2.style.display=(emode==='name')?'none':'flex';
-  if(mt) mt.textContent=(emode==='title')?'表示称号を変更':(emode==='name')?'マドリスト名を編集':'マドリスト名を設定';
+  const tl=document.getElementById('name-edit-title-label');
+  if(tl) tl.style.display=(emode==='name')?'none':'';
+  document.querySelectorAll('#name-edit-overlay .ne-label').forEach(l=>{ if(l.id!=='name-edit-title-label') l.style.display=(emode==='title')?'none':''; });
+  if(mt) mt.textContent=(emode==='profile')?'プロフィール':(emode==='title')?'表示称号を変更':(emode==='name')?'マドリスト名を編集':'マドリスト名を設定';
   ov.classList.add('active');
 }
 function selectTitleChip(val){
@@ -2542,7 +2583,51 @@ function saveNameEdit(){
   localStorage.setItem('madori-player-name',name);
   localStorage.setItem('madori-selected-title',selTitle);
   updateStartProfile();
+  refreshResultBadge();
   closeNameEdit();
+}
+// 完成画面を開いている時は、つけた称号のバッジをすぐ反映する（シェア画像も作り直す）
+function refreshResultBadge(){
+  try{
+    const scr=document.getElementById('screen-result');
+    const mtEl=document.getElementById('res-meta-title');
+    if(!mtEl)return;
+    const sel=localStorage.getItem('madori-selected-title')||'';
+    const m=sel?ALL_TITLES_MASTER.find(x=>x.title===sel):null;
+    if(m){ mtEl.innerHTML=titleBadgeHTML(m.badge,m.rar,50); mtEl.title=sel; mtEl.style.display='inline-flex'; }
+    else mtEl.style.display='none';
+    if(scr&&scr.classList.contains('active')){
+      try{ if(window._lastResult)window._lastResult.equipped=sel; }catch(e){}
+      prepareShareImage();
+    }
+  }catch(e){}
+}
+// 小さな確認（OKで true）
+function miniConfirm(html,okLabel,noLabel){
+  return new Promise(res=>{
+    let el=document.getElementById('mini-confirm');
+    if(!el){ el=document.createElement('div'); el.id='mini-confirm'; document.body.appendChild(el); }
+    el.innerHTML='<div class="mc-card">'+html+'<div class="mc-btns"><button class="mc-no">'+(noLabel||'やめる')+'</button><button class="mc-ok">'+(okLabel||'OK')+'</button></div></div>';
+    el.classList.add('active');
+    const done=v=>{ el.classList.remove('active'); res(v); };
+    el.querySelector('.mc-ok').onclick=()=>done(true);
+    el.querySelector('.mc-no').onclick=()=>done(false);
+    el.onclick=e=>{ if(e.target===el)done(false); };
+  });
+}
+// 称号一覧から、タップでつける・外す
+async function toggleEquipTitle(title){
+  const m=ALL_TITLES_MASTER.find(x=>x.title===title); if(!m)return;
+  const cur=localStorage.getItem('madori-selected-title')||'';
+  const on=cur===title;
+  const html='<div class="mc-badge">'+titleBadgeHTML(m.badge,m.rar,64)+'</div><div class="mc-name">'+title+'</div>'
+    +'<div class="mc-msg">'+(on?'この称号を外しますか？':'この称号のバッジを、<br>完成カードにつけますか？')+'</div>';
+  const ok=await miniConfirm(html,on?'外す':'つける',on?'そのまま':'やめる');
+  if(!ok)return;
+  try{ localStorage.setItem('madori-selected-title',on?'':title); }catch(e){}
+  updateStartProfile(); refreshResultBadge();
+  showGameToast(on?'称号を外しました':'「'+title+'」をつけました');
+  renderTitlesPage();
 }
 function closeNameEdit(e){
   const ov=document.getElementById('name-edit-overlay');
@@ -3525,7 +3610,7 @@ async function renderHistoryCard(entry,snap){
     q('res-name2').textContent=(entry.propName||'').replace(/^間取りすと：/,'')||'とくめい';
     const mt=q('res-meta-title');
     const td=entry.equipped?ALL_TITLES_MASTER.find(t=>t.title===entry.equipped):null;
-    if(td){ mt.innerHTML=titleBadgeHTML(td.badge,td.rar,38); mt.style.display='inline-flex'; }
+    if(td){ mt.innerHTML=titleBadgeHTML(td.badge,td.rar,50); mt.style.display='inline-flex'; }
     else mt.style.display='none';
     q('res-date').textContent=_fmtHistDate(entry.date);
     drawResultPreview(q('res-madori-preview'),snap,390);
@@ -3868,13 +3953,24 @@ function renderTitlesPage(){
   }
   body.appendChild(header);
 
+  if(owned.size){
+    const hint=document.createElement('div');
+    hint.className='titles-hint';
+    hint.textContent='獲得した称号をタップすると、完成カードにバッジをつけられます';
+    body.appendChild(hint);
+  }
+  const equipped=localStorage.getItem('madori-selected-title')||'';
   const grid=document.createElement('div');
   grid.className='title-grid';
   pageItems.forEach(m=>{
     const isOwned=owned.has(m.title);
     const isNew=newSet.has(m.title);
     const card=document.createElement('div');
-    card.className='title-grid-card '+(isOwned?'owned':'locked')+(isNew?' is-new':'');
+    card.className='title-grid-card '+(isOwned?'owned':'locked')+(isNew?' is-new':'')+(isOwned&&equipped===m.title?' equipped':'');
+    if(isOwned){
+      card.onclick=()=>toggleEquipTitle(m.title);
+      if(equipped===m.title){ const eq=document.createElement('div'); eq.className='title-grid-eq'; eq.textContent='つけてる'; card.appendChild(eq); }
+    }
 
     const badgeEl=document.createElement('div');
     badgeEl.className='title-grid-badge';
@@ -3985,7 +4081,7 @@ const UPDATE_VER=UPDATES[0].ver;
 // スマホのスタート画面：左上のリンクの下端を測って、ロゴをその下から始める
 // 間取りすと自体をシェアする（スマホは共有シート、PCは文面をコピー）
 const GAME_URL='https://ramune-ai.github.io/madori-st/';
-const GAME_SHARE_TEXT='自分だけの間取り物件を作るパズル『間取りすと』🏠\nパーツをはめて理想の間取りを完成させよう！築年数・駅徒歩・家賃はルーレットで決まる！\n#間取りすと #間取りパズル';
+const GAME_SHARE_TEXT='自分だけの間取り物件を作るパズル『間取りすと』🏠\nパーツをはめて理想の間取りを完成させよう！\n#間取りすと #間取りパズル';
 async function shareGame(){
   const isMobile=('ontouchstart' in window)&&Math.min(window.innerWidth,window.innerHeight)<820;
   if(isMobile&&navigator.share){
@@ -4471,7 +4567,7 @@ function showResult(){
   const mtEl=document.getElementById('res-meta-title');
   if(mtEl){
     const tdef=equipped?ALL_TITLES_MASTER.find(t=>t.title===equipped):null;
-    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,38); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
+    if(tdef){ mtEl.innerHTML=titleBadgeHTML(tdef.badge,tdef.rar,50); mtEl.title=equipped; mtEl.style.display='inline-flex'; }
     else mtEl.style.display='none';
   }
   const n2=document.getElementById('res-name2');
