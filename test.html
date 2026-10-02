@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>間取りすと｜自分だけの間取り物件を作るパズル</title>
 <!-- リンクを貼った時に出る紹介（LINE・X など） -->
-<meta name="description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。レアな物件と称号を集めて、SNSで自慢しよう🏠">
+<meta name="description" content="パーツをはめて、自分だけの間取り物件を作るパズルゲーム。こだわりの間取りを、のんびり作ってみよう🏠">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="間取りすと">
 <meta property="og:title" content="間取りすと｜自分だけの間取り物件を作るパズル">
-<meta property="og:description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。レアな物件と称号を集めて、SNSで自慢しよう🏠">
+<meta property="og:description" content="パーツをはめて、自分だけの間取り物件を作るパズルゲーム。こだわりの間取りを、のんびり作ってみよう🏠">
 <meta property="og:url" content="https://ramune-ai.github.io/madori-st/">
 <meta property="og:image" content="https://ramune-ai.github.io/madori-st/image/ogp.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -506,8 +506,16 @@ body.resume-hide #screen-game{opacity:0!important;}
 }
 
 /* プロフィール：欄の見出し */
-.ne-label{font-family:'Noto Serif JP',serif;font-size:14px;font-weight:700;color:var(--brown-dark);margin:2px 0 8px;letter-spacing:.06em;text-align:left;}
-.ne-label span{display:block;font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:var(--brown-light);letter-spacing:.02em;margin-top:2px;}
+.ne-label{font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:var(--brown-dark);margin:12px 0 8px;letter-spacing:.06em;text-align:left;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;}
+.ne-label i{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:800;align-self:center;}
+.ne-label span{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:var(--brown-light);letter-spacing:.02em;}
+/* 選ぶ称号は枠の中に。長くなっても名前の欄が見えるよう高さを抑えてスクロール */
+.ne-list{max-height:32vh;padding:8px;background:#fff;border:1.5px solid rgba(200,160,96,.45);border-radius:10px;align-content:flex-start;}
+/* 完成カードでの見え方 */
+.ne-preview{background:#fffaf0;border:1.5px dashed rgba(138,112,96,.45);border-radius:10px;padding:8px 12px 10px;}
+.ne-pv-cap{font-size:11px;color:var(--brown-light);margin-bottom:4px;}
+.ne-pv-row{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;}
+.ne-pv-name{font-family:'Noto Serif JP',serif;font-size:15px;font-weight:700;color:var(--brown-dark);}
 /* 称号一覧：つけている称号 */
 .title-grid-card.owned{cursor:pointer;}
 .title-grid-card.equipped{border-color:#5a8a50;box-shadow:0 0 0 2px rgba(90,138,80,.45);}
@@ -581,6 +589,10 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fair-pop-res .fp-mini{font-size:11px;font-weight:800;line-height:1.3;white-space:nowrap;}
 .fair-pop-res .fp-mini b{color:#ffe14d;font-size:12px;}
 .fair-pop-res .fp-mini b.fm-name{color:#fff;font-size:13px;}
+/* フェアの無い日（次回の予告）は、今日の催しと間違えないようベージュに */
+.fair-pop-res.is-next{background:#ecdcbf;color:var(--brown-dark);outline-color:rgba(139,90,52,.55);box-shadow:0 3px 10px rgba(90,55,25,.2);}
+.fair-pop-res.is-next .fp-mini b{color:#a0522d;}
+.fair-pop-res.is-next .fp-mini b.fm-name{color:var(--brown-dark);}
 /* スタート画面のPOP：曜日で大きさが変わらないよう、置き場の大きさを固定する */
 #fair-pop-start{
   display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;
@@ -1574,14 +1586,19 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="modal-box name-edit-box" style="padding:28px 28px 0;display:flex;flex-direction:column;max-height:84vh;">
     <button class="modal-close" onclick="closeNameEdit()">✕</button>
     <div class="modal-title" id="name-edit-modal-title">マドリスト名を設定</div>
-    <div class="ne-label" id="name-edit-title-label">つける称号<span>完成カードにバッジが付きます（レア度の高い順）</span></div>
+    <!-- 完成カードでの見え方（選ぶと、その場で変わる） -->
+    <div class="ne-preview" id="ne-preview">
+      <div class="ne-pv-cap">完成カードでは、こう表示されます</div>
+      <div class="ne-pv-row"><span class="ne-pv-name">マドリスト　<b id="ne-pv-name">とくめい</b></span><span id="ne-pv-badge"></span></div>
+    </div>
+    <div class="ne-label" id="name-edit-title-label"><i>1</i>つける称号をえらぶ<span>タップでえらぶ・レア度の高い順</span></div>
     <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:10px;display:none;">称号を選んで名前と一緒に表示できます</div>
-    <div id="name-edit-title-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;overflow-y:auto;flex:1;min-height:0;"></div>
-    <div class="ne-label">マドリスト名</div>
-    <input id="player-name-input" type="text" maxlength="8" placeholder="名前を入力（最大8文字）"
+    <div id="name-edit-title-list" class="ne-list" style="display:flex;flex-wrap:wrap;gap:8px;overflow-y:auto;flex:1;min-height:0;"></div>
+    <div class="ne-label"><i>2</i>マドリスト名を入れる<span>8文字まで</span></div>
+    <input id="player-name-input" type="text" maxlength="8" placeholder="名前を入力（最大8文字）" oninput="updateNePreview()"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
-    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">決　定</button></div>
+    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">この内容で決定</button></div>
   </div>
 </div>
 
@@ -2562,13 +2579,26 @@ function openNameEdit(mode){
   const tl=document.getElementById('name-edit-title-label');
   if(tl) tl.style.display=(emode==='name')?'none':'';
   document.querySelectorAll('#name-edit-overlay .ne-label').forEach(l=>{ if(l.id!=='name-edit-title-label') l.style.display=(emode==='title')?'none':''; });
+  updateNePreview();
   if(mt) mt.textContent=(emode==='profile')?'プロフィール':(emode==='title')?'表示称号を変更':(emode==='name')?'マドリスト名を編集':'マドリスト名を設定';
   ov.classList.add('active');
+}
+// 完成カードでの見え方を、選んでいる称号と名前に合わせて更新する
+function updateNePreview(){
+  try{
+    const inp=document.getElementById('player-name-input'), listEl=document.getElementById('name-edit-title-list');
+    const nm=document.getElementById('ne-pv-name'), bd=document.getElementById('ne-pv-badge');
+    if(nm) nm.textContent=(inp&&inp.value.trim())||'とくめい';
+    const sel=listEl?(listEl.dataset.selected||''):'';
+    const m=sel?ALL_TITLES_MASTER.find(x=>x.title===sel):null;
+    if(bd) bd.innerHTML=m?titleBadgeHTML(m.badge,m.rar,40):'';
+  }catch(e){}
 }
 function selectTitleChip(val){
   const listEl=document.getElementById('name-edit-title-list');
   if(!listEl)return;
   listEl.dataset.selected=val;
+  updateNePreview();
   listEl.querySelectorAll('button').forEach(btn=>{
     const active=btn.dataset.val===val;
     btn.style.background=active?'var(--brown-dark)':'#fff';
@@ -2857,7 +2887,9 @@ function fairPopHTML(where){
     let d=day, ff=f;
     if(!ff){ const g=nextFair(); if(!g)return ''; d=g.d; ff=g.f; }
     const what=ff.type==='boost'?ff.short+'が出やすい':(ff.type==='closed'?'1か所 無料で再抽選':'スキップ+1回');
-    return '<div class="fp-mini">'+WEEK_JA[d]+'曜は<b class="fm-name">'+ff.name+'！</b><br><b>'+what+'</b></div>';
+    // 今日のフェアなら「○曜は○○！」。フェアの無い日は、今日のことと間違えないよう「次回」「あした」と書く
+    const head=f?WEEK_JA[d]+'曜は':(d===(day+1)%7?'あしたは':'次回 '+WEEK_JA[d]+'曜は');
+    return '<div class="fp-mini">'+head+'<b class="fm-name">'+ff.name+'！</b><br><b>'+what+'</b></div>';
   }
   // ガチャ：フェアの項目の枠の左に貼る（PCは詳しく、スマホは要点だけ）
   if(where==='rou'){
@@ -2916,7 +2948,7 @@ function refreshFairPops(){
   const fw=document.getElementById('fair-week'); if(fw)fw.innerHTML=fairWeekHTML();
   const set=(id,h)=>{ const el=document.getElementById(id); if(!el)return null; el.innerHTML=h; el.style.display=h?'':'none'; return el; };
   const st=set('fair-pop-start',fairPopHTML('start')); if(st){ st.classList.toggle('is-next',!f); requestAnimationFrame(fitFairPopStart); setTimeout(fitFairPopStart,300); }
-  set('fair-pop-res',fairPopHTML('res'));
+  const rs=set('fair-pop-res',fairPopHTML('res')); if(rs)rs.classList.toggle('is-next',!f);
   // 水曜の帯は、無い日も場所だけ確保しておく（毎日ガチャの枠の位置が同じになるように）
   const fl=document.getElementById('fair-line-rou');
   if(fl){ const h=fairPopHTML('line'); fl.innerHTML=h; fl.style.display=''; fl.style.visibility=h?'visible':'hidden'; }
@@ -4310,7 +4342,7 @@ function doWashSlot(idx){
   rerollDone[idx]=true;
   // 水に流す音を鳴らしてから、回転の音につなぐ（止めた後なら鳴らさない）
   playSE('flush');
-  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },500);
+  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },400);
   const item=document.getElementById('rou-'+idx), valEl=document.getElementById('rou-val-'+idx);
   document.getElementById('btn-rou-next').classList.remove('visible');
   item.classList.remove('locked','rare','niche','super-rare');
@@ -7181,11 +7213,17 @@ class PuzzleGame extends Phaser.Scene{
           if(!ok)break; h++;
         }
         for(let dr=0;dr<h;dr++)for(let dc=0;dc<w;dc++)used.add((r+dr)+','+(c+dc));
-        const x0=this.sx(c)+5, y0=this.sy(r)+5, x1=this.sx(c+w)-5, y1=this.sy(r+h)-5;
-        g.lineStyle(1.5,0x8a7060,0.75);
-        g.strokeRect(x0,y0,x1-x0,y1-y0);
-        g.lineBetween(x0,y0,x1,y1);
-        g.lineBetween(x1,y0,x0,y1);
+        // 横長・縦長の長方形はそのまま×を引くと線が寝て細く見えるので、
+        // 縦横比が2を超えないように区切ってから×を引く（どの×もほぼ同じ角度・同じ太さに見える）
+        const nx=Math.max(1,Math.ceil(w/(2*h))), ny=Math.max(1,Math.ceil(h/(2*w)));
+        g.lineStyle(2,0x8a7060,0.7);
+        for(let ix=0;ix<nx;ix++)for(let iy=0;iy<ny;iy++){
+          const X0=this.sx(c)+CS*w*ix/nx, X1=this.sx(c)+CS*w*(ix+1)/nx;
+          const Y0=this.sy(r)+CS*h*iy/ny, Y1=this.sy(r)+CS*h*(iy+1)/ny;
+          const x0=X0+6, y0=Y0+6, x1=X1-6, y1=Y1-6;
+          g.lineBetween(x0,y0,x1,y1);
+          g.lineBetween(x1,y0,x0,y1);
+        }
       }
     }
   }
