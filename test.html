@@ -1822,6 +1822,7 @@ const SOUND={                 // 「呼び名 : ファイル名」。使う音�
   tap:      'tap.mp3',        // ボタン
   page:     'page.mp3',       // 称号一覧・保存一覧を開く
   undo:     'undo.mp3',       // ひとつ戻す
+  flush:    'flush.mp3',      // 水に流す（水曜の引き直し）
 };
 const BGM_FILE='カスタードクリームクッキーサンド.mp3'; // ★BGMはここを差し替えるだけでOK（SE.BGM/内）
 let seVol =parseFloat(localStorage.getItem('madori-se-vol') ??'0.7');
@@ -2066,6 +2067,7 @@ document.addEventListener('click',(e)=>{
   if(b.id==='btn-undo')return;                                   // 戻す音が鳴る
   if(b.id==='btn-skip')return;                                   // スキップ音が鳴る
   if(b.id&&b.id.indexOf('reroll-btn')===0)return;                // スピン音が鳴る
+  if(b.classList.contains('wash-btn'))return;                   // 水に流す音・戻す音が鳴る
   const oc=b.getAttribute('onclick')||'';
   if(oc.indexOf('openModal')!==-1)return;                        // ページ音が鳴る
   playSE('tap');
@@ -4170,7 +4172,9 @@ function doWashSlot(idx){
   if(!isWashDay()||rerollDone.some(Boolean)||!rouletteLocked[idx])return;
   window._washPrev={idx,val:rouletteValues[idx],undone:false};   // 「やっぱりもどす」用に控える
   rerollDone[idx]=true;
-  startSpinSE();
+  // 水に流す音を鳴らしてから、回転の音につなぐ（止めた後なら鳴らさない）
+  playSE('flush');
+  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },950);
   const item=document.getElementById('rou-'+idx), valEl=document.getElementById('rou-val-'+idx);
   document.getElementById('btn-rou-next').classList.remove('visible');
   item.classList.remove('locked','rare','niche','super-rare');
