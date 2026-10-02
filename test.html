@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>間取りすと</title>
+<title>間取りすと｜自分だけの間取り物件を作るパズル</title>
+<!-- リンクを貼った時に出る紹介（LINE・X など） -->
+<meta name="description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。築年数・駅徒歩・家賃はルーレットで決まる！レアな物件と称号を集めて、SNSで自慢しよう🏠">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="間取りすと">
+<meta property="og:title" content="間取りすと｜自分だけの間取り物件を作るパズル">
+<meta property="og:description" content="パーツをはめて、あなただけの間取り物件を完成させるパズルゲーム。築年数・駅徒歩・家賃はルーレットで決まる！レアな物件と称号を集めて、SNSで自慢しよう🏠">
+<meta property="og:url" content="https://ramune-ai.github.io/madori-st/">
+<meta property="og:image" content="https://ramune-ai.github.io/madori-st/image/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
 <!-- アイコン：image/favicon.png（タブ用）と image/icon-180.png（iPhoneホーム画面用）を配置すると表示される -->
 <link rel="icon" type="image/png" href="image/favicon.png?v=2">
 <link rel="apple-touch-icon" href="image/icon-180.png?v=2">
@@ -231,6 +240,8 @@ body.resume-hide #screen-game{opacity:0!important;}
   display:flex;flex-direction:column;align-items:flex-start;gap:14px;z-index:5;
 }
 .top-link{font-family:'Noto Sans JP',sans-serif;cursor:pointer;}
+.start-share{position:absolute;z-index:6;top:8px;right:20px;font-size:12px;padding:6px 12px;}
+@media(min-width:600px){ .start-share{scale:var(--pcs,1);transform-origin:top right;font-size:16px;padding:11px 20px;} }
 #btn-update-info{position:relative;}
 .upd-new{position:absolute;top:-9px;right:-12px;background:#d9534f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.2);animation:updPulse 1.6s ease-in-out infinite;}
 @keyframes updPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
@@ -543,8 +554,9 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fair-line .wl-ico{font-size:17px;}
 .fair-line .wl-chip{font-size:12px;background:#fff;color:#2f6fa8;border-radius:999px;padding:2px 8px;margin-left:2px;}
 /* 完成画面：もう一度あそぶの右上に貼る */
-.again-wrap{position:relative;}
-.fair-pop-res{position:absolute;top:-18px;right:-6px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
+/* POPの置き場として、ボタンの上に毎日同じだけ間をあける（文字にかぶらないように） */
+.again-wrap{position:relative;margin-top:34px;}
+.fair-pop-res{position:absolute;top:-40px;right:-4px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
 .fair-pop-res .fp-mini{font-size:11px;font-weight:800;line-height:1.3;white-space:nowrap;}
 .fair-pop-res .fp-mini b{color:#ffe14d;font-size:12px;}
 .fair-pop-res .fp-mini b.fm-name{color:#fff;font-size:13px;}
@@ -1499,8 +1511,10 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
   <div class="start-flyer">
     <span class="flyer-tape flyer-tape-l" aria-hidden="true"></span>
     <span class="flyer-tape flyer-tape-r" aria-hidden="true"></span>
-    <span class="flyer-main"><span>自分だけの間取り</span><span>を作るパズル</span></span>
+    <span class="flyer-main"><span>自分だけの間取り</span><span>物件を作るパズル</span></span>
   </div>
+  <!-- 間取りすと自体を友達・SNSにシェアする -->
+  <button class="top-link start-share" onclick="shareGame()">📣 友達にシェア</button>
   <div class="logo-wrap">
     <span class="logo-icon">🏠</span>
     <div class="logo-title">間取りすと</div>
@@ -3969,11 +3983,34 @@ const UPDATES=[
 ];
 const UPDATE_VER=UPDATES[0].ver;
 // スマホのスタート画面：左上のリンクの下端を測って、ロゴをその下から始める
+// 間取りすと自体をシェアする（スマホは共有シート、PCは文面をコピー）
+const GAME_URL='https://ramune-ai.github.io/madori-st/';
+const GAME_SHARE_TEXT='自分だけの間取り物件を作るパズル『間取りすと』🏠\nパーツをはめて理想の間取りを完成させよう！築年数・駅徒歩・家賃はルーレットで決まる！\n#間取りすと #間取りパズル';
+async function shareGame(){
+  const isMobile=('ontouchstart' in window)&&Math.min(window.innerWidth,window.innerHeight)<820;
+  if(isMobile&&navigator.share){
+    try{ await navigator.share({title:'間取りすと', text:GAME_SHARE_TEXT, url:GAME_URL}); return; }
+    catch(e){ if(e&&e.name==='AbortError')return; }
+  }
+  const all=GAME_SHARE_TEXT+'\n'+GAME_URL;
+  try{ await navigator.clipboard.writeText(all); showGameToast('紹介文とURLをコピーしました📋 SNSや友達に貼ってね'); }
+  catch(e){ showGameToast('コピーできませんでした'); }
+}
 function fitStartTop(){
   try{
     const scr=document.getElementById('screen-start'), links=document.querySelector('.start-toplinks-left');
     if(!scr||!links)return;
-    const b=links.getBoundingClientRect().bottom-scr.getBoundingClientRect().top+scr.scrollTop;
+    const sr=scr.getBoundingClientRect();
+    // シェアボタンは付箋の右端にそろえる
+    const fl=document.querySelector('.start-flyer'), sh=document.querySelector('.start-share');
+    if(fl&&sh){
+      const fr=fl.getBoundingClientRect();
+      // 付箋の上の空き（画面の右上の角）に置く。縦の場所を取らないので、ロゴが下がらない
+      sh.style.top=Math.max(6,Math.round(fr.top-sr.top+scr.scrollTop-sh.getBoundingClientRect().height-6))+'px';
+      sh.style.right=Math.round(sr.right-fr.right)+'px';
+    }
+    // ロゴは、左上のリンクより下から始める
+    let b=links.getBoundingClientRect().bottom-sr.top+scr.scrollTop;
     if(b>0)document.documentElement.style.setProperty('--start-top',Math.round(b+26)+'px');
   }catch(e){}
 }
@@ -4174,7 +4211,7 @@ function doWashSlot(idx){
   rerollDone[idx]=true;
   // 水に流す音を鳴らしてから、回転の音につなぐ（止めた後なら鳴らさない）
   playSE('flush');
-  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },950);
+  setTimeout(()=>{ if(!rouletteLocked[idx])startSpinSE(); },500);
   const item=document.getElementById('rou-'+idx), valEl=document.getElementById('rou-val-'+idx);
   document.getElementById('btn-rou-next').classList.remove('visible');
   item.classList.remove('locked','rare','niche','super-rare');
@@ -6203,10 +6240,9 @@ class PuzzleGame extends Phaser.Scene{
       g.fillStyle(cell.color,1); g.fillRect(px+1,py+1,pw-2,ph-2);
       this.boardImgs[pid]=g;
     }
-    // ラベルテキスト（テクスチャがある場合は非表示。ただし廊下は常時表示）
+    // ラベルテキスト（絵があるパーツは置いたら文字を消す。廊下も同じ）
     const hasTex = cellType && this.textures.exists(cellType);
-    const labelText = cellType==='roka' ? '廊下'
-      : hasTex ? ''
+    const labelText = hasTex ? ''
       : (cell.fixed ? '玄関' : (cell.label || ''));
     if(labelText){
       const labelFs=this._labelFontSize(pw,ph);
@@ -7032,53 +7068,26 @@ class PuzzleGame extends Phaser.Scene{
         g.fillStyle(storageColor,0.9);
         g.fillRect(px,py,CS,CS);  // 隙間なし
       }
-      // 重心（塊の中心）に配置。重心が塊の外（凹型）の時だけ最寄りの塊マスへ寄せる
-      const cx=cells.reduce((s,[,c])=>s+this.sx(c)+CS/2,0)/cells.length;
-      const cy=cells.reduce((s,[r])=>s+this.sy(r)+CS/2,0)/cells.length;
-      let lx=cx, ly=cy;
-      const ccol=Math.floor(cx/CS), crow=Math.floor(cy/CS);
-      const inCluster=cells.some(([r,c])=>r===crow&&c===ccol);
-      if(!inCluster){
-        let bestD=Infinity;
-        for(const [r,c] of cells){
-          const ccx=this.sx(c)+CS/2, ccy=this.sy(r)+CS/2;
-          const d=(ccx-cx)*(ccx-cx)+(ccy-cy)*(ccy-cy);
-          if(d<bestD){bestD=d; lx=ccx; ly=ccy;}
+      // 本物の間取り図のように、収納は文字ではなくバツ印（×）で表す。
+      // 塊を長方形に分けて、それぞれの対角線を引く（L字などでも線が塊の外に出ない）
+      const inCl=new Set(cells.map(([r,c])=>r+','+c)), used=new Set();
+      const sorted=cells.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+      for(const [r,c] of sorted){
+        if(used.has(r+','+c))continue;
+        let w=1; while(inCl.has(r+','+(c+w))&&!used.has(r+','+(c+w)))w++;
+        let h=1;
+        for(;;){
+          let ok=true;
+          for(let k=0;k<w;k++){ const key=(r+h)+','+(c+k); if(!inCl.has(key)||used.has(key)){ok=false;break;} }
+          if(!ok)break; h++;
         }
+        for(let dr=0;dr<h;dr++)for(let dc=0;dc<w;dc++)used.add((r+dr)+','+(c+dc));
+        const x0=this.sx(c)+5, y0=this.sy(r)+5, x1=this.sx(c+w)-5, y1=this.sy(r+h)-5;
+        g.lineStyle(1.5,0x8a7060,0.75);
+        g.strokeRect(x0,y0,x1-x0,y1-y0);
+        g.lineBetween(x0,y0,x1,y1);
+        g.lineBetween(x1,y0,x0,y1);
       }
-      // マス幅に必ず収まる上限に制限（隣のパーツへ文字がはみ出さないように）
-      const fs=Math.min(23, Math.max(21, Math.floor(Math.sqrt(cells.length)*9)));
-      // 文字の幅・高さぶん、塊の内側へ押し込む（隣パーツへのはみ出し根絶）
-      const halfW=fs+4;              // 「収納」2文字の半幅（概算＋余白）
-      const halfH=Math.ceil(fs*0.66);// 文字の半高（概算＋余白）
-      const clampInSeg=(vals,pos,half,base)=>{ // vals=その行/列の塊セル番号
-        vals.sort((a,b)=>a-b);
-        // posを含む（または最寄りの）連続区間を探す
-        let segs=[],cur=[vals[0]];
-        for(let i=1;i<vals.length;i++){
-          if(vals[i]===vals[i-1]+1)cur.push(vals[i]); else{segs.push(cur);cur=[vals[i]];}
-        }
-        segs.push(cur);
-        let best=segs[0],bd=Infinity;
-        segs.forEach(sg=>{const mid=base(sg[0])+( (sg.length)*CS )/2;const d=Math.abs(mid-pos);if(d<bd){bd=d;best=sg;}});
-        const lo=base(best[0])+half, hi=base(best[best.length-1])+CS-half;
-        return lo<=hi ? Math.min(Math.max(pos,lo),hi)
-                      : base(best[0])+(best.length*CS)/2; // 余裕なし→区間中央
-      };
-      const lrow=Math.min(ROWS-1,Math.max(0,Math.floor(ly/CS)));
-      const rowC=cells.filter(([r])=>r===lrow).map(([,c])=>c);
-      if(rowC.length) lx=clampInSeg(rowC,lx,halfW,(c)=>this.sx(c));
-      const lcol=Math.min(COLS-1,Math.max(0,Math.floor(lx/CS)));
-      const colR=cells.filter(([,c])=>c===lcol).map(([r])=>r);
-      if(colR.length) ly=clampInSeg(colR,ly,halfH,(r)=>this.sy(r));
-      const t=this.add.text(lx, ly, '収納', {
-        fontSize:fs+'px',fill:'#6a4e2e',align:'center',
-        fontFamily:"'M PLUS Rounded 1c','Noto Sans JP',sans-serif",fontStyle:'bold',
-        resolution:this._txtRes,
-        wordWrap:{width:CS*2-4}
-      }).setOrigin(0.5,0.5).setDepth(3);
-      t.setShadow(0,1,'rgba(255,255,255,0.55)',2,false,true);
-      this._storageTexts.push(t);
     }
   }
 
