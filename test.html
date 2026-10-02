@@ -584,15 +584,17 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fair-line .wl-chip{font-size:12px;background:#fff;color:#2f6fa8;border-radius:999px;padding:2px 8px;margin-left:2px;}
 /* 完成画面：もう一度あそぶの右上に貼る */
 /* POPの置き場として、ボタンの上に毎日同じだけ間をあける（文字にかぶらないように） */
-.again-wrap{position:relative;margin-top:34px;}
-.fair-pop-res{position:absolute;top:-40px;right:-4px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
+.again-wrap{position:relative;margin-top:16px;}
+.fair-pop-res{position:absolute;top:-32px;right:-6px;margin:0;padding:5px 10px;transform:rotate(5deg);z-index:3;outline-offset:-4px;}
 .fair-pop-res .fp-mini{font-size:11px;font-weight:800;line-height:1.3;white-space:nowrap;}
 .fair-pop-res .fp-mini b{color:#ffe14d;font-size:12px;}
 .fair-pop-res .fp-mini b.fm-name{color:#fff;font-size:13px;}
 /* フェアの無い日（次回の予告）は、今日の催しと間違えないようベージュに */
-.fair-pop-res.is-next{background:#ecdcbf;color:var(--brown-dark);outline-color:rgba(139,90,52,.55);box-shadow:0 3px 10px rgba(90,55,25,.2);}
-.fair-pop-res.is-next .fp-mini b{color:#a0522d;}
+/* 通常日（次回の予告）：白い紙に金の枠のお知らせカード。今日の赤いPOPとは見た目で分ける */
+.fair-pop.is-next{background:#fffdf7;color:var(--brown-dark);outline:none;border:2px solid #c8a060;border-radius:10px;box-shadow:0 4px 12px rgba(120,85,40,.18);}
+.fair-pop .nx-chip{display:inline-block;background:#c8a060;color:#fff;font-size:10px;font-weight:800;letter-spacing:.04em;padding:1px 7px;border-radius:8px;margin-right:5px;vertical-align:2px;}
 .fair-pop-res.is-next .fp-mini b.fm-name{color:var(--brown-dark);}
+.fair-pop-res.is-next .nx-sub{color:#b5522d;font-weight:800;}
 /* スタート画面のPOP：曜日で大きさが変わらないよう、置き場の大きさを固定する */
 #fair-pop-start{
   display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;
@@ -602,8 +604,10 @@ body.resume-hide #screen-game{opacity:0!important;}
 #fair-pop-start .fp-head,#fair-pop-start .fp-line{max-width:100%;white-space:nowrap;overflow:hidden;}
 #fair-pop-start .fp-line{font-size:15px;}
 /* フェアの無い日も同じ枠。色だけ落ち着かせる */
-#fair-pop-start.is-next{background:#ecdcbf;color:var(--brown-dark);outline:1.5px dashed rgba(139,90,52,.55);outline-offset:-6px;box-shadow:0 3px 10px rgba(90,55,25,.2);transform:rotate(-2deg);padding:6px 14px;margin:4px auto 12px;}
-#fair-pop-start.is-next .fp-line b{color:#a0522d;}
+#fair-pop-start.is-next{transform:rotate(-1.5deg);padding:6px 14px;margin:4px auto 12px;}
+#fair-pop-start.is-next .fp-main{color:var(--brown-dark);}
+#fair-pop-start.is-next .fp-line b{color:#b5522d;}
+#fair-pop-start.is-next .nx-chip{font-size:12px;}
 @media(min-width:600px){ #fair-pop-start{width:440px;height:92px;padding:8px 20px;gap:4px;} #fair-pop-start .fp-head.has-tag{padding:0 92px;} #fair-pop-start .fp-line{font-size:18px;} }
 /* スタート画面のPOP：「本日限定！」とタイトルを1行に */
 .fair-pop .fp-head{display:flex;align-items:center;justify-content:center;gap:7px;}
@@ -1591,13 +1595,13 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="ne-pv-cap">完成カードでは、こう表示されます</div>
       <div class="ne-pv-row"><span class="ne-pv-name">マドリスト　<b id="ne-pv-name">とくめい</b></span><span id="ne-pv-badge"></span></div>
     </div>
-    <div class="ne-label" id="name-edit-title-label"><i>1</i>つける称号をえらぶ<span>タップでえらぶ・レア度の高い順</span></div>
-    <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:10px;display:none;">称号を選んで名前と一緒に表示できます</div>
-    <div id="name-edit-title-list" class="ne-list" style="display:flex;flex-wrap:wrap;gap:8px;overflow-y:auto;flex:1;min-height:0;"></div>
-    <div class="ne-label"><i>2</i>マドリスト名を入れる<span>8文字まで</span></div>
+    <div class="ne-label"><i>1</i>マドリスト名を入れる<span>8文字まで</span></div>
     <input id="player-name-input" type="text" maxlength="8" placeholder="名前を入力（最大8文字）" oninput="updateNePreview()"
-      style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:16px;"
+      style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:4px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
+    <div class="ne-label" id="name-edit-title-label"><i>2</i>つける称号をえらぶ<span>タップでえらぶ・レア度の高い順</span></div>
+    <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:10px;display:none;">称号を選んで名前と一緒に表示できます</div>
+    <div id="name-edit-title-list" class="ne-list" style="display:flex;flex-wrap:wrap;gap:8px;overflow-y:auto;flex:1;min-height:0;margin-bottom:16px;"></div>
     <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">この内容で決定</button></div>
   </div>
 </div>
@@ -2888,8 +2892,11 @@ function fairPopHTML(where){
     if(!ff){ const g=nextFair(); if(!g)return ''; d=g.d; ff=g.f; }
     const what=ff.type==='boost'?ff.short+'が出やすい':(ff.type==='closed'?'1か所 無料で再抽選':'スキップ+1回');
     // 今日のフェアなら「○曜は○○！」。フェアの無い日は、今日のことと間違えないよう「次回」「あした」と書く
-    const head=f?WEEK_JA[d]+'曜は':(d===(day+1)%7?'あしたは':'次回 '+WEEK_JA[d]+'曜は');
-    return '<div class="fp-mini">'+head+'<b class="fm-name">'+ff.name+'！</b><br><b>'+what+'</b></div>';
+    if(!f){
+      const chip=(d===(day+1)%7)?'あした':'次回 '+WEEK_JA[d]+'曜';
+      return '<div class="fp-mini"><span class="nx-chip">'+chip+'</span><b class="fm-name">'+ff.name+'</b><br><span class="nx-sub">'+what+'</span></div>';
+    }
+    return '<div class="fp-mini">'+WEEK_JA[d]+'曜は<b class="fm-name">'+ff.name+'！</b><br><b>'+what+'</b></div>';
   }
   // ガチャ：フェアの項目の枠の左に貼る（PCは詳しく、スマホは要点だけ）
   if(where==='rou'){
@@ -2912,8 +2919,8 @@ function fairPopHTML(where){
   // スタート画面
   // 毎日同じ大きさの枠に「1行目：（本日限定！）＋タイトル」「2行目：一言」の2行で入れる（くわしくは押すと一覧）
   const tag='<span class="fp-tag fp-in">本日限定！</span>';
-  if(!f){ const g=nextFair(); return '<div class="fp-head"><span class="fp-main">通常営業中！</span></div>'
-    +'<div class="fp-line">'+(g?'次回 '+WEEK_JA[g.d]+'曜日は <b>'+g.f.name+'</b>':'またのお越しをお待ちしています')+'</div>'; }
+  if(!f){ const g=nextFair(); return '<div class="fp-head"><span class="fp-main">本日は通常営業中</span></div>'
+    +'<div class="fp-line">'+(g?'<span class="nx-chip">次回</span>'+WEEK_JA[g.d]+'曜日は <b>'+g.f.name+'</b>':'またのお越しをお待ちしています')+'</div>'; }
   if(f.type==='boost'){
     return '<div class="fp-head has-tag">'+tag+'<span class="fp-main">'+f.name+'！</span></div>'
       +'<div class="fp-line">'+(first?'1回目は<b>確定！</b> 以降も<b>'+FAIR_BOOST+'倍</b>出やすい！':'<b>'+f.what+'</b>がいつもの<b>'+FAIR_BOOST+'倍</b>！')+'</div>';
