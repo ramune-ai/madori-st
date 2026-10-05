@@ -535,6 +535,11 @@ body.resume-hide #screen-game{opacity:0!important;}
 #mini-confirm .mc-btns{display:flex;gap:10px;}
 #mini-confirm button{flex:1;padding:12px 0;border-radius:999px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
 #mini-confirm .mc-ok{background:var(--brown-dark);color:#f5f0e8;border:none;}
+/* シェアの形をえらぶ */
+#mini-confirm .sc-opts{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px;}
+#mini-confirm button.sc-opt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 10px;border-radius:14px;background:#fff;color:var(--brown-dark);border:1.5px solid #c8a060;box-shadow:0 2px 8px rgba(58,42,26,.1);}
+#mini-confirm .sc-opt b{font-size:15px;}
+#mini-confirm .sc-opt span{font-size:11px;font-weight:500;color:var(--brown-light);line-height:1.4;}
 #mini-confirm .mc-no{background:#fff;color:var(--brown-dark);border:1.5px solid rgba(90,74,58,.25);}
 @media(min-width:600px){ #mini-confirm .mc-card{zoom:var(--pcs,1);} }
 /* チュートリアル：説明しているボタンに目が行くよう、光の輪を広げる */
@@ -969,6 +974,15 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:6px 8px 0;}
 .res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
+/* シェア画像用に画面の外で作る複製カード。端末の幅に関係なく、いつも同じ見た目（スマホ版の形）で写す。
+   画面幅で切り替わる指定（スマホ用・細い端末用）を、ここでは固定値で上書きする */
+#share-render-host .res-main-row{flex-wrap:nowrap;gap:8px;}
+#share-render-host .res-side{min-width:0;width:106px;flex-shrink:0;}
+#share-render-host .res-spec-v{padding:5px 2px;}
+#share-render-host .rsv-label{letter-spacing:.06em;}
+#share-render-host .rsv-val{font-size:25px;}
+#share-render-host .res-card-band{gap:18px;font-size:17px;padding:6px 10px;}
+#share-render-host .res-promo{white-space:nowrap;}
 .res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
 
 /* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
@@ -1847,7 +1861,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="result-sub-row">
         <button class="btn-result sub" onclick="openModal('titles')">🏅 称号</button>
         <button class="btn-result sub fav" id="res-fav-btn" onclick="toggleResultFav()">☆ お気に入り</button>
-        <button class="btn-result sub" onclick="saveAndShare()">📤 シェア</button>
+        <button class="btn-result sub" onclick="openShareChooser()">📤 シェア</button>
       </div>
       <button class="btn-tolink" onclick="gotoStart()">タイトルへもどる</button>
     </div>
@@ -4851,8 +4865,9 @@ function toggleResultFav(){
 // ボタンを押してから作ると、その待ち時間のせいで iPhone が
 // 「押した直後の操作」と見なさず、共有シートを開いてくれないため
 let _shareFile=null, _shareCanvas=null, _sharePrepTimer=null;
+let _storyFile=null, _storyCanvas=null;
 function prepareShareImage(){
-  _shareFile=null; _shareCanvas=null;
+  _shareFile=null; _shareCanvas=null; _storyFile=null; _storyCanvas=null;
   if(_sharePrepTimer)clearTimeout(_sharePrepTimer);
   let tries=0;
   const run=async()=>{
@@ -4871,6 +4886,8 @@ function prepareShareImage(){
       _shareCanvas=cv;
       _storeCardInHistory(cv);
       cv.toBlob(b=>{ if(b)_shareFile=new File([b],'madori.png',{type:'image/png'}); },'image/png');
+      _storyCanvas=_makeStoryCanvas(cv);
+      _storyCanvas.toBlob(b=>{ if(b)_storyFile=new File([b],'madori-story.png',{type:'image/png'}); },'image/png');
     }catch(e){}
   };
   _sharePrepTimer=setTimeout(run,800);
@@ -4884,23 +4901,42 @@ function _shareText(){
   const label=String(r.label||'').replace(/\+/g,'＋');
   return '間取りすとで自分だけの間取り物件を作ったよ！ '+label+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'')+'\nhttps://ramune-ai.github.io/madori-st/';
 }
-async function saveAndShare(){
+// シェアの形をえらぶ（カード画像／ストーリーズ用の縦長）
+function openShareChooser(){
+  playSE('tap');
+  let el=document.getElementById('mini-confirm');
+  if(!el){ el=document.createElement('div'); el.id='mini-confirm'; document.body.appendChild(el); }
+  el.innerHTML='<div class="mc-card"><div class="mc-name">シェアする形をえらぶ</div><div class="sc-opts">'
+    +'<button class="sc-opt" data-k="card"><b>📷 カード画像</b><span>X・LINE・Threads などに</span></button>'
+    +'<button class="sc-opt" data-k="story"><b>📱 縦長の画像（9:16）</b><span>インスタのストーリーズに。<br>上にひとこと書けるスペースつき</span></button>'
+    +'</div><div class="mc-btns"><button class="mc-no">やめる</button></div></div>';
+  el.classList.add('active');
+  const close=()=>el.classList.remove('active');
+  // 押したその場で共有シートを開く（間に待ちが入ると iPhone が開いてくれない）
+  el.querySelectorAll('.sc-opt').forEach(b=>b.onclick=()=>{ playSE('tap'); close(); saveAndShare(b.dataset.k); });
+  el.querySelector('.mc-no').onclick=()=>{ playSE('tap'); close(); };
+  el.onclick=e=>{ if(e.target===el)close(); };
+}
+async function saveAndShare(kind){
+  const story=kind==='story';
   const text=_shareText();
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
   // 画像が出来ていれば、何も待たずにすぐ共有シートを開く（iPhone対策）
-  if(isMobile && _shareFile && navigator.canShare && navigator.share){
-    let ok=false; try{ ok=navigator.canShare({files:[_shareFile]}); }catch(e){}
+  const preFile=story?_storyFile:_shareFile;
+  if(isMobile && preFile && navigator.canShare && navigator.share){
+    let ok=false; try{ ok=navigator.canShare({files:[preFile]}); }catch(e){}
     if(ok){
-      try{ await navigator.share({files:[_shareFile], text}); return; }
+      try{ await navigator.share({files:[preFile], text}); return; }
       catch(e){ if(e&&e.name==='AbortError')return; }
     }
   }
 
   // まだ出来ていない・共有に対応していない時はここで作る
   if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
-  const cv=_shareCanvas||await buildPropertyCard();
+  const cardCv=_shareCanvas||await buildPropertyCard();
+  const cv=story?(_storyCanvas||_makeStoryCanvas(cardCv)):cardCv;
   const copyText=async()=>{
     if(navigator.clipboard&&navigator.clipboard.writeText){ try{ await navigator.clipboard.writeText(text); }catch(e){} }
   };
@@ -4911,7 +4947,7 @@ async function saveAndShare(){
       if(!blob){ showGameToast('画像の作成に失敗しました'); return; }
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
-      a.href=url; a.download='物件_'+nm+'.png'; a.style.display='none';
+      a.href=url; a.download='物件_'+nm+(story?'_ストーリー':'')+'.png'; a.style.display='none';
       document.body.appendChild(a); a.click();
       setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
     },'image/png');
@@ -4953,9 +4989,9 @@ function buildPropertyCard(opt){
     // それでもだめな時だけ旧方式（古い見た目）にする
     return ensureHtml2canvas().then(ok=>{
       if(!ok)throw new Error('画像を作る部品を読み込めませんでした');
-      return _captureCardEl(card).catch(e=>{
+      return _captureShareCard().catch(e=>{
         console.warn('[card] 1回目に失敗→作り直し:',e);
-        return new Promise(r=>setTimeout(r,300)).then(()=>_captureCardEl(card,{scale:1}));
+        return new Promise(r=>setTimeout(r,300)).then(()=>_captureShareCard({scale:1}));
       });
     }).catch(e=>{
       console.warn('[card] 画面からの生成に失敗→旧方式:',e);
@@ -4964,6 +5000,59 @@ function buildPropertyCard(opt){
     });
   }
   return buildPropertyCardLegacy(opt);
+}
+// シェア画像のカードの幅。PCでもスマホでも同じ画像にするため、画面のカードではなく
+// この幅の複製を画面の外に作って写す（420＝最下段のSNSとIDが1行に収まる幅）
+const SHARE_CARD_W=420;
+async function _captureShareCard(o){
+  const src=document.getElementById('res-card');
+  if(!src)throw new Error('カードがありません');
+  const host=document.createElement('div');
+  host.id='share-render-host';
+  host.style.cssText='position:fixed;left:0;top:0;width:'+SHARE_CARD_W+'px;text-align:center;z-index:-10;opacity:0;pointer-events:none;';
+  const card=src.cloneNode(true);
+  card.id='res-card-share';
+  card.style.animation='none';
+  host.appendChild(card);
+  document.body.appendChild(host);
+  try{
+    const q=id=>card.querySelector('#'+id);
+    // 複製では canvas の絵が写らないので、間取り図はこの幅で描き直す
+    if(madoriSnapshot)drawResultPreview(q('res-madori-preview'),madoriSnapshot,SHARE_CARD_W);
+    // 幅が変わったので、見出し・ハッシュタグ・POPの大きさを合わせ直す
+    fitHeroLabel(q('res-room-label'));
+    card.querySelectorAll('.res-hashtag').forEach(el=>fitTagToSpace(el,14,11));
+    const pop=q('res-pop');
+    if(pop&&pop.style.display!=='none'){
+      let fs=18, g=8; pop.style.fontSize=fs+'px';
+      while(pop.scrollWidth>pop.clientWidth+1&&fs>13&&g-->0){ fs--; pop.style.fontSize=fs+'px'; }
+    }
+    await new Promise(r=>setTimeout(r,60));
+    // 画質も端末に関係なくそろえる（3倍＝幅1260px）
+    return await _captureCardEl(card,{scale:(o&&o.scale)||3});
+  }finally{ host.remove(); }
+}
+// インスタのストーリーズ用（9:16）。カードを下寄せに置き、上はひとこと書けるように空けておく
+function _makeStoryCanvas(cardCv){
+  const W=1080, H=1920;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#f8f3ea'); bg.addColorStop(1,'#eadcc4');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  const s=Math.min((W-120)/cardCv.width, 1250/cardCv.height);
+  const cw=cardCv.width*s, ch=cardCv.height*s;
+  const x=(W-cw)/2, y=H-170-ch;
+  ctx.save();
+  ctx.shadowColor='rgba(58,42,26,.28)'; ctx.shadowBlur=36; ctx.shadowOffsetY=12;
+  ctx.fillStyle='#f5f0e8'; ctx.fillRect(x,y,cw,ch);
+  ctx.restore();
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(cardCv,x,y,cw,ch);
+  ctx.fillStyle='#8a7060'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font="700 30px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
+  ctx.fillText('ramune-ai.github.io/madori-st', W/2, H-85);
+  return cv;
 }
 // 画像を作る部品（html2canvas）が無ければ読み込む
 function ensureHtml2canvas(){
@@ -5013,8 +5102,7 @@ function _captureCardEl(card,o){
             const bg=doc.getElementById('madori-bg');
             if(bg)bg.style.display='none';
             // マイ物件の作り直し用に画面外へ置いたカードは、写す時だけ見えるようにする
-            const hh=doc.getElementById('hist-render-host');
-            if(hh)hh.style.opacity='1';
+            ['hist-render-host','share-render-host'].forEach(id=>{ const hh=doc.getElementById(id); if(hh)hh.style.opacity='1'; });
             // アニメーションを止めて、最後のコマ（不透明・等倍）で写す
             const st=doc.createElement('style');
             st.textContent='*,*::before,*::after{animation:none!important;transition:none!important;}'
