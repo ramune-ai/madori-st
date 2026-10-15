@@ -27,6 +27,10 @@
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 .title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
 .title-badge .tb-emoji{line-height:1;display:block;will-change:transform;letter-spacing:0;text-indent:0;}
+.ne-transfer{display:block;width:100%;margin-top:10px;background:none;border:none;cursor:pointer;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-light);text-decoration:underline;text-underline-offset:3px;padding:4px 0;}
+/* データの引き継ぎの説明 */
+#mini-confirm .dt-msg{font-size:13px;color:var(--brown);line-height:1.7;margin-bottom:14px;text-align:left;}
+#mini-confirm .dt-msg small{display:block;font-size:11px;color:var(--brown-light);margin-top:6px;}
 .name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
@@ -1629,7 +1633,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <div class="ne-label" id="name-edit-title-label"><i>2</i>つける称号をえらぶ<span>タップでえらぶ・レア度の高い順</span></div>
     <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:10px;display:none;">称号を選んで名前と一緒に表示できます</div>
     <div id="name-edit-title-list" class="ne-list" style="display:flex;flex-wrap:wrap;gap:8px;overflow-y:auto;flex:1;min-height:0;margin-bottom:16px;"></div>
-    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">この内容で決定</button></div>
+    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">この内容で決定</button><button class="ne-transfer" onclick="openDataTransfer()">📦 データの引き継ぎ（機種変更）</button></div>
   </div>
 </div>
 
@@ -2677,6 +2681,137 @@ function miniConfirm(html,okLabel,noLabel){
     el.onclick=e=>{ if(e.target===el)done(false); };
   });
 }
+// ════════════════════════════════════════
+// データの引き継ぎ（機種変更）
+// サーバーには何も送らない。データはファイルにして、遊んでいる人の手元で運んでもらう
+// ════════════════════════════════════════
+// 引き継ぐデータ（開発用・エラー記録は入れない）
+const TRANSFER_KEYS=['madori-player-name','madori-selected-title','madori-titles','madori-titles-seen',
+  'madori-complete-count','madori-history','madori-game-state','madori-fair-first','madori-update-seen',
+  'madori-bgm-mute','madori-bgm-vol','madori-se-mute','madori-se-vol','madori-tutorial-done'];
+const TRANSFER_KEY_RE=/^madori-tut-[a-z0-9-]{1,40}$/;
+const TRANSFER_MAX_BYTES=30*1024*1024;
+function _isTransferKey(k){ return TRANSFER_KEYS.includes(k)||TRANSFER_KEY_RE.test(k); }
+// ブラウザに「このサイトのデータは消さないで」と頼む（対応していない環境では何もしない）
+try{ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{}); }catch(e){}
+
+function openDataTransfer(){
+  playSE('tap');
+  let el=document.getElementById('mini-confirm');
+  if(!el){ el=document.createElement('div'); el.id='mini-confirm'; document.body.appendChild(el); }
+  el.innerHTML='<div class="mc-card"><div class="mc-name">データの引き継ぎ</div>'
+    +'<div class="dt-msg">今のデータ（称号・マイ物件・プレイ中の物件・設定）を<b>ファイルに保存</b>して、新しい端末で<b>読み込む</b>と続きから遊べます。'
+    +'<small>※データは、この端末とファイルの中だけにあります。インターネット上には送りません。<br>※iPhoneは「ファイルに保存」を選ぶと、ファイルアプリに残せます。</small></div>'
+    +'<div class="sc-opts">'
+    +'<button class="sc-opt" data-k="out"><b>💾 このデータを保存する</b><span>ファイルに書き出す（前の端末で）</span></button>'
+    +'<button class="sc-opt" data-k="in"><b>📂 保存したデータを読み込む</b><span>ファイルを選ぶ（新しい端末で）</span></button>'
+    +'</div><div class="mc-btns"><button class="mc-no">とじる</button></div></div>';
+  el.classList.add('active');
+  const close=()=>el.classList.remove('active');
+  el.querySelector('[data-k="out"]').onclick=()=>{ playSE('tap'); close(); exportSaveData(); };
+  el.querySelector('[data-k="in"]').onclick=()=>{ playSE('tap'); close(); pickSaveFile(); };
+  el.querySelector('.mc-no').onclick=()=>{ playSE('tap'); close(); };
+  el.onclick=e=>{ if(e.target===el)close(); };
+}
+function _saveFileName(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return '間取りすと_セーブ_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
+}
+async function exportSaveData(){
+  const data={};
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&_isTransferKey(k))data[k]=localStorage.getItem(k);
+    }
+  }catch(e){}
+  const json=JSON.stringify({app:'madori-st',format:1,savedAt:new Date().toISOString(),data});
+  const name=_saveFileName();
+  const file=new File([json],name,{type:'application/json'});
+  const isMobile=('ontouchstart' in window)&&Math.min(window.innerWidth,window.innerHeight)<820;
+  // スマホは共有シート（「ファイルに保存」）、PCはそのままダウンロード
+  if(isMobile&&navigator.canShare&&navigator.share){
+    let ok=false; try{ ok=navigator.canShare({files:[file]}); }catch(e){}
+    if(ok){
+      try{ await navigator.share({files:[file]}); showGameToast('保存できたら、新しい端末で「読み込む」を選んでね'); return; }
+      catch(e){ if(e&&e.name==='AbortError')return; }
+    }
+  }
+  const url=URL.createObjectURL(file);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); },1500);
+  showGameToast('セーブデータを保存しました💾');
+}
+function pickSaveFile(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.json,application/json'; inp.style.display='none';
+  inp.onchange=()=>{ const f=inp.files&&inp.files[0]; inp.remove(); if(f)importSaveFile(f); };
+  document.body.appendChild(inp); inp.click();
+}
+// 読み込むファイルは「他の人から渡されたもの」かもしれない前提で、中身を確かめてから使う
+function _checkSaveData(obj){
+  if(!obj||typeof obj!=='object'||obj.app!=='madori-st'||typeof obj.data!=='object'||!obj.data||Array.isArray(obj.data))return null;
+  const out={};
+  for(const k of Object.keys(obj.data)){
+    const v=obj.data[k];
+    if(!_isTransferKey(k)||typeof v!=='string')continue;   // 知らない項目・文字以外は捨てる
+    out[k]=v;
+  }
+  // 名前は8文字まで
+  if(out['madori-player-name']!==undefined)out['madori-player-name']=out['madori-player-name'].slice(0,8);
+  // マイ物件：画像は「画像のデータ」だけを受け付け、文字の項目は文字にそろえる
+  if(out['madori-history']!==undefined){
+    let list; try{ list=JSON.parse(out['madori-history']); }catch(e){ list=null; }
+    if(!Array.isArray(list))delete out['madori-history'];
+    else{
+      const IMG=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+      list=list.filter(x=>x&&typeof x==='object').slice(0,200).map(x=>{
+        const y=Object.assign({},x);
+        if(y.img!==undefined&&!(typeof y.img==='string'&&IMG.test(y.img)))delete y.img;
+        ['label','labelRaw','propName','date','equipped'].forEach(n=>{ if(y[n]!==undefined&&typeof y[n]!=='string')delete y[n]; });
+        ['age','walk','rent'].forEach(n=>{ if(y[n]!==undefined&&y[n]!==null&&typeof y[n]!=='number')delete y[n]; });
+        return y;
+      });
+      out['madori-history']=JSON.stringify(list);
+    }
+  }
+  // 称号は、ゲームにある称号だけ
+  ['madori-titles','madori-titles-seen'].forEach(k=>{
+    if(out[k]===undefined)return;
+    let a; try{ a=JSON.parse(out[k]); }catch(e){ a=null; }
+    if(!Array.isArray(a)){ delete out[k]; return; }
+    const master=new Set(ALL_TITLES_MASTER.map(m=>m.title));
+    out[k]=JSON.stringify(a.filter(t=>typeof t==='string'&&master.has(t)));
+  });
+  if(out['madori-selected-title']&&!ALL_TITLES_MASTER.some(m=>m.title===out['madori-selected-title']))out['madori-selected-title']='';
+  // プレイ中の物件は、読める形でなければ捨てる（その場合は新しい土地から）
+  if(out['madori-game-state']!==undefined){ try{ JSON.parse(out['madori-game-state']); }catch(e){ delete out['madori-game-state']; } }
+  return Object.keys(out).length?out:null;
+}
+function importSaveFile(file){
+  if(file.size>TRANSFER_MAX_BYTES){ showGameToast('ファイルが大きすぎて読み込めません'); return; }
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    let obj=null; try{ obj=JSON.parse(String(rd.result||'')); }catch(e){}
+    const data=_checkSaveData(obj);
+    if(!data){ showGameToast('間取りすとのセーブデータではないようです'); return; }
+    const titles=(()=>{ try{ return JSON.parse(data['madori-titles']||'[]').length; }catch(e){ return 0; } })();
+    const homes=(()=>{ try{ return JSON.parse(data['madori-history']||'[]').length; }catch(e){ return 0; } })();
+    const ok=await miniConfirm('<div class="mc-name">このデータを読み込みますか？</div>'
+      +'<div class="mc-msg">称号 '+titles+'個・マイ物件 '+homes+'件<br><b>今この端末にあるデータは上書きされます。</b></div>','読み込む','やめる');
+    if(!ok)return;
+    try{
+      TRANSFER_KEYS.forEach(k=>localStorage.removeItem(k));
+      for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(k&&TRANSFER_KEY_RE.test(k))localStorage.removeItem(k); }
+      Object.keys(data).forEach(k=>localStorage.setItem(k,data[k]));
+    }catch(e){ showGameToast('保存できませんでした（端末の空き容量を確認してね）'); return; }
+    showGameToast('読み込みました！最初の画面から始めます');
+    setTimeout(()=>location.reload(),900);
+  };
+  rd.onerror=()=>showGameToast('ファイルを読めませんでした');
+  rd.readAsText(file);
+}
 // 称号一覧から、タップでつける・外す
 async function toggleEquipTitle(title){
   const m=ALL_TITLES_MASTER.find(x=>x.title===title); if(!m)return;
@@ -3478,7 +3613,10 @@ function renderSavesList(){
     }else{
       const t=document.createElement('div');
       t.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:10px;padding:22px 18px;text-align:center;color:var(--brown-dark);font-size:14px;line-height:1.9;';
-      t.innerHTML=(s.label||'物件')+'<br>築'+(s.age??'--')+'年・駅徒歩'+(s.walk??'--')+'分・家賃'+(s.rent??'--')+'万円';
+      // 保存データは文字としてだけ入れる（引き継ぎファイルから来た文字列が HTML として動かないように）
+      const l1=document.createElement('div'); l1.textContent=String(s.label||'物件');
+      const l2=document.createElement('div'); l2.textContent='築'+(s.age??'--')+'年・駅徒歩'+(s.walk??'--')+'分・家賃'+(s.rent??'--')+'万円';
+      t.appendChild(l1); t.appendChild(l2);
       pageEl.appendChild(t);
     }
     info.innerHTML='';
