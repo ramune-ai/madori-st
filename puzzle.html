@@ -18,7 +18,8 @@
 <link rel="apple-touch-icon" href="image/icon-180.png?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Yomogi&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<!-- ゲームの土台（Phaser 3.60.0）も自分のサイトに置いた固定の版を使う。外部の配信元が乗っ取られても影響を受けないため -->
+<script src="lib/phaser.min.js?v=3.60.0"></script>
 <!-- 画像を作る部品はゲームと同じ場所に置く（外部サイトだと、広告ブロック等で読み込めない環境があったため） -->
 <script src="lib/html2canvas.min.js?v=1"></script>
 <style>
@@ -26,6 +27,9 @@
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 .title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
 .title-badge .tb-emoji{line-height:1;display:block;will-change:transform;letter-spacing:0;text-indent:0;}
+/* データの引き継ぎの説明 */
+#mini-confirm .dt-msg{font-size:13px;color:var(--brown);line-height:1.7;margin-bottom:14px;text-align:left;}
+#mini-confirm .dt-msg small{display:block;font-size:11px;color:var(--brown-light);margin-top:6px;}
 .name-edit-foot{position:sticky;bottom:0;background:var(--cream);padding:14px 0 24px;margin-top:auto;border-top:1px solid rgba(90,74,58,.12);}
 :root{
   --cream:#f5f0e8;
@@ -520,6 +524,10 @@ body.resume-hide #screen-game{opacity:0!important;}
 .title-grid-card.owned{cursor:pointer;}
 .title-grid-card.equipped{border-color:#5a8a50;box-shadow:0 0 0 2px rgba(90,138,80,.45);}
 .title-grid-eq{position:absolute;top:6px;left:6px;font-size:10px;font-weight:800;letter-spacing:.04em;background:#5a8a50;color:#fff;padding:2px 7px;border-radius:10px;}
+/* 称号一覧の見出しの右の案内（×ボタンにかからない幅で） */
+.modal-title:has(.mt-hint){display:flex;align-items:center;padding-right:34px;}
+.modal-title .mt-hint{flex:1;min-width:0;margin-left:10px;white-space:nowrap;font-family:'Noto Sans JP',sans-serif;font-size:11px;line-height:1.45;letter-spacing:0;color:var(--brown);font-weight:700;}
+@media(min-width:600px){ .modal-title .mt-hint{font-size:14px;} }
 .titles-hint{font-size:13px;color:var(--brown);background:#fff8ea;border:1px dashed rgba(200,160,96,.6);border-radius:8px;padding:6px 10px;margin:-4px 0 12px;text-align:center;}
 /* 称号をつける・外す時の確認 */
 #mini-confirm{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;background:rgba(40,28,18,.45);}
@@ -531,6 +539,11 @@ body.resume-hide #screen-game{opacity:0!important;}
 #mini-confirm .mc-btns{display:flex;gap:10px;}
 #mini-confirm button{flex:1;padding:12px 0;border-radius:999px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
 #mini-confirm .mc-ok{background:var(--brown-dark);color:#f5f0e8;border:none;}
+/* シェアの形をえらぶ */
+#mini-confirm .sc-opts{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px;}
+#mini-confirm button.sc-opt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 10px;border-radius:14px;background:#fff;color:var(--brown-dark);border:1.5px solid #c8a060;box-shadow:0 2px 8px rgba(58,42,26,.1);}
+#mini-confirm .sc-opt b{font-size:15px;}
+#mini-confirm .sc-opt span{font-size:11px;font-weight:500;color:var(--brown-light);line-height:1.4;}
 #mini-confirm .mc-no{background:#fff;color:var(--brown-dark);border:1.5px solid rgba(90,74,58,.25);}
 @media(min-width:600px){ #mini-confirm .mc-card{zoom:var(--pcs,1);} }
 /* チュートリアル：説明しているボタンに目が行くよう、光の輪を広げる */
@@ -630,8 +643,9 @@ body.resume-hide #screen-game{opacity:0!important;}
 .fw-wd{font-size:14px;font-weight:800;line-height:1.25;}
 .fw-w{font-size:12px;font-weight:800;line-height:1.3;white-space:nowrap;letter-spacing:-.04em;min-height:15px;margin-top:1px;}
 .fw-w2{font-size:12px;font-weight:800;line-height:1.25;white-space:nowrap;min-height:15px;}
-.fw-d.on .fw-w2{color:#c0392b;}
-.fw-d.on .fw-w{color:#c0392b;}
+/* フェアの内容は今日の分だけ赤。ほかの日はブラウン */
+.fw-d.on.today .fw-w2{color:#c0392b;}
+.fw-d.on.today .fw-w{color:#c0392b;}
 .fw-w.long{font-size:10.5px;letter-spacing:-.08em;}
 .fw-today{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:#fff;background:#d9443a;border-radius:8px;padding:0 5px;white-space:nowrap;line-height:1.5;}
 @media(min-width:600px){
@@ -894,9 +908,9 @@ body.no-reroll .reroll-note{display:none!important;}
   padding:5px 16px;border-radius:18px;margin-bottom:8px;
 }
 .res-hashtags{
-  display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;justify-content:center;
+  display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin:6px 0 0;flex:1;min-height:0;justify-content:center;
 }
-.res-hashtags>*{background:none !important;border:none !important;color:#7a5a30 !important;font-weight:900 !important;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:anywhere;line-height:1.3;text-align:left;padding:1px 0 !important;text-indent:0;}
+.res-hashtags>*{background:none !important;border:none !important;color:#7a5a30 !important;font-weight:900 !important;font-family:'Noto Serif JP',serif !important;font-size:14px;letter-spacing:.02em;word-break:keep-all;overflow-wrap:normal;line-break:strict;line-height:1.3;text-align:left;padding:1px 0 !important;text-indent:0;}
 .res-hashtag{
   font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:500;
   color:#6a8a50;background:rgba(106,138,80,.1);
@@ -929,7 +943,7 @@ body.no-reroll .reroll-note{display:none!important;}
 .result-spec-unit{font-size:11px;color:var(--brown-light);margin-left:1px;}
 #res-madori-preview{display:flex;justify-content:center;margin-bottom:14px;}
 .res-card-footer{margin-top:12px;font-family:'Noto Sans JP',sans-serif;font-size:11px;color:#b0a090;letter-spacing:.1em;}
-.res-main-row{display:flex;gap:12px;align-items:flex-start;justify-content:center;margin:4px 0 2px;flex-wrap:nowrap;}
+.res-main-row{display:flex;gap:12px;align-items:stretch;justify-content:center;margin:4px 0 2px;flex-wrap:nowrap;}
 #res-madori-preview{margin-bottom:0;}
 .res-side{display:flex;flex-direction:column;gap:8px;min-width:118px;}
 .res-spec-v{background:#fff;border:1px solid rgba(90,74,58,.14);border-radius:10px;padding:6px 12px;text-align:center;}
@@ -947,6 +961,13 @@ body.no-reroll .reroll-note{display:none!important;}
 html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 #screen-result{overflow-y:auto;justify-content:flex-start;padding-top:8px;scrollbar-gutter:stable both-edges;}
 .result-wrap{padding-bottom:40px;}
+/* スマホ：body がステータスバーのぶん下がっているので、画面の高さもそのぶん引く
+   （引かないと一番下の「タイトルへもどる」が画面の外にはみ出す）。全体も少し上へ */
+@media(max-width:599px){
+  #screen-result{padding-top:2px;height:calc(100dvh - env(safe-area-inset-top, 0px));}
+  .again-wrap{margin-top:12px;}
+  .btn-tolink{padding:4px 0 6px;}
+}
 #title-reveal-list{padding-bottom:150px;width:100%;max-width:420px;margin:0 auto;box-sizing:border-box;}
 .res-meta{font-family:'Noto Sans JP',sans-serif;font-size:14px;color:#5a4a3a;letter-spacing:.04em;text-align:center;line-height:1.4;padding:4px 8px 0;max-width:100%;}
 .res-meta-name{font-family:'Noto Serif JP',serif;font-weight:700;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:3px;}
@@ -957,6 +978,15 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
 .res-promo-sep{border-top:1px dashed rgba(90,74,58,.3);margin:6px 8px 0;}
 .res-promo{margin-top:5px;padding-bottom:0;font-family:'Noto Sans JP',sans-serif;line-height:1.4;}
 .res-promo-sns{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#7a5a30;letter-spacing:.06em;}
+/* シェア画像用に画面の外で作る複製カード。端末の幅に関係なく、いつも同じ見た目（スマホ版の形）で写す。
+   画面幅で切り替わる指定（スマホ用・細い端末用）を、ここでは固定値で上書きする */
+#share-render-host .res-main-row{flex-wrap:nowrap;gap:8px;}
+#share-render-host .res-side{min-width:0;width:106px;flex-shrink:0;}
+#share-render-host .res-spec-v{padding:5px 2px;}
+#share-render-host .rsv-label{letter-spacing:.06em;}
+#share-render-host .rsv-val{font-size:25px;}
+#share-render-host .res-card-band{gap:18px;font-size:17px;padding:6px 10px;}
+#share-render-host .res-promo{white-space:nowrap;}
 .res-promo-author{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:400;color:#a08a70;letter-spacing:.05em;white-space:nowrap;}
 
 /* カード上部のゲーム名。普通のスクショでも必ず写る位置に置く */
@@ -1514,6 +1544,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <button class="top-link" onclick="openSoundSettings()">♪ 音楽設定</button>
     <a class="top-link" href="guideline.html" target="_blank" rel="noopener">📋 配信ガイドライン</a>
     <button class="top-link" id="btn-update-info" onclick="openUpdateInfo()">📰 アップデート情報<span class="upd-new" id="upd-new" style="display:none;">NEW!!</span></button>
+    <button class="top-link" onclick="openDataTransfer()">📦 データの引き継ぎ</button>
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
   <!-- 右上：ゲーム内容を伝える物件貼り紙 -->
@@ -1566,7 +1597,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="ne-pv-cap">完成カードでは、こう表示されます</div>
       <div class="ne-pv-row"><span class="ne-pv-name">マドリスト　<b id="ne-pv-name">とくめい</b></span><span id="ne-pv-badge"></span></div>
     </div>
-    <div class="ne-label"><i>1</i>マドリスト名を入れる<span>8文字まで</span></div>
+    <div class="ne-label"><i>1</i>マドリスト名を入れる<span>8文字まで・シェア画像にのるので本名はNG</span></div>
     <input id="player-name-input" type="text" maxlength="8" placeholder="名前を入力（最大8文字）" oninput="updateNePreview()"
       style="width:100%;background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:4px;padding:10px 14px;font-size:15px;color:var(--brown-dark);font-family:'Noto Serif JP',serif;letter-spacing:.1em;outline:none;margin-bottom:4px;"
       onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(90,74,58,.25)'">
@@ -1806,7 +1837,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
       <div class="result-sub-row">
         <button class="btn-result sub" onclick="openModal('titles')">🏅 称号</button>
         <button class="btn-result sub fav" id="res-fav-btn" onclick="toggleResultFav()">☆ お気に入り</button>
-        <button class="btn-result sub" onclick="saveAndShare()">📤 シェア</button>
+        <button class="btn-result sub" onclick="openShareChooser()">📤 シェア</button>
       </div>
       <button class="btn-tolink" onclick="gotoStart()">タイトルへもどる</button>
     </div>
@@ -2616,14 +2647,146 @@ function miniConfirm(html,okLabel,noLabel){
     el.innerHTML='<div class="mc-card">'+html+'<div class="mc-btns"><button class="mc-no">'+(noLabel||'やめる')+'</button><button class="mc-ok">'+(okLabel||'OK')+'</button></div></div>';
     el.classList.add('active');
     const done=v=>{ el.classList.remove('active'); res(v); };
-    el.querySelector('.mc-ok').onclick=()=>done(true);
-    el.querySelector('.mc-no').onclick=()=>done(false);
+    el.querySelector('.mc-ok').onclick=()=>{ playSE('tap'); done(true); };
+    el.querySelector('.mc-no').onclick=()=>{ playSE('tap'); done(false); };
     el.onclick=e=>{ if(e.target===el)done(false); };
   });
+}
+// ════════════════════════════════════════
+// データの引き継ぎ（機種変更）
+// サーバーには何も送らない。データはファイルにして、遊んでいる人の手元で運んでもらう
+// ════════════════════════════════════════
+// 引き継ぐデータ（開発用・エラー記録は入れない）
+const TRANSFER_KEYS=['madori-player-name','madori-selected-title','madori-titles','madori-titles-seen',
+  'madori-complete-count','madori-history','madori-game-state','madori-fair-first','madori-update-seen',
+  'madori-bgm-mute','madori-bgm-vol','madori-se-mute','madori-se-vol','madori-tutorial-done'];
+const TRANSFER_KEY_RE=/^madori-tut-[a-z0-9-]{1,40}$/;
+const TRANSFER_MAX_BYTES=30*1024*1024;
+function _isTransferKey(k){ return TRANSFER_KEYS.includes(k)||TRANSFER_KEY_RE.test(k); }
+// ブラウザに「このサイトのデータは消さないで」と頼む（対応していない環境では何もしない）
+try{ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{}); }catch(e){}
+
+function openDataTransfer(){
+  playSE('tap');
+  let el=document.getElementById('mini-confirm');
+  if(!el){ el=document.createElement('div'); el.id='mini-confirm'; document.body.appendChild(el); }
+  el.innerHTML='<div class="mc-card"><div class="mc-name">データの引き継ぎ</div>'
+    +'<div class="dt-msg">今のデータ（称号・マイ物件・プレイ中の物件・設定）を<b>ファイルに保存</b>して、新しい端末で<b>読み込む</b>と続きから遊べます。'
+    +'<small>※データは、この端末とファイルの中だけにあります。インターネット上には送りません。<br>※iPhoneは「ファイルに保存」を選ぶと、ファイルアプリに残せます。</small></div>'
+    +'<div class="sc-opts">'
+    +'<button class="sc-opt" data-k="out"><b>💾 このデータを保存する</b><span>ファイルに書き出す（前の端末で）</span></button>'
+    +'<button class="sc-opt" data-k="in"><b>📂 保存したデータを読み込む</b><span>ファイルを選ぶ（新しい端末で）</span></button>'
+    +'</div><div class="mc-btns"><button class="mc-no">とじる</button></div></div>';
+  el.classList.add('active');
+  const close=()=>el.classList.remove('active');
+  el.querySelector('[data-k="out"]').onclick=()=>{ playSE('tap'); close(); exportSaveData(); };
+  el.querySelector('[data-k="in"]').onclick=()=>{ playSE('tap'); close(); pickSaveFile(); };
+  el.querySelector('.mc-no').onclick=()=>{ playSE('tap'); close(); };
+  el.onclick=e=>{ if(e.target===el)close(); };
+}
+function _saveFileName(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return '間取りすと_セーブ_'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
+}
+async function exportSaveData(){
+  const data={};
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&_isTransferKey(k))data[k]=localStorage.getItem(k);
+    }
+  }catch(e){}
+  const json=JSON.stringify({app:'madori-st',format:1,savedAt:new Date().toISOString(),data});
+  const name=_saveFileName();
+  const file=new File([json],name,{type:'application/json'});
+  const isMobile=('ontouchstart' in window)&&Math.min(window.innerWidth,window.innerHeight)<820;
+  // スマホは共有シート（「ファイルに保存」）、PCはそのままダウンロード
+  if(isMobile&&navigator.canShare&&navigator.share){
+    let ok=false; try{ ok=navigator.canShare({files:[file]}); }catch(e){}
+    if(ok){
+      try{ await navigator.share({files:[file]}); showGameToast('保存できたら、新しい端末で「読み込む」を選んでね'); return; }
+      catch(e){ if(e&&e.name==='AbortError')return; }
+    }
+  }
+  const url=URL.createObjectURL(file);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); },1500);
+  showGameToast('セーブデータを保存しました💾');
+}
+function pickSaveFile(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.json,application/json'; inp.style.display='none';
+  inp.onchange=()=>{ const f=inp.files&&inp.files[0]; inp.remove(); if(f)importSaveFile(f); };
+  document.body.appendChild(inp); inp.click();
+}
+// 読み込むファイルは「他の人から渡されたもの」かもしれない前提で、中身を確かめてから使う
+function _checkSaveData(obj){
+  if(!obj||typeof obj!=='object'||obj.app!=='madori-st'||typeof obj.data!=='object'||!obj.data||Array.isArray(obj.data))return null;
+  const out={};
+  for(const k of Object.keys(obj.data)){
+    const v=obj.data[k];
+    if(!_isTransferKey(k)||typeof v!=='string')continue;   // 知らない項目・文字以外は捨てる
+    out[k]=v;
+  }
+  // 名前は8文字まで
+  if(out['madori-player-name']!==undefined)out['madori-player-name']=out['madori-player-name'].slice(0,8);
+  // マイ物件：画像は「画像のデータ」だけを受け付け、文字の項目は文字にそろえる
+  if(out['madori-history']!==undefined){
+    let list; try{ list=JSON.parse(out['madori-history']); }catch(e){ list=null; }
+    if(!Array.isArray(list))delete out['madori-history'];
+    else{
+      const IMG=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+      list=list.filter(x=>x&&typeof x==='object').slice(0,200).map(x=>{
+        const y=Object.assign({},x);
+        if(y.img!==undefined&&!(typeof y.img==='string'&&IMG.test(y.img)))delete y.img;
+        ['label','labelRaw','propName','date','equipped'].forEach(n=>{ if(y[n]!==undefined&&typeof y[n]!=='string')delete y[n]; });
+        ['age','walk','rent'].forEach(n=>{ if(y[n]!==undefined&&y[n]!==null&&typeof y[n]!=='number')delete y[n]; });
+        return y;
+      });
+      out['madori-history']=JSON.stringify(list);
+    }
+  }
+  // 称号は、ゲームにある称号だけ
+  ['madori-titles','madori-titles-seen'].forEach(k=>{
+    if(out[k]===undefined)return;
+    let a; try{ a=JSON.parse(out[k]); }catch(e){ a=null; }
+    if(!Array.isArray(a)){ delete out[k]; return; }
+    const master=new Set(ALL_TITLES_MASTER.map(m=>m.title));
+    out[k]=JSON.stringify(a.filter(t=>typeof t==='string'&&master.has(t)));
+  });
+  if(out['madori-selected-title']&&!ALL_TITLES_MASTER.some(m=>m.title===out['madori-selected-title']))out['madori-selected-title']='';
+  // プレイ中の物件は、読める形でなければ捨てる（その場合は新しい土地から）
+  if(out['madori-game-state']!==undefined){ try{ JSON.parse(out['madori-game-state']); }catch(e){ delete out['madori-game-state']; } }
+  return Object.keys(out).length?out:null;
+}
+function importSaveFile(file){
+  if(file.size>TRANSFER_MAX_BYTES){ showGameToast('ファイルが大きすぎて読み込めません'); return; }
+  const rd=new FileReader();
+  rd.onload=async()=>{
+    let obj=null; try{ obj=JSON.parse(String(rd.result||'')); }catch(e){}
+    const data=_checkSaveData(obj);
+    if(!data){ showGameToast('間取りすとのセーブデータではないようです'); return; }
+    const titles=(()=>{ try{ return JSON.parse(data['madori-titles']||'[]').length; }catch(e){ return 0; } })();
+    const homes=(()=>{ try{ return JSON.parse(data['madori-history']||'[]').length; }catch(e){ return 0; } })();
+    const ok=await miniConfirm('<div class="mc-name">このデータを読み込みますか？</div>'
+      +'<div class="mc-msg">称号 '+titles+'個・マイ物件 '+homes+'件<br><b>今この端末にあるデータは上書きされます。</b></div>','読み込む','やめる');
+    if(!ok)return;
+    try{
+      TRANSFER_KEYS.forEach(k=>localStorage.removeItem(k));
+      for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i); if(k&&TRANSFER_KEY_RE.test(k))localStorage.removeItem(k); }
+      Object.keys(data).forEach(k=>localStorage.setItem(k,data[k]));
+    }catch(e){ showGameToast('保存できませんでした（端末の空き容量を確認してね）'); return; }
+    showGameToast('読み込みました！最初の画面から始めます');
+    setTimeout(()=>location.reload(),900);
+  };
+  rd.onerror=()=>showGameToast('ファイルを読めませんでした');
+  rd.readAsText(file);
 }
 // 称号一覧から、タップでつける・外す
 async function toggleEquipTitle(title){
   const m=ALL_TITLES_MASTER.find(x=>x.title===title); if(!m)return;
+  playSE('tap');
   const cur=localStorage.getItem('madori-selected-title')||'';
   const on=cur===title;
   const html='<div class="mc-badge">'+titleBadgeHTML(m.badge,m.rar,64)+'</div><div class="mc-name">'+title+'</div>'
@@ -3421,7 +3584,10 @@ function renderSavesList(){
     }else{
       const t=document.createElement('div');
       t.style.cssText='background:#fff;border:1px solid rgba(90,74,58,.15);border-radius:10px;padding:22px 18px;text-align:center;color:var(--brown-dark);font-size:14px;line-height:1.9;';
-      t.innerHTML=(s.label||'物件')+'<br>築'+(s.age??'--')+'年・駅徒歩'+(s.walk??'--')+'分・家賃'+(s.rent??'--')+'万円';
+      // 保存データは文字としてだけ入れる（引き継ぎファイルから来た文字列が HTML として動かないように）
+      const l1=document.createElement('div'); l1.textContent=String(s.label||'物件');
+      const l2=document.createElement('div'); l2.textContent='築'+(s.age??'--')+'年・駅徒歩'+(s.walk??'--')+'分・家賃'+(s.rent??'--')+'万円';
+      t.appendChild(l1); t.appendChild(l2);
       pageEl.appendChild(t);
     }
     info.innerHTML='';
@@ -3558,7 +3724,7 @@ function upgradeHistoryCards(){
 // 同じ内容で旧方式を空描きして、間取り図が置かれた位置を記録する
 async function _cropLegacyMadori(entry,im){
   const fake=document.createElement('canvas');
-  fake.width=CANVAS_W; fake.height=CANVAS_H;
+  fake.width=COLS*CS; fake.height=ROWS*CS;
   let rect=null;
   const P=CanvasRenderingContext2D.prototype, orig=P.drawImage;
   P.drawImage=function(img){
@@ -3615,7 +3781,7 @@ async function renderHistoryCard(entry,snap){
     if(titles[0]){
       const sp=document.createElement('span');
       sp.className='res-hashtag';
-      sp.innerHTML='#'+wbrBoundaries(titleToHashtag(titles[0]).replace(/^#/,''));
+      sp.innerHTML='#2060'+wbrBoundaries(titleToHashtag(titles[0]).replace(/^#/,''));
       tw.appendChild(sp); tw.style.display='flex';
     }else tw.style.display='none';
     q('res-name2').textContent=(entry.propName||'').replace(/^間取りすと：/,'')||'とくめい';
@@ -3629,7 +3795,7 @@ async function renderHistoryCard(entry,snap){
     // 画面の描き直しを待つ（タブが裏にあると描き直しが止まるので、時間で待つ）
     await new Promise(r=>setTimeout(r,80));
     fitHeroLabel(q('res-room-label'));
-    tw.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
+    tw.querySelectorAll('.res-hashtag').forEach(el=>fitTagToSpace(el,14,11));
     let fs=18, g=8;
     while(pop.style.display!=='none'&&pop.scrollWidth>pop.clientWidth+1&&fs>13&&g-->0){ fs--; pop.style.fontSize=fs+'px'; }
     return await _captureCardEl(card);
@@ -3728,6 +3894,23 @@ function fitToWidth(el,startFs,minFs){
     if(el.scrollWidth<=el.clientWidth+1)break;
     fs-=1; el.style.fontSize=fs+'px';
   }
+}
+// ハッシュタグ：家賃の下から間取り図の下端までの空きに収まるまで小さくする
+// （言葉の途中では折り返さないので、いちばん長いひとかたまりが横に入らない時も小さくする。
+//   いちばん小さくしても入らない長い言葉だけは、途中で折り返してよいことにして測り直す）
+function fitTagToSpace(el,startFs,minFs){
+  if(!el)return;
+  const wrap=el.parentElement; if(!wrap)return;
+  const fit=()=>{
+    let fs=startFs, guard=40;
+    el.style.fontSize=fs+'px';
+    while(fs>minFs && guard-->0 && (wrap.scrollHeight>wrap.clientHeight+1||el.offsetWidth>wrap.clientWidth+1)){
+      fs-=0.5; el.style.fontSize=fs+'px';
+    }
+  };
+  el.style.overflowWrap='';
+  fit();
+  if(el.offsetWidth>wrap.clientWidth+1){ el.style.overflowWrap='anywhere'; fit(); }
 }
 function fitToLines(el,maxLines,startFs,minFs){
 
@@ -3920,7 +4103,7 @@ function renderTitlesPage(){
   // NEW＝獲得済みだが一覧でまだ見ていない称号（既読はmadori-titles-seenで管理）
   const seen=new Set(JSON.parse(localStorage.getItem('madori-titles-seen')||'[]'));
   const newSet=new Set([...owned].filter(t=>!seen.has(t)));
-  title.textContent='称号一覧';
+  title.innerHTML='称号一覧'+(owned.size?'<span class="mt-hint">獲得した称号をタップすると、<br>完成カードにバッジをつけられます</span>':'');
   if(ALL_TITLES_MASTER.length===0){
     body.innerHTML='<div class="modal-empty">まだ称号がありません。<br>プレイして称号を獲得しよう！</div>';
     return;
@@ -3964,12 +4147,6 @@ function renderTitlesPage(){
   }
   body.appendChild(header);
 
-  if(owned.size){
-    const hint=document.createElement('div');
-    hint.className='titles-hint';
-    hint.textContent='獲得した称号をタップすると、完成カードにバッジをつけられます';
-    body.appendChild(hint);
-  }
   const equipped=localStorage.getItem('madori-selected-title')||'';
   const grid=document.createElement('div');
   grid.className='title-grid';
@@ -4042,6 +4219,23 @@ function updateTitlesNewBadge(){
 // 本番に入れるたびに先頭へ1つ足す。先頭の ver が変わると、まだ見ていない人のボタンに NEW!! が付く
 // Ver.1.0＝2026/9/11 一般公開／Ver.1.1＝9/12／Ver.1.2＝9/27
 const UPDATES=[
+  {ver:'1.4', date:'2026年10月16日', html:
+  '<div class="upd-h">■ 新しくなったこと</div><ul>'+
+  '<li><b>データの引き継ぎ</b>ができるようになりました（スタート画面の「📦 データの引き継ぎ」）。今のデータをファイルに保存して、新しい端末で読み込むと続きから遊べます。データはインターネットには送りません</li>'+
+  '<li>シェアする時に、<b>カード画像</b>と<b>縦長の画像（インスタのストーリーズ向け）</b>を選べるようになりました</li>'+
+  '</ul><div class="upd-h">■ 変わったこと</div><ul>'+
+  '<li>シェア画像が、PCでもスマホでも同じ見た目・同じ画質になりました</li>'+
+  '<li>土地の枠を土地の外側に描くようにして、パーツのふちが隠れないようにしました</li>'+
+  '<li>完成カードのハッシュタグを、長い時も小さくなりすぎないようにしました</li>'+
+  '<li>スタート画面の「今週のフェア」で、今日以外の曜日の文字を落ち着いた色にしました</li>'+
+  '<li>称号一覧の説明を見出しの横に移し、称号をタップした時に音が鳴るようにしました</li>'+
+  '<li>マドリスト名の欄に「本名は入れないでね」の注意を足しました（シェア画像にのるため）</li>'+
+  '</ul><div class="upd-h">■ 直したこと</div><ul>'+
+  '<li>スマホで、物件情報ルーレットに移る時に画面がガクッと動く不具合を直しました</li>'+
+  '<li>スマホの完成画面で、一番下の「タイトルへもどる」が見切れることがある不具合を直しました</li>'+
+  '<li>Xなどにシェアした時、間取りの「＋」が消えてしまう不具合を直しました</li>'+
+  '<li>ゲームの部品を、外部のサイトからではなく間取りすとのサイトから読み込むようにして、より安全にしました</li>'+
+  '</ul>'},
   {ver:'1.3', date:'2026年10月2日', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
   '<li><b>曜日ごとのフェア</b>を始めました（スタート画面の「今週のフェア」から内容を見られます）<br>'+
@@ -4206,7 +4400,8 @@ function startRoulette(silent){
   document.getElementById('rou-0').classList.add('active-slot');
   document.getElementById('btn-rou-next').classList.remove('visible');
   refreshWashBtns();
-  requestAnimationFrame(fitRouletteMobile); setTimeout(fitRouletteMobile,150);
+  // 画面を出したその場で縮める（描いてから縮めるとガクッと動く）。後の2回は文字の読み込み待ちの念のため
+  fitRouletteMobile(); requestAnimationFrame(fitRouletteMobile); setTimeout(fitRouletteMobile,150);
   for(let i=0;i<3;i++){
     if(rouletteIntervals[i])clearInterval(rouletteIntervals[i]);
     (idx=>{
@@ -4616,13 +4811,13 @@ function showResult(){
         const isNew=newTitles.includes(t);
         const span=document.createElement('span');
         span.className='res-hashtag'+(isNew?' new':'');
-        const _ht=titleToHashtag(t); span.innerHTML='#'+wbrBoundaries(_ht.replace(/^#/,''));
+        const _ht=titleToHashtag(t); span.innerHTML='#2060'+wbrBoundaries(_ht.replace(/^#/,''));
         tagWrap.appendChild(span);
       });
       tagWrap.style.display='flex';
       // 各タグを2行以内に縮小（単語境界優先）
       requestAnimationFrame(()=>{
-        tagWrap.querySelectorAll('.res-hashtag').forEach(el=>fitToLines(el,2,14,9));
+        tagWrap.querySelectorAll('.res-hashtag').forEach(el=>fitTagToSpace(el,14,11));
       });
     } else {
       tagWrap.style.display='none';
@@ -4797,8 +4992,9 @@ function toggleResultFav(){
 // ボタンを押してから作ると、その待ち時間のせいで iPhone が
 // 「押した直後の操作」と見なさず、共有シートを開いてくれないため
 let _shareFile=null, _shareCanvas=null, _sharePrepTimer=null;
+let _storyFile=null, _storyCanvas=null;
 function prepareShareImage(){
-  _shareFile=null; _shareCanvas=null;
+  _shareFile=null; _shareCanvas=null; _storyFile=null; _storyCanvas=null;
   if(_sharePrepTimer)clearTimeout(_sharePrepTimer);
   let tries=0;
   const run=async()=>{
@@ -4817,6 +5013,8 @@ function prepareShareImage(){
       _shareCanvas=cv;
       _storeCardInHistory(cv);
       cv.toBlob(b=>{ if(b)_shareFile=new File([b],'madori.png',{type:'image/png'}); },'image/png');
+      _storyCanvas=_makeStoryCanvas(cv);
+      _storyCanvas.toBlob(b=>{ if(b)_storyFile=new File([b],'madori-story.png',{type:'image/png'}); },'image/png');
     }catch(e){}
   };
   _sharePrepTimer=setTimeout(run,800);
@@ -4825,25 +5023,47 @@ function _shareText(){
   const r=window._lastResult||{};
   const tags=(window._shareTags||(r.titles||[]).slice(0,1)).map(titleToHashtag);
   const titleTags=tags.join(' ');
-  return '間取りすとで自分だけの間取り物件を作ったよ！ '+(r.label||'')+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'')+'\nhttps://ramune-ai.github.io/madori-st/';
+  // 半角の「+」は、Xなどのアプリが共有の文面を受け取る時に空白に変えてしまう
+  // （URLの書き方で「+」＝空白のため）。全角の「＋」にしておけば消えない
+  const label=String(r.label||'').replace(/\+/g,'＋');
+  return '間取りすとで自分だけの間取り物件を作ったよ！ '+label+'  #間取りすと #間取りパズル'+(titleTags?' '+titleTags:'')+'\nhttps://ramune-ai.github.io/madori-st/';
 }
-async function saveAndShare(){
+// シェアの形をえらぶ（カード画像／ストーリーズ用の縦長）
+function openShareChooser(){
+  playSE('tap');
+  let el=document.getElementById('mini-confirm');
+  if(!el){ el=document.createElement('div'); el.id='mini-confirm'; document.body.appendChild(el); }
+  el.innerHTML='<div class="mc-card"><div class="mc-name">シェアする形をえらぶ</div><div class="sc-opts">'
+    +'<button class="sc-opt" data-k="card"><b>📷 カード画像</b><span>X・LINE・Threads などに</span></button>'
+    +'<button class="sc-opt" data-k="story"><b>📱 縦長の画像（9:16）</b><span>インスタのストーリーズに。<br>上にひとこと書けるスペースつき</span></button>'
+    +'</div><div class="mc-btns"><button class="mc-no">やめる</button></div></div>';
+  el.classList.add('active');
+  const close=()=>el.classList.remove('active');
+  // 押したその場で共有シートを開く（間に待ちが入ると iPhone が開いてくれない）
+  el.querySelectorAll('.sc-opt').forEach(b=>b.onclick=()=>{ playSE('tap'); close(); saveAndShare(b.dataset.k); });
+  el.querySelector('.mc-no').onclick=()=>{ playSE('tap'); close(); };
+  el.onclick=e=>{ if(e.target===el)close(); };
+}
+async function saveAndShare(kind){
+  const story=kind==='story';
   const text=_shareText();
   const nm=(window._playerName||'madori').replace(/[\s　\/\\]/g,'_');
   const isMobile=('ontouchstart' in window) && Math.min(window.innerWidth,window.innerHeight)<820;
 
   // 画像が出来ていれば、何も待たずにすぐ共有シートを開く（iPhone対策）
-  if(isMobile && _shareFile && navigator.canShare && navigator.share){
-    let ok=false; try{ ok=navigator.canShare({files:[_shareFile]}); }catch(e){}
+  const preFile=story?_storyFile:_shareFile;
+  if(isMobile && preFile && navigator.canShare && navigator.share){
+    let ok=false; try{ ok=navigator.canShare({files:[preFile]}); }catch(e){}
     if(ok){
-      try{ await navigator.share({files:[_shareFile], text}); return; }
+      try{ await navigator.share({files:[preFile], text}); return; }
       catch(e){ if(e&&e.name==='AbortError')return; }
     }
   }
 
   // まだ出来ていない・共有に対応していない時はここで作る
   if(document.fonts&&document.fonts.ready){ try{await document.fonts.ready;}catch(e){} }
-  const cv=_shareCanvas||await buildPropertyCard();
+  const cardCv=_shareCanvas||await buildPropertyCard();
+  const cv=story?(_storyCanvas||_makeStoryCanvas(cardCv)):cardCv;
   const copyText=async()=>{
     if(navigator.clipboard&&navigator.clipboard.writeText){ try{ await navigator.clipboard.writeText(text); }catch(e){} }
   };
@@ -4854,7 +5074,7 @@ async function saveAndShare(){
       if(!blob){ showGameToast('画像の作成に失敗しました'); return; }
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
-      a.href=url; a.download='物件_'+nm+'.png'; a.style.display='none';
+      a.href=url; a.download='物件_'+nm+(story?'_ストーリー':'')+'.png'; a.style.display='none';
       document.body.appendChild(a); a.click();
       setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1500);
     },'image/png');
@@ -4896,9 +5116,9 @@ function buildPropertyCard(opt){
     // それでもだめな時だけ旧方式（古い見た目）にする
     return ensureHtml2canvas().then(ok=>{
       if(!ok)throw new Error('画像を作る部品を読み込めませんでした');
-      return _captureCardEl(card).catch(e=>{
+      return _captureShareCard().catch(e=>{
         console.warn('[card] 1回目に失敗→作り直し:',e);
-        return new Promise(r=>setTimeout(r,300)).then(()=>_captureCardEl(card,{scale:1}));
+        return new Promise(r=>setTimeout(r,300)).then(()=>_captureShareCard({scale:1}));
       });
     }).catch(e=>{
       console.warn('[card] 画面からの生成に失敗→旧方式:',e);
@@ -4907,6 +5127,59 @@ function buildPropertyCard(opt){
     });
   }
   return buildPropertyCardLegacy(opt);
+}
+// シェア画像のカードの幅。PCでもスマホでも同じ画像にするため、画面のカードではなく
+// この幅の複製を画面の外に作って写す（420＝最下段のSNSとIDが1行に収まる幅）
+const SHARE_CARD_W=420;
+async function _captureShareCard(o){
+  const src=document.getElementById('res-card');
+  if(!src)throw new Error('カードがありません');
+  const host=document.createElement('div');
+  host.id='share-render-host';
+  host.style.cssText='position:fixed;left:0;top:0;width:'+SHARE_CARD_W+'px;text-align:center;z-index:-10;opacity:0;pointer-events:none;';
+  const card=src.cloneNode(true);
+  card.id='res-card-share';
+  card.style.animation='none';
+  host.appendChild(card);
+  document.body.appendChild(host);
+  try{
+    const q=id=>card.querySelector('#'+id);
+    // 複製では canvas の絵が写らないので、間取り図はこの幅で描き直す
+    if(madoriSnapshot)drawResultPreview(q('res-madori-preview'),madoriSnapshot,SHARE_CARD_W);
+    // 幅が変わったので、見出し・ハッシュタグ・POPの大きさを合わせ直す
+    fitHeroLabel(q('res-room-label'));
+    card.querySelectorAll('.res-hashtag').forEach(el=>fitTagToSpace(el,14,11));
+    const pop=q('res-pop');
+    if(pop&&pop.style.display!=='none'){
+      let fs=18, g=8; pop.style.fontSize=fs+'px';
+      while(pop.scrollWidth>pop.clientWidth+1&&fs>13&&g-->0){ fs--; pop.style.fontSize=fs+'px'; }
+    }
+    await new Promise(r=>setTimeout(r,60));
+    // 画質も端末に関係なくそろえる（3倍＝幅1260px）
+    return await _captureCardEl(card,{scale:(o&&o.scale)||3});
+  }finally{ host.remove(); }
+}
+// インスタのストーリーズ用（9:16）。カードを下寄せに置き、上はひとこと書けるように空けておく
+function _makeStoryCanvas(cardCv){
+  const W=1080, H=1920;
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#f8f3ea'); bg.addColorStop(1,'#eadcc4');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  const s=Math.min((W-120)/cardCv.width, 1250/cardCv.height);
+  const cw=cardCv.width*s, ch=cardCv.height*s;
+  const x=(W-cw)/2, y=H-170-ch;
+  ctx.save();
+  ctx.shadowColor='rgba(58,42,26,.28)'; ctx.shadowBlur=36; ctx.shadowOffsetY=12;
+  ctx.fillStyle='#f5f0e8'; ctx.fillRect(x,y,cw,ch);
+  ctx.restore();
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(cardCv,x,y,cw,ch);
+  ctx.fillStyle='#8a7060'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font="700 30px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif";
+  ctx.fillText('ramune-ai.github.io/madori-st', W/2, H-85);
+  return cv;
 }
 // 画像を作る部品（html2canvas）が無ければ読み込む
 function ensureHtml2canvas(){
@@ -4956,8 +5229,7 @@ function _captureCardEl(card,o){
             const bg=doc.getElementById('madori-bg');
             if(bg)bg.style.display='none';
             // マイ物件の作り直し用に画面外へ置いたカードは、写す時だけ見えるようにする
-            const hh=doc.getElementById('hist-render-host');
-            if(hh)hh.style.opacity='1';
+            ['hist-render-host','share-render-host'].forEach(id=>{ const hh=doc.getElementById(id); if(hh)hh.style.opacity='1'; });
             // アニメーションを止めて、最後のコマ（不透明・等倍）で写す
             const st=doc.createElement('style');
             st.textContent='*,*::before,*::after{animation:none!important;transition:none!important;}'
@@ -5398,7 +5670,9 @@ function svgToCanvas(dataUrl){
 const CS=54,COLS=8,ROWS=10,UI_R=0;
 const SKIP_MAX=3;   // 1ゲームで使えるスキップ回数
 const COMPLETE_MIN_FILL=0.5;   // 完成できるのは、土地のマスがこの割合以上埋まってから（連打で即完成を防ぐ）
-const CANVAS_W=COLS*CS, CANVAS_H=ROWS*CS;
+// 盤のまわりの余白。土地の枠を土地の外側に描くためのもの（枠がパーツに重ならない）
+const BPAD=6;
+const CANVAS_W=COLS*CS+BPAD*2, CANVAS_H=ROWS*CS+BPAD*2;
 // 土地形状定義
 // null = 配置不可マス、0 = 通常マス
 // COLS=8, ROWS=10 のグリッド内で形を定義（外側はnull扱い）
@@ -5618,6 +5892,8 @@ class PuzzleGame extends Phaser.Scene{
     // document レベルのリスナーをリセット
     if(document._madoriMouseMove){document.removeEventListener('mousemove',document._madoriMouseMove);document._madoriMouseMove=null;}
     if(document._madoriMouseUp)  {document.removeEventListener('mouseup',  document._madoriMouseUp);  document._madoriMouseUp=null;}
+    // 余白のぶん、盤の原点をずらす（マスの座標はこれまでどおり c*CS, r*CS）
+    this.cameras.main.setScroll(-BPAD,-BPAD);
     this.bgGfx=this.add.graphics().setDepth(0);
     this.gridGfx=this.add.graphics().setDepth(1);
     this.borderGfx=this.add.graphics().setDepth(8); // 土地外枠（パーツより前面）
@@ -5827,8 +6103,8 @@ class PuzzleGame extends Phaser.Scene{
       const r=canvas.getBoundingClientRect();
       // offsetWidthではなく実際の表示矩形(r.width/height)で換算する：
       // 拡大の方式（CSSサイズ/transform）に関わらず常に正確
-      const bx=(cx-r.left)*(CANVAS_W/r.width);
-      const by=(cy-r.top )*(CANVAS_H/r.height);
+      const bx=(cx-r.left)*(CANVAS_W/r.width)-BPAD;
+      const by=(cy-r.top )*(CANVAS_H/r.height)-BPAD;
       // 土地のすぐ外側まではドラッグ有効とみなす（端でプレビューが消えないようマージンCS分）
       const M=CS;
       const ok = bx>=-M && by>=-M && bx<=CANVAS_W+M && by<=CANVAS_H+M;
@@ -6664,78 +6940,43 @@ class PuzzleGame extends Phaser.Scene{
     }
     this.drawBorder();
   }
-  // 土地の外周枠を最前面レイヤーに描く（パーツ画像に隠れない）
+  // 土地の外周枠を最前面レイヤーに描く。
+  // 枠は土地のマスの「外側」に引く。内側に引くとパーツのふち（台所・お風呂など）が隠れてしまうため
   drawBorder(){
     if(!this.borderGfx)return;
     const g=this.borderGfx; g.clear();
     const isLand=(r,c)=>(r>=0&&r<ROWS&&c>=0&&c<COLS&&LAND_MAP[r][c]!==null);
     const BW=6;
-    // ※ 以前ここに半透明のにじみを描いていたが、マスごとに1pxずつ描くため
-    //   隣のマスと重なって交差部だけ濃く（＝枠が太く）見えていたので廃止した。
-    //   枠自体が十分濃いので、にじみは無くても輪郭は失われない
-    // 外枠メイン：濃いダークブラウン
+    // 外枠メイン：濃いダークブラウン（へこんだ角は、隣どうしの枠が重なって自然に埋まる）
     g.fillStyle(0x5d4037,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px,py,CS,BW);
-      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,BW);
-      if(!isLand(r,c-1)) g.fillRect(px,py,BW,CS);
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,BW,CS);
+      if(!isLand(r-1,c)) g.fillRect(px,py-BW,CS,BW);
+      if(!isLand(r+1,c)) g.fillRect(px,py+CS,CS,BW);
+      if(!isLand(r,c-1)) g.fillRect(px-BW,py,BW,CS);
+      if(!isLand(r,c+1)) g.fillRect(px+CS,py,BW,CS);
     }
-    // 内側ハイライト（二重線効果）：明るいブラウン1px。
-    // マスの幅いっぱいに描く。以前は両端をBWぶん詰めていたため、マスの境目で
-    // ハイライトが途切れ、そこだけ枠が太く（濃く）見えていた
+    // 出っぱった角は、角の点を中心にした扇形で丸く埋める
+    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
+      const tl=isLand(r-1,c-1),tr=isLand(r-1,c),bl=isLand(r,c-1),br=isLand(r,c);
+      if((tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0)!==1)continue;
+      const X=c*CS,Y=r*CS;
+      if(br)      g.slice(X,Y,BW,Math.PI,1.5*Math.PI);
+      else if(bl) g.slice(X,Y,BW,1.5*Math.PI,2*Math.PI);
+      else if(tr) g.slice(X,Y,BW,0.5*Math.PI,Math.PI);
+      else        g.slice(X,Y,BW,0,0.5*Math.PI);
+      g.fillPath();
+    }
+    // 内側ハイライト（二重線効果）：土地に接する側に明るいブラウン1px
     g.fillStyle(0xb09070,1);
     for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
       if(!isLand(r,c))continue;
       const px=c*CS, py=r*CS;
-      if(!isLand(r-1,c)) g.fillRect(px,py+BW-1,CS,1);
-      if(!isLand(r+1,c)) g.fillRect(px,py+CS-BW,CS,1);
-      if(!isLand(r,c-1)) g.fillRect(px+BW-1,py,1,CS);
-      if(!isLand(r,c+1)) g.fillRect(px+CS-BW,py,1,CS);
-    }
-
-    // L字土地の内側コーナーで欠ける交点
-    g.fillStyle(0x5d4037,1);
-    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
-      const tl=isLand(r-1,c-1), tr=isLand(r-1,c), bl=isLand(r,c-1), br=isLand(r,c);
-      const cnt=(tl?1:0)+(tr?1:0)+(bl?1:0)+(br?1:0);
-      if(cnt!==3)continue; // 3マスが土地＝内側コーナー
-      const X=c*CS, Y=r*CS;
-      if(!tl) g.fillRect(X,Y,BW,BW);
-      else if(!tr) g.fillRect(X-BW,Y,BW,BW);
-      else if(!bl) g.fillRect(X,Y-BW,BW,BW);
-      else g.fillRect(X-BW,Y-BW,BW,BW);
-    }
-    // ── 凸角（外側コーナー）を丸める ──
-    const RC=BW;  // 6px
-    for(let r=0;r<=ROWS;r++)for(let c=0;c<=COLS;c++){
-      const tl2=isLand(r-1,c-1),tr2=isLand(r-1,c),bl2=isLand(r,c-1),br2=isLand(r,c);
-      const cnt2=(tl2?1:0)+(tr2?1:0)+(bl2?1:0)+(br2?1:0);
-      if(cnt2!==1)continue;
-      const X2=c*CS,Y2=r*CS;
-      // 角の四角を「後ろにある色」で塗って消す。
-      // 盤の外なら画面の地色、盤の中なら駐車場／植え込みの色
-      const outAt=(rr,cc)=>(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS)
-        ? (this._outsideColor||0xa9a59e) : 0xf5f0e8;
-      let ec;
-      if(br2)      ec=outAt(r-1,c-1);
-      else if(bl2) ec=outAt(r-1,c);
-      else if(tr2) ec=outAt(r,c-1);
-      else         ec=outAt(r,c);
-      g.fillStyle(ec,1);
-      if(br2)      g.fillRect(X2,Y2,RC,RC);
-      else if(bl2) g.fillRect(X2-RC,Y2,RC,RC);
-      else if(tr2) g.fillRect(X2,Y2-RC,RC,RC);
-      else         g.fillRect(X2-RC,Y2-RC,RC,RC);
-      // 扇形で丸角を描画
-      g.fillStyle(0x5d4037,1);
-      if(br2)      g.slice(X2+RC,Y2+RC,RC,Math.PI,1.5*Math.PI);
-      else if(bl2) g.slice(X2-RC,Y2+RC,RC,1.5*Math.PI,2*Math.PI);
-      else if(tr2) g.slice(X2+RC,Y2-RC,RC,0.5*Math.PI,Math.PI);
-      else         g.slice(X2-RC,Y2-RC,RC,0,0.5*Math.PI);
-      g.fillPath();
+      if(!isLand(r-1,c)) g.fillRect(px,py-1,CS,1);
+      if(!isLand(r+1,c)) g.fillRect(px,py+CS,CS,1);
+      if(!isLand(r,c-1)) g.fillRect(px-1,py,1,CS);
+      if(!isLand(r,c+1)) g.fillRect(px+CS,py,1,CS);
     }
   }
   drawBoard(){

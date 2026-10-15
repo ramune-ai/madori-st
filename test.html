@@ -27,7 +27,6 @@
 button,a,.btn-sub,.btn-start,.btn-result,.top-link{touch-action:manipulation;}
 .title-badge{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background-size:contain;background-repeat:no-repeat;background-position:center;line-height:1;filter:drop-shadow(0 1px 2px rgba(58,42,26,.25));vertical-align:middle;position:relative;}
 .title-badge .tb-emoji{line-height:1;display:block;will-change:transform;letter-spacing:0;text-indent:0;}
-.ne-transfer{display:block;width:100%;margin-top:10px;background:none;border:none;cursor:pointer;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-light);text-decoration:underline;text-underline-offset:3px;padding:4px 0;}
 /* データの引き継ぎの説明 */
 #mini-confirm .dt-msg{font-size:13px;color:var(--brown);line-height:1.7;margin-bottom:14px;text-align:left;}
 #mini-confirm .dt-msg small{display:block;font-size:11px;color:var(--brown-light);margin-top:6px;}
@@ -1574,6 +1573,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <button class="top-link" onclick="openSoundSettings()">♪ 音楽設定</button>
     <a class="top-link" href="guideline.html" target="_blank" rel="noopener">📋 配信ガイドライン</a>
     <button class="top-link" id="btn-update-info" onclick="openUpdateInfo()">📰 アップデート情報<span class="upd-new" id="upd-new" style="display:none;">NEW!!</span></button>
+    <button class="top-link" onclick="openDataTransfer()">📦 データの引き継ぎ</button>
     <a class="top-link" id="tip-link" href="#" target="_blank" rel="noopener" style="display:none;">💝 応援する</a>
   </div>
   <!-- 右上：ゲーム内容を伝える物件貼り紙 -->
@@ -1633,7 +1633,7 @@ html{overflow-y:scroll;}html,body{overflow-x:hidden;}
     <div class="ne-label" id="name-edit-title-label"><i>2</i>つける称号をえらぶ<span>タップでえらぶ・レア度の高い順</span></div>
     <div id="name-edit-hint" style="font-size:11px;color:var(--brown-light);margin-bottom:10px;display:none;">称号を選んで名前と一緒に表示できます</div>
     <div id="name-edit-title-list" class="ne-list" style="display:flex;flex-wrap:wrap;gap:8px;overflow-y:auto;flex:1;min-height:0;margin-bottom:16px;"></div>
-    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">この内容で決定</button><button class="ne-transfer" onclick="openDataTransfer()">📦 データの引き継ぎ（機種変更）</button></div>
+    <div class="name-edit-foot"><button onclick="saveNameEdit()" style="width:100%;background:var(--brown-dark);color:#f5f0e8;font-family:'Noto Serif JP',serif;font-size:15px;letter-spacing:.15em;padding:14px 0;border:none;border-radius:6px;cursor:pointer;">この内容で決定</button></div>
   </div>
 </div>
 
@@ -4248,6 +4248,23 @@ function updateTitlesNewBadge(){
 // 本番に入れるたびに先頭へ1つ足す。先頭の ver が変わると、まだ見ていない人のボタンに NEW!! が付く
 // Ver.1.0＝2026/9/11 一般公開／Ver.1.1＝9/12／Ver.1.2＝9/27
 const UPDATES=[
+  {ver:'1.4', date:'2026年10月16日', html:
+  '<div class="upd-h">■ 新しくなったこと</div><ul>'+
+  '<li><b>データの引き継ぎ</b>ができるようになりました（スタート画面の「📦 データの引き継ぎ」）。今のデータをファイルに保存して、新しい端末で読み込むと続きから遊べます。データはインターネットには送りません</li>'+
+  '<li>シェアする時に、<b>カード画像</b>と<b>縦長の画像（インスタのストーリーズ向け）</b>を選べるようになりました</li>'+
+  '</ul><div class="upd-h">■ 変わったこと</div><ul>'+
+  '<li>シェア画像が、PCでもスマホでも同じ見た目・同じ画質になりました</li>'+
+  '<li>土地の枠を土地の外側に描くようにして、パーツのふちが隠れないようにしました</li>'+
+  '<li>完成カードのハッシュタグを、長い時も小さくなりすぎないようにしました</li>'+
+  '<li>スタート画面の「今週のフェア」で、今日以外の曜日の文字を落ち着いた色にしました</li>'+
+  '<li>称号一覧の説明を見出しの横に移し、称号をタップした時に音が鳴るようにしました</li>'+
+  '<li>マドリスト名の欄に「本名は入れないでね」の注意を足しました（シェア画像にのるため）</li>'+
+  '</ul><div class="upd-h">■ 直したこと</div><ul>'+
+  '<li>スマホで、物件情報ルーレットに移る時に画面がガクッと動く不具合を直しました</li>'+
+  '<li>スマホの完成画面で、一番下の「タイトルへもどる」が見切れることがある不具合を直しました</li>'+
+  '<li>Xなどにシェアした時、間取りの「＋」が消えてしまう不具合を直しました</li>'+
+  '<li>ゲームの部品を、外部のサイトからではなく間取りすとのサイトから読み込むようにして、より安全にしました</li>'+
+  '</ul>'},
   {ver:'1.3', date:'2026年10月2日', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
   '<li><b>曜日ごとのフェア</b>を始めました（スタート画面の「今週のフェア」から内容を見られます）<br>'+
