@@ -720,6 +720,9 @@ body.resume-hide #screen-game{opacity:0!important;}
 .snd-mute input{width:20px;height:20px;accent-color:var(--accent);margin:0;cursor:pointer;}
 input[type=range]:disabled{opacity:.35;}
 .snd-reset{display:block;margin:16px auto 0;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;color:var(--brown-dark);background:#fff;border:1px solid rgba(90,74,58,.25);border-radius:18px;padding:8px 18px;cursor:pointer;}
+/* プライバシーポリシー・クレジット（about.html）への小さなリンク */
+.info-link{display:block;margin-top:14px;text-align:center;font-size:12px;font-weight:700;color:var(--brown-light);text-decoration:underline;text-underline-offset:3px;}
+#mini-confirm .dt-msg .info-link{display:inline-block;margin-top:6px;font-size:11px;}
 /* ── ③ ルーレット ── */
 #screen-roulette{background:rgba(245,240,232,0.82);}
 .roulette-title{font-family:'Noto Serif JP',serif;font-size:27px;font-weight:700;color:var(--brown-dark);letter-spacing:.12em;margin-bottom:24px;margin-top:-10px;text-align:center;}
@@ -2156,6 +2159,7 @@ function openSoundSettings(){
       '<label class="snd-mute"><input type="checkbox" id="bgm-mute-cb">BGMを常に消音（ミュート）</label>'+
       '<div style="margin-top:14px;font-size:11px;color:var(--brown-light);">消音にしても音量は覚えています（外すと元に戻ります）</div>'+
       '<button class="snd-reset" onclick="resetSoundSettings()">初期設定に戻す</button>'+
+      '<a class="info-link" href="about.html#credits" target="_blank" rel="noopener">🎵 音楽・効果音のクレジット</a>'+
       '</div>';
     ov.onclick=()=>closeSoundSettings();
     document.body.appendChild(ov);
@@ -2672,7 +2676,7 @@ function openDataTransfer(){
   if(!el){ el=document.createElement('div'); el.id='mini-confirm'; document.body.appendChild(el); }
   el.innerHTML='<div class="mc-card"><div class="mc-name">データの引き継ぎ</div>'
     +'<div class="dt-msg">今のデータ（称号・マイ物件・プレイ中の物件・設定）を<b>ファイルに保存</b>して、新しい端末で<b>読み込む</b>と続きから遊べます。'
-    +'<small>※データは、この端末とファイルの中だけにあります。インターネット上には送りません。<br>※iPhoneは「ファイルに保存」を選ぶと、ファイルアプリに残せます。</small></div>'
+    +'<small>※データは、この端末とファイルの中だけにあります。インターネット上には送りません。<br>※iPhoneは「ファイルに保存」を選ぶと、ファイルアプリに残せます。<br><a class="info-link" href="about.html#privacy" target="_blank" rel="noopener">🔒 プライバシーポリシー</a></small></div>'
     +'<div class="sc-opts">'
     +'<button class="sc-opt" data-k="out"><b>💾 このデータを保存する</b><span>ファイルに書き出す（前の端末で）</span></button>'
     +'<button class="sc-opt" data-k="in"><b>📂 保存したデータを読み込む</b><span>ファイルを選ぶ（新しい端末で）</span></button>'
@@ -4219,6 +4223,11 @@ function updateTitlesNewBadge(){
 // 本番に入れるたびに先頭へ1つ足す。先頭の ver が変わると、まだ見ていない人のボタンに NEW!! が付く
 // Ver.1.0＝2026/9/11 一般公開／Ver.1.1＝9/12／Ver.1.2＝9/27
 const UPDATES=[
+  {ver:'1.4.1', date:'2026年10月16日', html:
+  '<div class="upd-h">■ 新しくなったこと</div><ul>'+
+  '<li><b>プライバシーポリシーとクレジット</b>のページを作りました。「♪ 音楽設定」と「📦 データの引き継ぎ」の中のリンクから見られます</li>'+
+  '<li>間取りすとは<b>個人情報を集めていません</b>。遊んだデータは、あなたの端末の中だけにあります</li>'+
+  '</ul>'},
   {ver:'1.4', date:'2026年10月16日', html:
   '<div class="upd-h">■ 新しくなったこと</div><ul>'+
   '<li><b>データの引き継ぎ</b>ができるようになりました（スタート画面の「📦 データの引き継ぎ」）。今のデータをファイルに保存して、新しい端末で読み込むと続きから遊べます。データはインターネットには送りません</li>'+
